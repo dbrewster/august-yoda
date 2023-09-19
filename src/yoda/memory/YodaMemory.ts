@@ -20,7 +20,6 @@ export const getMemory = (userId: string, chatId: string, context: string) => {
       chatId: chatId,
       context: context,
     }).map(doc => {
-      console.log(doc)
       const message = doc.message as Record<string, any>
       switch (message.type) {
         case "human":
@@ -30,9 +29,7 @@ export const getMemory = (userId: string, chatId: string, context: string) => {
           if (!kwargs?.function_call) {
             kwargs = {}
           }
-          console.log("ai", kwargs)
           let aiMessage = new AIMessage(message.data.content || "", kwargs);
-          console.log("ai", aiMessage.toDict())
           return aiMessage
         case "system":
           return new SystemMessage(message.data)

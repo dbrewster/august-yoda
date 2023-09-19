@@ -14,7 +14,7 @@ export interface ChainOptions extends BaseNameDescriptionOptions {
   children: BaseItem[]
 }
 
-export class Chain extends BaseNameDescriptionItem<ChainOptions> {
+export class Chain<T extends ChainOptions = ChainOptions> extends BaseNameDescriptionItem<T> {
   async call(runId: string, input: ItemValues, options: BaseCallContext, runManager?: RunManger): Promise<ItemValues> {
     runManager?.handleEvent(runId, "onChainStart", {})
     let runtimeValues = {...input}

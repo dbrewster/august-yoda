@@ -14,10 +14,9 @@ export class MongoEventHandler extends BufferedEventHandler {
     this._conversationId = conversationId;
   }
 
-  writeEvents(events: YodaEvent[]): void {
+  async writeEvents(events: YodaEvent[]): Promise<void> {
     const writeEvents = events.map(e => ({...e, userId: this.userId, chatId: this.chatId, conversationId: this._conversationId, id: e.id + ":" + e.eventName}))
-    mongoCollection("chat_debug").then(collection => {
-      collection.insertMany(writeEvents)
-    })
+    const collection = await mongoCollection("chat_debug")
+    await collection.insertMany(writeEvents)
   }
 }

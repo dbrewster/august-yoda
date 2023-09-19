@@ -4,15 +4,24 @@ import dotenv from 'dotenv';
 import bodyParser from "body-parser";
 import {createServer} from "http";
 import {RawData, WebSocket, WebSocketServer} from "ws";
-import message_route from "@/yoda/api/chat/[id]/message/route.js"
+import message_route from "@/yoda/api/chat/[id]/message/route"
 import {nanoid} from "nanoid";
-import {createIdPatternMatcher, WCMatch, YodaEvent} from "@/yoda/listener/EventHandler.js";
+import {createIdPatternMatcher, WCMatch, YodaEvent} from "@/yoda/listener/EventHandler";
+import {ErrorRequestHandler} from "express-serve-static-core";
+import {promiseMiddleware} from "@/yoda/api/promise-middleware";
 
 //For env File
 dotenv.config();
 
+const handler: ErrorRequestHandler = (err, req, res, next) => {
+  console.trace("Error in handling request", err)
+  res.status(500)
+  res.send(err)
+}
+
 const app: Application = express();
 app.use(bodyParser.json())
+app.use(promiseMiddleware())
 const port = process.env.PORT || 8000;
 
 const registerRoutes = async (name: string) => {
@@ -21,7 +30,6 @@ const registerRoutes = async (name: string) => {
 }
 
 message_route(app)
-
 await registerRoutes("@/yoda/api/chat/route.js")
 await registerRoutes("@/yoda/api/chat/[id]/route.js")
 await registerRoutes("@/yoda/api/chat/[id]/message/[messageId]/route.js")
@@ -31,9 +39,13 @@ await registerRoutes("@/yoda/api/product/route.js")
 await registerRoutes("@/yoda/api/product/[id]/fact/route.js")
 await registerRoutes("@/yoda/api/product/[id]/fact/[factId]/route.js")
 
+await registerRoutes("@/yoda/api/graph/route.js")
+
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');
 });
+
+app.use(handler)
 
 const server = createServer(app)
 
@@ -96,8 +108,6 @@ class MessageOperator {
 }
 
 wss.on('connection', function (ws, _request) {
-  console.log("Got open")
-
   let magicKey: string | null = null
   let chatId: string | null
   ws.on('error', console.error);
@@ -105,7 +115,6 @@ wss.on('connection', function (ws, _request) {
   ws.on("message", (s: RawData) => {
     try {
       const messageJson = JSON.parse(s.toString('utf-8'))
-      console.log("message", messageJson)
       if (messageJson.command == "init") {
         magicKey = nanoid()
         chatId = messageJson.chatId as string

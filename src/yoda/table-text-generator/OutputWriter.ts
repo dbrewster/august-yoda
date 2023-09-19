@@ -147,7 +147,7 @@ export const serializeTableType = (table: TableType, allTableNames: Set<string>)
   let description = ""
   if (table.description) {
     description = "-- " + table.description + "\n"
-    description = `-- There are ${table.numRows} rows in this table`
+    description += `-- There are ${table.numRows} rows in this table`
   }
   if (table.type) {
     description += `-- The ${table.name} table is a ${table.type} table.\n`

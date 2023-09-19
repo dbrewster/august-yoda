@@ -1,13 +1,6 @@
-import {GetDataProducts} from "@/yoda/new-query/GetDataProducts.js";
-import {GetRelevantFactTables, VettedTable} from "@/yoda/new-query/GetRelevantFactTables.js";
-import {GetRelevantDimensionTables} from "@/yoda/new-query/GetRelevantDimensionTables.js";
-import {BaseCallContext, BindInputValue, ItemValues, RunManger} from "@/yoda/new-query/BaseItem.js";
-import {GetRelevantSchemaForTable} from "@/yoda/new-query/GetRelevantSchemaForTable.js";
+import {BaseCallContext, RunManger} from "@/yoda/new-query/BaseItem.js";
 import {GenerateSQL} from "@/yoda/new-query/GenerateSQL.js";
 import {ExecuteSQL} from "@/yoda/new-query/ExecuteSQL.js";
-import {serializeTables} from "@/yoda/table-text-generator/OutputWriter.js";
-import {Chain} from "@/yoda/new-query/Chain.js";
-import {MapReduce} from "@/yoda/new-query/MapReduce.js";
 import {Agent} from "@/yoda/new-query/Agent.js";
 import {ExecuteDatabaseQueryTool} from "@/yoda/new-query/ExecuteDatabaseQueryTool.js";
 import {ChatOpenAI} from "langchain/chat_models/openai";
@@ -19,6 +12,9 @@ import {GetChatTitle} from "@/yoda/new-query/GetChatTitle.js";
 import {ObjectId} from "mongodb";
 import {StdOutQueryListener} from "@/yoda/listener/StdOutQueryListener.js";
 import {MongoEventHandler} from "@/yoda/listener/MongoEventHandler.js";
+import {GenSchema} from "@/yoda/new-query/schema-generation/GenSchema.js";
+import {PlanningChainAgent} from "@/yoda/new-query/PlanningChainAgent.js";
+import {GetDataProductFacts} from "@/yoda/new-query/schema-generation/GetDataProductFacts.js";
 
 export const executeQuery = async (userId: string, chatId: string, query: string, verbose?: string) => {
   const model35 = new ChatOpenAI({
@@ -26,7 +22,6 @@ export const executeQuery = async (userId: string, chatId: string, query: string
     modelName: process.env.MODEL,
     verbose: true
   })
-  console.log(process.env.MODEL_4)
   const model4 = new ChatOpenAI({
     temperature: 0,
     modelName: process.env.MODEL_4,
@@ -34,34 +29,42 @@ export const executeQuery = async (userId: string, chatId: string, query: string
   })
 
   const runManager = new RunManger()
-  let runId = `${userId}-${chatId}`;
-  let conversationId = new ObjectId().toString();
-  let options: BaseCallContext = {model: model35, model4: model4, db: new SQLDatabase(), userId: userId, chatId: chatId, conversationId: conversationId};
-  const isFirstCall = await mongoCollection("chat_history").then(collection => {
-    return collection.find({userId: userId, chatId: chatId}).limit(1).toArray().then(v => v.length == 0)
-  })
-
-  if (isFirstCall) {
-    const title = (await new GetChatTitle()._call(runId, {query: query}, options, runManager)).title
-    console.log("got title", title)
-    mongoCollection("session").then(collection => {
-      collection.updateOne({userId: userId, _id: ObjectId.createFromHexString(chatId)}, {"$set": {title: title}})
+  try {
+    let runId = `${userId}-${chatId}`;
+    let conversationId = new ObjectId().toString();
+    let options: BaseCallContext = {
+      model: model35,
+      model4: model4,
+      db: new SQLDatabase(),
+      userId: userId,
+      chatId: chatId,
+      conversationId: conversationId
+    };
+    const isFirstCall = await mongoCollection("chat_history").then(collection => {
+      return collection.find({userId: userId, chatId: chatId}).limit(1).toArray().then(v => v.length == 0)
     })
+
+    if (isFirstCall) {
+      const title = (await new GetChatTitle()._call(runId, {query: query}, options, runManager)).title
+      mongoCollection("session").then(collection => {
+        collection.updateOne({userId: userId, _id: ObjectId.createFromHexString(chatId)}, {"$set": {title: title}})
+      })
+    }
+
+    const apiListener = new APIListener(chatId)
+    runManager.addHandler(apiListener)
+
+    if (verbose) {
+      const stdLogger = new StdOutQueryListener(JSON.parse(verbose))
+      runManager.addHandler(stdLogger)
+    }
+
+    runManager.addHandler(new MongoEventHandler(userId, chatId, conversationId))
+    return await getQueryChain()._call(runId, {query: query}, options, runManager)
+  } finally {
+    runManager.flush()
+    runManager.close()
   }
-
-  const apiListener = new APIListener(chatId)
-  runManager.addHandler(apiListener)
-
-  if (verbose) {
-    const stdLogger = new StdOutQueryListener(JSON.parse(verbose))
-    runManager.addHandler(stdLogger)
-  }
-
-  runManager.addHandler(new MongoEventHandler(userId, chatId, conversationId))
-  let result = await getQueryChain()._call(runId, {query: query}, options, runManager);
-
-  runManager.flush()
-  return result
 }
 
 export const getQueryChain = () => {
@@ -74,83 +77,37 @@ export const getQueryChain = () => {
     memoryContext: "main",
     children: [
       new ExecuteDatabaseQueryTool({
-        name: "search_db_chain",
-        description: `Generates and executes sql against the database returning a json object containing the data and the SQL query.
-This should take a user query in plain english. DO NOT convert the input into SQL before calling.
-returns: An object containing the result from the database and the SQL in the form \\{"data": "<the data>", "sql": "<the sql>"\\}
+        name: "search_chain",
+        description: `Converts a question from a user, in plain text, to the output from a database.
+The input to this tool is a user query in english. DO NOT convert the input into SQL before calling.
 `,
         outputValues: ["data"],
         children: [
-          new Chain({
-            name: "gen_schema",
-            description: "Generates schema from query",
-            outputValues: ["data_products", "schema"],
+          new PlanningChainAgent({
+            name: "gen_and_execute_sql",
+            description: "Generates the schema, the SQL statement, and executes the query",
+            agentMessage: `Please plan out the steps you need to take first. 
+You have three tools to choose from:
+  1) gen_schema: Generates the schema from the user query.
+  2) gen_sql: Generates the sql from the user query and the schema
+  3) exec_sql: Executes the generated schema.
+ 
+First plan out your steps given the user query and the existing history. 
+If the new query differs from the old then you might need to regenerate schema or the sql.
+Feel free to use any tools available to look up relevant information.
+Note that a chain of tools may be required to answer the query.
+If a SQL error occurred, check the schema and sql to make sure it contained correct column names and all of the information needed. 
+Only regenerate the schema if it is incomplete. 
+Also note that if you have previous answers to the users question you may return those without calling a tool.`,
+            humanMessage: "{query}",
+            outputValues: ["data"],
+            memoryContext: "gen_and_execute_sql",
             children: [
-              new GetDataProducts(),
-              new MapReduce({
-                name: "mr_data_products",
-                description: "Get tables for each data product and reduce them to a list of tables",
-                map(input: ItemValues) {
-                  return input.data_products.map((dp: string) => {
-                    return new Chain({
-                      name: `get_dp_tables_${dp}`,
-                      description: `Get tables for data product ${dp}`,
-                      outputValues: ['facts', `dimensions`],
-                      children: [
-                        new BindInputValue({
-                          name: "bind_data_product",
-                          description: "Bind the data product to the input scope",
-                          data_product: dp
-                        }),
-                        new GetRelevantFactTables(),
-                        new GetRelevantDimensionTables()
-                      ]
-                    })
-                  })
-                },
-                async reduce(values: ItemValues[]) {
-                  // we should have an array of values that contain either a fact key or a dimension key
-                  let tables = values.map(value => {
-                    let tables = value.facts as VettedTable[]
-                    if (value.dimensions) {
-                      tables = tables.concat(value.dimensions)
-                    }
-                    return tables
-                  }).flat();
-                  console.error("**** tables", tables)
-                  return {tables: tables}
-                }
-              }),
-              new MapReduce({
-                name: "mr_process_tables",
-                description: "map (dp, isFactTable, table)[] -> schema for each",
-                map: (iv) => {
-                  return iv.tables.map((table: VettedTable) => {
-                    return new Chain({
-                      name: `get_schema_for_${table.data_product}_${table.table}`,
-                      description: `Get schema for ${table.data_product}_${table.table}`,
-                      outputValues: ['schema_for_table'],
-                      children: [
-                        new BindInputValue({
-                          name: "bind_table",
-                          description: "Bind the table to the input scope",
-                          data_product: table.data_product,
-                          is_fact_table: table.isFactTable,
-                          table: table.table
-                        }),
-                        new GetRelevantSchemaForTable()
-                      ]
-                    })
-                  })
-                },
-                reduce(input: ItemValues[]) {
-                  return {schema: serializeTables(input.map(i => i.schema_for_table))}
-                }
-              }),
+              new GenSchema(),
+              new GenerateSQL(),
+              new ExecuteSQL()
             ]
-          }),
-          new GenerateSQL(),
-          new ExecuteSQL()
+          })
         ]
       })
     ]

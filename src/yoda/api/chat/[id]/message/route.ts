@@ -1,18 +1,18 @@
 import {mongoCollection} from "@/yoda/api/util.js";
 import {executeQuery} from "@/yoda/new-query/QE2.js";
 import {Application} from "express";
+import {Document} from "mongodb"
 
 export default async function register(app: Application) {
-  app.get("/chat/:id/message", (req, res) => {
+  app.get("/chat/:id/message", async (req, res) => {
     const userId = req.query.userId;
     if (!userId) {
       return res.status(404).send('Not found')
     }
     const sessionId = req.params.id
-    return mongoCollection("chat_history").then(async collection => {
-      const sessions = await collection.find({'userId': userId, 'chatId': sessionId}, ).toArray();
-/*
-      const ret = sessions.map((obj: Document) => {
+    const collection = await mongoCollection("chat_history");
+    const sessions = collection.find({'userId': userId, 'chatId': sessionId, context: "main"},).toArray().then( sess =>
+      sess.map((obj: Document) => {
         const history = obj.message
         delete obj.message
         for (let objKey in history) {
@@ -20,9 +20,8 @@ export default async function register(app: Application) {
         }
         return obj
       })
-*/
-      return res.json(sessions);
-    })
+    )
+    return res.promise(sessions)
   })
   app.post("/chat/:id/message", async (req, res) => {
     const userId = req.query.userId;
@@ -32,7 +31,7 @@ export default async function register(app: Application) {
     const sessionId = req.params.id
     const input = req.body
     const verbose = req.body.verbose
-    let result = await executeQuery(userId as string, sessionId, input.query, verbose);
-    return res.json(result)
+    let result = executeQuery(userId as string, sessionId, input.query, verbose);
+    return res.promise(result)
   })
 }

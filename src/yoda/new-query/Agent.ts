@@ -39,10 +39,15 @@ export class Agent extends BaseItem<AgentOptions> {
 
   agentMessage = SystemMessagePromptTemplate.fromTemplate(
     `Do your best to answer the questions.
-Please plan out the steps you need to take first. 
-The first thing you should do is formulate a new user query based on the current question taking into account the history
-Do not translate the input to a tool unless the tool asks you to do so
+Please plan out the steps you need to take first using the history of other queries by the user and the input parameters for the tools
 Feel free to use any tools available to look up relevant information.
+Take the following steps before calling a tool:
+  1) Make sure the tool you are calling is the correct tool. If the use didn't ask a question related to the tool then don't ask the tool.
+  2) The tools DO NOT have memory. You need to combine all prior questions from the user into a new question that the tool can answer before calling the tool
+  
+After you call a tool:
+  1) Translate the response into a response according to the users request.
+  2) If the tool didn't return any results, DO NOT try to answer the question yourself. You can call the tool again with a better request.
 Note that a chain of tools may be required to answer the query.
 Also note that if you have previous answers to the users question you may return those or reformat the answer in any way without calling a tool.
 `

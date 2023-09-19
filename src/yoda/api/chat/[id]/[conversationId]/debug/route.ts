@@ -22,9 +22,9 @@ export async function register(app: Application) {
 
     const idExp = wcmatch2(filters, {separator:':'}).regexp
     const regExpStr = idExp.toString().slice(5, idExp.toString().length-3)
-    const matches = await mongoCollection("chat_debug").then(collection => {
+    const matches = mongoCollection("chat_debug").then(collection => {
       return collection.find({userId: userId, chatId: sessionId, conversationId: conversationId, id: {$regex: `${regExpStr}`}}).toArray()
     })
-    return res.json(matches)
+    return res.promise(matches)
   })
 }

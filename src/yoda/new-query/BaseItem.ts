@@ -24,6 +24,11 @@ export interface BaseOptions {
 
 export class RunManger {
   private eventHandlers: EventHandler[] = []
+  private timer: NodeJS.Timeout;
+
+  constructor() {
+    this.timer = setInterval(this.flush, 1000)
+  }
 
   handleEvent(id: string, eventName: string, args: Record<string, any>) {
     const now = DateTime.now()
@@ -31,15 +36,19 @@ export class RunManger {
   }
 
   public addHandler(handler: EventHandler) {
-   this.eventHandlers = this.eventHandlers.concat(handler)
+    this.eventHandlers = this.eventHandlers.concat(handler)
   }
 
   flush() {
-    this.eventHandlers.forEach((handler: any) => {
+    this.eventHandlers?.forEach((handler: any) => {
       if (handler.flush) {
         handler.flush()
       }
     })
+  }
+
+  close() {
+    clearInterval(this.timer)
   }
 }
 
@@ -55,11 +64,18 @@ export abstract class BaseItem<T extends BaseOptions = BaseOptions> {
 
   async _call(runId: string, input: ItemValues, options: BaseCallContext, runManager?: RunManger): Promise<ItemValues> {
     runId = runId + ":" + this.name
-    runManager?.handleEvent(runId, "onCallStart", {input:input})
-    const ret = await this.call(runId, input, options, runManager)
-    runManager?.handleEvent(runId, "onCallEnd", {result: ret})
-    return ret
+    runManager?.handleEvent(runId, "onCallStart", {input: input})
+    try {
+      const ret = await this.call(runId, input, options, runManager)
+      runManager?.handleEvent(runId, "onCallEnd", {result: ret})
+      return ret
+    } catch (e: any) {
+      console.trace("Error processing", runId, e)
+      runManager?.handleEvent(runId, "onCallError", {error: e.toString()})
+      throw e
+    }
   }
+
   abstract call(runId: string, input: ItemValues, options: BaseCallContext, runManager?: RunManger): Promise<ItemValues>
 }
 

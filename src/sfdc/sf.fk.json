@@ -1,0 +1,7282 @@
+[
+ {
+  "name": "Account",
+  "fields": [
+   {
+    "name": "MasterRecordId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "DandbCompanyId",
+    "referenceTo": [
+     "DandBCompany"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "AccountContactRole",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "AccountPartner",
+  "fields": [
+   {
+    "name": "AccountFromId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AccountToId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "OpportunityId",
+    "referenceTo": [
+     "Opportunity"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ReversePartnerId",
+    "referenceTo": [
+     "AccountPartner"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "AccountShare",
+  "fields": [
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "AcquiredAccount__Share",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "AcquiredAccount__c"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "AcquiredAccount__c",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ActionLinkGroupTemplate",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ActionLinkTemplate",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ActionLinkGroupTemplateId",
+    "referenceTo": [
+     "ActionLinkGroupTemplate"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "AdditionalNumber",
+  "fields": [
+   {
+    "name": "CallCenterId",
+    "referenceTo": [
+     "CallCenter"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Announcement",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "FeedItemId",
+    "referenceTo": [
+     "FeedItem"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "CollaborationGroup"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ApexClass",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ApexComponent",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ApexEmailNotification",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ApexPage",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ApexTestQueueItem",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ApexClassId",
+    "referenceTo": [
+     "ApexClass"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ParentJobId",
+    "referenceTo": [
+     "AsyncApexJob"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "TestRunResultId",
+    "referenceTo": [
+     "ApexTestRunResult"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ApexTestResult",
+  "fields": [
+   {
+    "name": "ApexClassId",
+    "referenceTo": [
+     "ApexClass"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AsyncApexJobId",
+    "referenceTo": [
+     "AsyncApexJob"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "QueueItemId",
+    "referenceTo": [
+     "ApexTestQueueItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ApexLogId",
+    "referenceTo": [
+     "ApexLog"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ApexTestRunResultId",
+    "referenceTo": [
+     "ApexTestRunResult"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ApexTestResultLimits",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ApexTestResultId",
+    "referenceTo": [
+     "ApexTestResult"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ApexTestRunResult",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AsyncApexJobId",
+    "referenceTo": [
+     "AsyncApexJob"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "UserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ApexTestSuite",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ApexTrigger",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Asset",
+  "fields": [
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Asset"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "RootAssetId",
+    "referenceTo": [
+     "Asset"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "Product2Id",
+    "referenceTo": [
+     "Product2"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AssetProvidedById",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AssetServicedById",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "AssetRelationship",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AssetId",
+    "referenceTo": [
+     "Asset"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RelatedAssetId",
+    "referenceTo": [
+     "Asset"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "AssetShare",
+  "fields": [
+   {
+    "name": "AssetId",
+    "referenceTo": [
+     "Asset"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "AssociatedLocation",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ParentRecordId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LocationId",
+    "referenceTo": [
+     "Location"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Attachment",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Asset",
+     "Campaign",
+     "Case",
+     "Contact",
+     "Contract",
+     "ContractLineItem",
+     "EmailMessage",
+     "EmailTemplate",
+     "Entitlement",
+     "Event",
+     "Lead",
+     "Location",
+     "Opportunity",
+     "OpportunityHistory__c",
+     "Order",
+     "Product2",
+     "ServiceContract",
+     "Solution",
+     "Task",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "AuraDefinition",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AuraDefinitionBundleId",
+    "referenceTo": [
+     "AuraDefinitionBundle"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "AuraDefinitionBundle",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "AuthProvider",
+  "fields": [
+   {
+    "name": "RegistrationHandlerId",
+    "referenceTo": [
+     "ApexClass"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ExecutionUserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "PluginId",
+    "referenceTo": [
+     "ApexClass"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "BrandTemplate",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "BrandingSet",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "BrandingSetProperty",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "BrandingSetId",
+    "referenceTo": [
+     "BrandingSet"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "BusinessHours",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "BusinessProcess",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CallCenter",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Campaign",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Campaign"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CampaignMemberRecordTypeId",
+    "referenceTo": [
+     "RecordType"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "CampaignMember",
+  "fields": [
+   {
+    "name": "CampaignId",
+    "referenceTo": [
+     "Campaign"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LeadId",
+    "referenceTo": [
+     "Lead"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LeadOrContactId",
+    "referenceTo": [
+     "Account",
+     "Contact",
+     "Lead"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "LeadOrContactOwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "CampaignMemberStatus",
+  "fields": [
+   {
+    "name": "CampaignId",
+    "referenceTo": [
+     "Campaign"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CampaignShare",
+  "fields": [
+   {
+    "name": "CampaignId",
+    "referenceTo": [
+     "Campaign"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Case",
+  "fields": [
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AssetId",
+    "referenceTo": [
+     "Asset"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Case"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CaseComment",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Case"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CaseContactRole",
+  "fields": [
+   {
+    "name": "CasesId",
+    "referenceTo": [
+     "Case"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CaseShare",
+  "fields": [
+   {
+    "name": "CaseId",
+    "referenceTo": [
+     "Case"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CaseSolution",
+  "fields": [
+   {
+    "name": "CaseId",
+    "referenceTo": [
+     "Case"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "SolutionId",
+    "referenceTo": [
+     "Solution"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CaseTeamMember",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Case"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "MemberId",
+    "referenceTo": [
+     "Contact",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "TeamTemplateMemberId",
+    "referenceTo": [
+     "CaseTeamTemplateMember"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "TeamRoleId",
+    "referenceTo": [
+     "CaseTeamRole"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CaseTeamRole",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CaseTeamTemplate",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CaseTeamTemplateMember",
+  "fields": [
+   {
+    "name": "TeamTemplateId",
+    "referenceTo": [
+     "CaseTeamTemplate"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "MemberId",
+    "referenceTo": [
+     "Contact",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "TeamRoleId",
+    "referenceTo": [
+     "CaseTeamRole"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CaseTeamTemplateRecord",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Case"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "TeamTemplateId",
+    "referenceTo": [
+     "CaseTeamTemplate"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CategoryData",
+  "fields": [
+   {
+    "name": "CategoryNodeId",
+    "referenceTo": [
+     "CategoryNode"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RelatedSobjectId",
+    "referenceTo": [
+     "Solution"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CategoryNode",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "CategoryNode"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ChatterExtension",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "IconId",
+    "referenceTo": [
+     "ContentAsset"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ChatterExtensionConfig",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ChatterExtensionId",
+    "referenceTo": [
+     "ChatterExtension"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "CollaborationGroup",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AnnouncementId",
+    "referenceTo": [
+     "Announcement"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "CollaborationGroupMember",
+  "fields": [
+   {
+    "name": "CollaborationGroupId",
+    "referenceTo": [
+     "CollaborationGroup"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "MemberId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CollaborationGroupMemberRequest",
+  "fields": [
+   {
+    "name": "CollaborationGroupId",
+    "referenceTo": [
+     "CollaborationGroup"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RequesterId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CollaborationGroupRecord",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CollaborationGroupId",
+    "referenceTo": [
+     "CollaborationGroup"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RecordId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Campaign",
+     "Case",
+     "Contact",
+     "Contract",
+     "Lead",
+     "Opportunity",
+     "OpportunityHistory__c"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CollaborationInvitation",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "CollaborationInvitation"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "SharedEntityId",
+    "referenceTo": [
+     "CollaborationGroup",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "InviterId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ConferenceNumber",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ExternalEventId",
+    "referenceTo": [
+     "ExternalEvent"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "Contact",
+  "fields": [
+   {
+    "name": "MasterRecordId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ReportsToId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "IndividualId",
+    "referenceTo": [
+     "Individual"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ContentAsset",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContentDocumentId",
+    "referenceTo": [
+     "ContentDocument"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ContentDistribution",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContentVersionId",
+    "referenceTo": [
+     "ContentVersion"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContentDocumentId",
+    "referenceTo": [
+     "ContentDocument"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "RelatedRecordId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Campaign",
+     "Case",
+     "Contact",
+     "EmailMessage",
+     "Lead",
+     "ListEmail",
+     "Opportunity",
+     "OpportunityHistory__c"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ContentDocumentLink",
+  "fields": [
+   {
+    "name": "LinkedEntityId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Asset",
+     "AssetRelationship",
+     "Campaign",
+     "Case",
+     "CollaborationGroup",
+     "Contact",
+     "ContentWorkspace",
+     "Contract",
+     "ContractLineItem",
+     "Dashboard",
+     "DashboardComponent",
+     "EmailMessage",
+     "EmailTemplate",
+     "Entitlement",
+     "EntityMilestone",
+     "Event",
+     "Lead",
+     "ListEmail",
+     "Location",
+     "MessagingSession",
+     "Opportunity",
+     "OpportunityHistory__c",
+     "Order",
+     "OrderItem",
+     "Organization",
+     "OutgoingEmail",
+     "Product2",
+     "Report",
+     "ServiceContract",
+     "Site",
+     "Solution",
+     "Task",
+     "Topic",
+     "User",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContentDocumentId",
+    "referenceTo": [
+     "ContentDocument"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ContentFolder",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ParentContentFolderId",
+    "referenceTo": [
+     "ContentFolder"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ContentVersion",
+  "fields": [
+   {
+    "name": "ContentDocumentId",
+    "referenceTo": [
+     "ContentDocument"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContentBodyId",
+    "referenceTo": [
+     "ContentBody"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ContentModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "FirstPublishLocationId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Asset",
+     "AssetRelationship",
+     "Campaign",
+     "Case",
+     "CollaborationGroup",
+     "Contact",
+     "ContentWorkspace",
+     "Contract",
+     "ContractLineItem",
+     "Dashboard",
+     "DashboardComponent",
+     "EmailMessage",
+     "EmailTemplate",
+     "Entitlement",
+     "EntityMilestone",
+     "Event",
+     "Lead",
+     "ListEmail",
+     "Location",
+     "MessagingSession",
+     "Opportunity",
+     "OpportunityHistory__c",
+     "Order",
+     "OrderItem",
+     "Organization",
+     "OutgoingEmail",
+     "Product2",
+     "Report",
+     "ServiceContract",
+     "Site",
+     "Solution",
+     "Task",
+     "Topic",
+     "User",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ExternalDataSourceId",
+    "referenceTo": [
+     "ExternalDataSource"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ContentWorkspace",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "DefaultRecordTypeId",
+    "referenceTo": [
+     "RecordType"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "RootContentFolderId",
+    "referenceTo": [
+     "ContentFolder"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ContentWorkspaceDoc",
+  "fields": [
+   {
+    "name": "ContentWorkspaceId",
+    "referenceTo": [
+     "ContentWorkspace"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContentDocumentId",
+    "referenceTo": [
+     "ContentDocument"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ContentWorkspaceMember",
+  "fields": [
+   {
+    "name": "ContentWorkspaceId",
+    "referenceTo": [
+     "ContentWorkspace"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContentWorkspacePermissionId",
+    "referenceTo": [
+     "ContentWorkspacePermission"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "MemberId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ContentWorkspacePermission",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Contract",
+  "fields": [
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "Pricebook2Id",
+    "referenceTo": [
+     "Pricebook2"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CompanySignedId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CustomerSignedId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ActivatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ContractContactRole",
+  "fields": [
+   {
+    "name": "ContractId",
+    "referenceTo": [
+     "Contract"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ContractLineItem",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ServiceContractId",
+    "referenceTo": [
+     "ServiceContract"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "Product2Id",
+    "referenceTo": [
+     "Product2"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AssetId",
+    "referenceTo": [
+     "Asset"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "PricebookEntryId",
+    "referenceTo": [
+     "PricebookEntry"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ParentContractLineItemId",
+    "referenceTo": [
+     "ContractLineItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "RootContractLineItemId",
+    "referenceTo": [
+     "ContractLineItem"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "CorsWhitelistEntry",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CspTrustedSite",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CustomBrand",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Organization",
+     "Stamp",
+     "Topic"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "CustomBrandAsset",
+  "fields": [
+   {
+    "name": "CustomBrandId",
+    "referenceTo": [
+     "CustomBrand"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AssetSourceId",
+    "referenceTo": [
+     "ContentAsset",
+     "Document"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "DandBCompany",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "DatasetExportEvent",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Document",
+  "fields": [
+   {
+    "name": "FolderId",
+    "referenceTo": [
+     "Folder",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AuthorId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "DocumentAttachmentMap",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "EmailTemplate"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "DocumentId",
+    "referenceTo": [
+     "Document"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "DuplicateRecordItem",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "DuplicateRecordSetId",
+    "referenceTo": [
+     "DuplicateRecordSet"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RecordId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Contact",
+     "Individual",
+     "Lead",
+     "OpportunityHistory__c"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "DuplicateRecordSet",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "DuplicateRuleId",
+    "referenceTo": [
+     "DuplicateRule"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "EmailCapture",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "EmailDomainKey",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "EmailMessage",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Case"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ActivityId",
+    "referenceTo": [
+     "Task"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ReplyToEmailMessageId",
+    "referenceTo": [
+     "EmailMessage"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "RelatedToId",
+    "referenceTo": [
+     "Account",
+     "Asset",
+     "AssetRelationship",
+     "Campaign",
+     "Case",
+     "Contract",
+     "ContractLineItem",
+     "Entitlement",
+     "ListEmail",
+     "Location",
+     "Opportunity",
+     "Order",
+     "Product2",
+     "ServiceContract",
+     "Solution",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "EmailMessageRelation",
+  "fields": [
+   {
+    "name": "EmailMessageId",
+    "referenceTo": [
+     "EmailMessage"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RelationId",
+    "referenceTo": [
+     "Contact",
+     "Lead",
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "EmailServicesAddress",
+  "fields": [
+   {
+    "name": "RunAsUserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "FunctionId",
+    "referenceTo": [
+     "EmailServicesFunction"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "EmailServicesFunction",
+  "fields": [
+   {
+    "name": "ApexClassId",
+    "referenceTo": [
+     "ApexClass"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "EmailTemplate",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "FolderId",
+    "referenceTo": [
+     "Folder",
+     "Organization",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "BrandTemplateId",
+    "referenceTo": [
+     "BrandTemplate"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Entitlement",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ServiceContractId",
+    "referenceTo": [
+     "ServiceContract"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ContractLineItemId",
+    "referenceTo": [
+     "ContractLineItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AssetId",
+    "referenceTo": [
+     "Asset"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "SlaProcessId",
+    "referenceTo": [
+     "SlaProcess"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "BusinessHoursId",
+    "referenceTo": [
+     "BusinessHours"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "EntitlementContact",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "EntitlementId",
+    "referenceTo": [
+     "Entitlement"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "EntitlementTemplate",
+  "fields": [
+   {
+    "name": "BusinessHoursId",
+    "referenceTo": [
+     "BusinessHours"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "SlaProcessId",
+    "referenceTo": [
+     "SlaProcess"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "EntitySubscription",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Asset",
+     "AssetRelationship",
+     "Campaign",
+     "Case",
+     "CollaborationGroup",
+     "Contact",
+     "ContentDocument",
+     "Contract",
+     "ContractLineItem",
+     "Dashboard",
+     "DashboardComponent",
+     "Entitlement",
+     "EntityMilestone",
+     "Event",
+     "Lead",
+     "Location",
+     "MessagingSession",
+     "Opportunity",
+     "OpportunityHistory__c",
+     "Order",
+     "OrderItem",
+     "Product2",
+     "Report",
+     "ServiceContract",
+     "Site",
+     "Solution",
+     "Task",
+     "Topic",
+     "User",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "SubscriberId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Event",
+  "fields": [
+   {
+    "name": "WhoId",
+    "referenceTo": [
+     "Contact",
+     "Lead"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "WhatId",
+    "referenceTo": [
+     "Account",
+     "Asset",
+     "AssetRelationship",
+     "Campaign",
+     "Case",
+     "Contract",
+     "ContractLineItem",
+     "Entitlement",
+     "ListEmail",
+     "Location",
+     "Opportunity",
+     "Order",
+     "Product2",
+     "ServiceContract",
+     "Solution",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RecurrenceActivityId",
+    "referenceTo": [
+     "Event"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "EventRelation",
+  "fields": [
+   {
+    "name": "RelationId",
+    "referenceTo": [
+     "Contact",
+     "Lead",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "EventId",
+    "referenceTo": [
+     "Event"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ExternalDataUserAuth",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ExternalDataSourceId",
+    "referenceTo": [
+     "ExternalDataSource",
+     "NamedCredential"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AuthProviderId",
+    "referenceTo": [
+     "AuthProvider"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ExternalEvent",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ExternalEventMapping",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "EventId",
+    "referenceTo": [
+     "Event"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ExternalEventMappingShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "ExternalEventMapping"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "FeedAttachment",
+  "fields": [
+   {
+    "name": "FeedEntityId",
+    "referenceTo": [
+     "AccountFeed",
+     "AssetFeed",
+     "AssetRelationshipFeed",
+     "CampaignFeed",
+     "CaseFeed",
+     "CollaborationGroupFeed",
+     "ContactFeed",
+     "ContentDocumentFeed",
+     "ContractFeed",
+     "DashboardComponentFeed",
+     "DashboardFeed",
+     "EntitlementFeed",
+     "EntityMilestoneFeed",
+     "EventFeed",
+     "FeedComment",
+     "FeedItem",
+     "LeadFeed",
+     "LocationFeed",
+     "MessagingSessionFeed",
+     "OpportunityFeed",
+     "OrderFeed",
+     "OrderItemFeed",
+     "Product2Feed",
+     "ReportFeed",
+     "ServiceContractFeed",
+     "SiteFeed",
+     "SolutionFeed",
+     "TaskFeed",
+     "TopicFeed",
+     "UserFeed",
+     "WorkOrderFeed",
+     "WorkOrderLineItemFeed"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RecordId",
+    "referenceTo": [
+     "ContentDocument",
+     "ContentVersion",
+     "FeedItem"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "FeedComment",
+  "fields": [
+   {
+    "name": "FeedItemId",
+    "referenceTo": [
+     "AccountFeed",
+     "AssetFeed",
+     "AssetRelationshipFeed",
+     "CampaignFeed",
+     "CaseFeed",
+     "CollaborationGroupFeed",
+     "ContactFeed",
+     "ContentDocumentFeed",
+     "ContractFeed",
+     "DashboardComponentFeed",
+     "DashboardFeed",
+     "EntitlementFeed",
+     "EntityMilestoneFeed",
+     "EventFeed",
+     "FeedItem",
+     "LeadFeed",
+     "LocationFeed",
+     "MessagingSessionFeed",
+     "OpportunityFeed",
+     "OrderFeed",
+     "OrderItemFeed",
+     "Product2Feed",
+     "ReportFeed",
+     "ServiceContractFeed",
+     "SiteFeed",
+     "SolutionFeed",
+     "TaskFeed",
+     "TopicFeed",
+     "UserFeed",
+     "WorkOrderFeed",
+     "WorkOrderLineItemFeed"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Asset",
+     "AssetRelationship",
+     "Campaign",
+     "Case",
+     "CollaborationGroup",
+     "Contact",
+     "ContentDocument",
+     "Contract",
+     "ContractLineItem",
+     "Dashboard",
+     "DashboardComponent",
+     "Entitlement",
+     "EntityMilestone",
+     "Event",
+     "Lead",
+     "Location",
+     "MessagingSession",
+     "Opportunity",
+     "OpportunityHistory__c",
+     "Order",
+     "OrderItem",
+     "Product2",
+     "Report",
+     "ServiceContract",
+     "Site",
+     "Solution",
+     "Task",
+     "Topic",
+     "User",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastEditById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "InsertedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RelatedRecordId",
+    "referenceTo": [
+     "ContentVersion"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "FeedItem",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Asset",
+     "AssetRelationship",
+     "Campaign",
+     "Case",
+     "CollaborationGroup",
+     "Contact",
+     "ContentDocument",
+     "Contract",
+     "ContractLineItem",
+     "Dashboard",
+     "DashboardComponent",
+     "Entitlement",
+     "EntityMilestone",
+     "Event",
+     "Lead",
+     "Location",
+     "MessagingSession",
+     "Opportunity",
+     "OpportunityHistory__c",
+     "Order",
+     "OrderItem",
+     "Product2",
+     "Report",
+     "ServiceContract",
+     "Site",
+     "Solution",
+     "Task",
+     "Topic",
+     "User",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastEditById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "RelatedRecordId",
+    "referenceTo": [
+     "ContentVersion"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "InsertedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "BestCommentId",
+    "referenceTo": [
+     "FeedComment"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "FeedLike",
+  "fields": [
+   {
+    "name": "FeedItemId",
+    "referenceTo": [
+     "AccountFeed",
+     "AssetFeed",
+     "AssetRelationshipFeed",
+     "CampaignFeed",
+     "CaseFeed",
+     "CollaborationGroupFeed",
+     "ContactFeed",
+     "ContentDocumentFeed",
+     "ContractFeed",
+     "DashboardComponentFeed",
+     "DashboardFeed",
+     "EntitlementFeed",
+     "EntityMilestoneFeed",
+     "EventFeed",
+     "FeedItem",
+     "LeadFeed",
+     "LocationFeed",
+     "MessagingSessionFeed",
+     "OpportunityFeed",
+     "OrderFeed",
+     "OrderItemFeed",
+     "Product2Feed",
+     "ReportFeed",
+     "ServiceContractFeed",
+     "SiteFeed",
+     "SolutionFeed",
+     "TaskFeed",
+     "TopicFeed",
+     "UserFeed",
+     "WorkOrderFeed",
+     "WorkOrderLineItemFeed"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "FeedEntityId",
+    "referenceTo": [
+     "AccountFeed",
+     "AssetFeed",
+     "AssetRelationshipFeed",
+     "CampaignFeed",
+     "CaseFeed",
+     "CollaborationGroupFeed",
+     "ContactFeed",
+     "ContentDocumentFeed",
+     "ContractFeed",
+     "DashboardComponentFeed",
+     "DashboardFeed",
+     "EntitlementFeed",
+     "EntityMilestoneFeed",
+     "EventFeed",
+     "FeedComment",
+     "FeedItem",
+     "LeadFeed",
+     "LocationFeed",
+     "MessagingSessionFeed",
+     "OpportunityFeed",
+     "OrderFeed",
+     "OrderItemFeed",
+     "Product2Feed",
+     "ReportFeed",
+     "ServiceContractFeed",
+     "SiteFeed",
+     "SolutionFeed",
+     "TaskFeed",
+     "TopicFeed",
+     "UserFeed",
+     "WorkOrderFeed",
+     "WorkOrderLineItemFeed"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "InsertedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "FeedSignal",
+  "fields": [
+   {
+    "name": "FeedItemId",
+    "referenceTo": [
+     "AccountFeed",
+     "AssetFeed",
+     "AssetRelationshipFeed",
+     "CampaignFeed",
+     "CaseFeed",
+     "CollaborationGroupFeed",
+     "ContactFeed",
+     "ContentDocumentFeed",
+     "ContractFeed",
+     "DashboardComponentFeed",
+     "DashboardFeed",
+     "EntitlementFeed",
+     "EntityMilestoneFeed",
+     "EventFeed",
+     "FeedItem",
+     "LeadFeed",
+     "LocationFeed",
+     "MessagingSessionFeed",
+     "OpportunityFeed",
+     "OrderFeed",
+     "OrderItemFeed",
+     "Product2Feed",
+     "ReportFeed",
+     "ServiceContractFeed",
+     "SiteFeed",
+     "SolutionFeed",
+     "TaskFeed",
+     "TopicFeed",
+     "UserFeed",
+     "WorkOrderFeed",
+     "WorkOrderLineItemFeed"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "FeedEntityId",
+    "referenceTo": [
+     "AccountFeed",
+     "AssetFeed",
+     "AssetRelationshipFeed",
+     "CampaignFeed",
+     "CaseFeed",
+     "CollaborationGroupFeed",
+     "ContactFeed",
+     "ContentDocumentFeed",
+     "ContractFeed",
+     "DashboardComponentFeed",
+     "DashboardFeed",
+     "EntitlementFeed",
+     "EntityMilestoneFeed",
+     "EventFeed",
+     "FeedComment",
+     "FeedItem",
+     "LeadFeed",
+     "LocationFeed",
+     "MessagingSessionFeed",
+     "OpportunityFeed",
+     "OrderFeed",
+     "OrderItemFeed",
+     "Product2Feed",
+     "ReportFeed",
+     "ServiceContractFeed",
+     "SiteFeed",
+     "SolutionFeed",
+     "TaskFeed",
+     "TopicFeed",
+     "UserFeed",
+     "WorkOrderFeed",
+     "WorkOrderLineItemFeed"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "InsertedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "FieldPermissions",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "PermissionSet"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "FlowInterviewShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "FlowInterview"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "FlowRecordRelation",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "FlowInterview"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RelatedRecordId",
+    "referenceTo": [
+     "Account",
+     "AccountCleanInfo",
+     "AccountContactRole",
+     "AccountPartner",
+     "AcquiredAccount__c",
+     "Announcement",
+     "ApexTestQueueItem",
+     "Asset",
+     "AssetRelationship",
+     "AssociatedLocation",
+     "AsyncApexJob",
+     "Attachment",
+     "BackgroundOperation",
+     "Campaign",
+     "CampaignMember",
+     "Case",
+     "CaseContactRole",
+     "CaseMilestone",
+     "CaseSolution",
+     "CollaborationGroup",
+     "CollaborationGroupMember",
+     "CollaborationGroupMemberRequest",
+     "CollaborationGroupRecord",
+     "CollaborationInvitation",
+     "ConferenceNumber",
+     "Contact",
+     "ContactCleanInfo",
+     "ContentDistribution",
+     "ContentDocument",
+     "ContentDocumentLink",
+     "ContentDocumentSubscription",
+     "ContentFolder",
+     "ContentFolderLink",
+     "ContentFolderMember",
+     "ContentNotification",
+     "ContentVersion",
+     "ContentVersionComment",
+     "ContentVersionRating",
+     "ContentWorkspaceDoc",
+     "Contract",
+     "ContractContactRole",
+     "ContractLineItem",
+     "DandBCompany",
+     "Dashboard",
+     "DashboardComponent",
+     "DataAssessmentFieldMetric",
+     "DataAssessmentMetric",
+     "DataAssessmentValueMetric",
+     "DatacloudOwnedEntity",
+     "DatacloudPurchaseUsage",
+     "Document",
+     "DuplicateRecordItem",
+     "DuplicateRecordSet",
+     "EmailMessage",
+     "EmailMessageRelation",
+     "Entitlement",
+     "EntitlementContact",
+     "EntityMilestone",
+     "EntitySubscription",
+     "Event",
+     "EventRelation",
+     "ExternalEvent",
+     "ExternalEventMapping",
+     "FeedAttachment",
+     "FeedComment",
+     "FeedItem",
+     "FeedPollChoice",
+     "FeedPollVote",
+     "FeedRevision",
+     "FileSearchActivity",
+     "FlowStageRelation",
+     "Idea",
+     "Individual",
+     "InstalledMobileApp",
+     "Lead",
+     "LeadCleanInfo",
+     "ListEmail",
+     "ListEmailRecipientSource",
+     "Location",
+     "Macro",
+     "MacroInstruction",
+     "MatchingInformation",
+     "MessagingEndUser",
+     "Note",
+     "Opportunity",
+     "OpportunityContactRole",
+     "OpportunityHistory__c",
+     "OpportunityLineItem",
+     "OpportunityPartner",
+     "Order",
+     "OrderItem",
+     "OrgDeleteRequest",
+     "Partner",
+     "Pricebook2",
+     "PricebookEntry",
+     "ProcessInstance",
+     "ProcessInstanceNode",
+     "Product2",
+     "ProductEntitlementTemplate",
+     "PushTopic",
+     "QuickText",
+     "RecordAction",
+     "Report",
+     "SearchPromotionRule",
+     "ServiceContract",
+     "Solution",
+     "StreamingChannel",
+     "Task",
+     "TodayGoal",
+     "Topic",
+     "TopicAssignment",
+     "UserAppInfo",
+     "UserAppMenuCustomization",
+     "UserProvAccount",
+     "UserProvAccountStaging",
+     "UserProvMockTarget",
+     "UserProvisioningLog",
+     "UserProvisioningRequest",
+     "WaveCompatibilityCheckItem",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Folder",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Group",
+  "fields": [
+   {
+    "name": "RelatedId",
+    "referenceTo": [
+     "User",
+     "UserRole"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Organization",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "GroupMember",
+  "fields": [
+   {
+    "name": "GroupId",
+    "referenceTo": [
+     "Group"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Holiday",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Idea",
+  "fields": [
+   {
+    "name": "RecordTypeId",
+    "referenceTo": [
+     "RecordType"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CommunityId",
+    "referenceTo": [
+     "Community"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastCommentId",
+    "referenceTo": [
+     "IdeaComment"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ParentIdeaId",
+    "referenceTo": [
+     "Idea"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "IdeaComment",
+  "fields": [
+   {
+    "name": "IdeaId",
+    "referenceTo": [
+     "Idea"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CommunityId",
+    "referenceTo": [
+     "Community"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Individual",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "IndividualShare",
+  "fields": [
+   {
+    "name": "IndividualId",
+    "referenceTo": [
+     "Individual"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "InsightsExternalData",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "InsightsExternalDataPart",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "InsightsExternalDataId",
+    "referenceTo": [
+     "InsightsExternalData"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Lead",
+  "fields": [
+   {
+    "name": "MasterRecordId",
+    "referenceTo": [
+     "Lead"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ConvertedAccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ConvertedContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ConvertedOpportunityId",
+    "referenceTo": [
+     "Opportunity"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "DandbCompanyId",
+    "referenceTo": [
+     "DandBCompany"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "IndividualId",
+    "referenceTo": [
+     "Individual"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "LeadShare",
+  "fields": [
+   {
+    "name": "LeadId",
+    "referenceTo": [
+     "Lead"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "LightningExperienceTheme",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "DefaultBrandingSetId",
+    "referenceTo": [
+     "BrandingSet"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ListEmail",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CampaignId",
+    "referenceTo": [
+     "Campaign"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ListEmailRecipientSource",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ListEmailId",
+    "referenceTo": [
+     "ListEmail"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "SourceListId",
+    "referenceTo": [
+     "Campaign",
+     "ListView",
+     "Topic"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ListEmailShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "ListEmail"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ListViewChart",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Location",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RootLocationId",
+    "referenceTo": [
+     "Location"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "LocationShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Location"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Macro",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "MacroInstruction",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "MacroId",
+    "referenceTo": [
+     "Macro"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "MacroShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Macro"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "MailmergeTemplate",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "MessagingChannel",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "TargetQueueId",
+    "referenceTo": [
+     "Group"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "BusinessHoursId",
+    "referenceTo": [
+     "BusinessHours"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "MessagingEndUser",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "MessagingChannelId",
+    "referenceTo": [
+     "MessagingChannel"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "MessagingEndUserShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "MessagingEndUser"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "MessagingSession",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "MessagingChannelId",
+    "referenceTo": [
+     "MessagingChannel"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "MessagingEndUserId",
+    "referenceTo": [
+     "MessagingEndUser"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CaseId",
+    "referenceTo": [
+     "Case"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "LeadId",
+    "referenceTo": [
+     "Lead"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OpportunityId",
+    "referenceTo": [
+     "Opportunity"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "MessagingSessionShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "MessagingSession"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "MilestoneType",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "MobileApplicationDetail",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Note",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Asset",
+     "Contact",
+     "Contract",
+     "ContractLineItem",
+     "Entitlement",
+     "Lead",
+     "Location",
+     "Opportunity",
+     "OpportunityHistory__c",
+     "Order",
+     "Product2",
+     "ServiceContract",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ObjectPermissions",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "PermissionSet"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Opportunity",
+  "fields": [
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "RecordTypeId",
+    "referenceTo": [
+     "RecordType"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CampaignId",
+    "referenceTo": [
+     "Campaign"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "Pricebook2Id",
+    "referenceTo": [
+     "Pricebook2"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OpportunityCompetitor",
+  "fields": [
+   {
+    "name": "OpportunityId",
+    "referenceTo": [
+     "Opportunity"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OpportunityContactRole",
+  "fields": [
+   {
+    "name": "OpportunityId",
+    "referenceTo": [
+     "Opportunity"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OpportunityHistory__Share",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "OpportunityHistory__c"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OpportunityHistory__c",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "OpportunityId__c",
+    "referenceTo": [
+     "Opportunity"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OpportunityLineItem",
+  "fields": [
+   {
+    "name": "OpportunityId",
+    "referenceTo": [
+     "Opportunity"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "PricebookEntryId",
+    "referenceTo": [
+     "PricebookEntry"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "Product2Id",
+    "referenceTo": [
+     "Product2"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OpportunityPartner",
+  "fields": [
+   {
+    "name": "OpportunityId",
+    "referenceTo": [
+     "Opportunity"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AccountToId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ReversePartnerId",
+    "referenceTo": [
+     "OpportunityPartner"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "OpportunityShare",
+  "fields": [
+   {
+    "name": "OpportunityId",
+    "referenceTo": [
+     "Opportunity"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Order",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContractId",
+    "referenceTo": [
+     "Contract"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "Pricebook2Id",
+    "referenceTo": [
+     "Pricebook2"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OriginalOrderId",
+    "referenceTo": [
+     "Order"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CustomerAuthorizedById",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CompanyAuthorizedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "BillToContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ShipToContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ActivatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OrderItem",
+  "fields": [
+   {
+    "name": "Product2Id",
+    "referenceTo": [
+     "Product2"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OrderId",
+    "referenceTo": [
+     "Order"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "PricebookEntryId",
+    "referenceTo": [
+     "PricebookEntry"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "OriginalOrderItemId",
+    "referenceTo": [
+     "OrderItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OrgDeleteRequest",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OrgDeleteRequestShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "OrgDeleteRequest"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OrgWideEmailAddress",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "OutgoingEmail",
+  "fields": [
+   {
+    "name": "RelatedToId",
+    "referenceTo": [
+     "Account",
+     "Asset",
+     "AssetRelationship",
+     "Campaign",
+     "Contract",
+     "ContractLineItem",
+     "Entitlement",
+     "Location",
+     "Opportunity",
+     "Order",
+     "Product2",
+     "ServiceContract",
+     "Solution",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "WhoId",
+    "referenceTo": [
+     "Contact",
+     "Lead"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "EmailTemplateId",
+    "referenceTo": [
+     "EmailTemplate"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "OutgoingEmailRelation",
+  "fields": [
+   {
+    "name": "RelationId",
+    "referenceTo": [
+     "Contact",
+     "Lead",
+     "User"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "Partner",
+  "fields": [
+   {
+    "name": "OpportunityId",
+    "referenceTo": [
+     "Opportunity"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AccountFromId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AccountToId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ReversePartnerId",
+    "referenceTo": [
+     "Partner"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "PermissionSet",
+  "fields": [
+   {
+    "name": "LicenseId",
+    "referenceTo": [
+     "PermissionSetLicense",
+     "UserLicense"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ProfileId",
+    "referenceTo": [
+     "Profile"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "PermissionSetGroupId",
+    "referenceTo": [
+     "PermissionSetGroup"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "PermissionSetAssignment",
+  "fields": [
+   {
+    "name": "PermissionSetId",
+    "referenceTo": [
+     "PermissionSet"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "PermissionSetGroupId",
+    "referenceTo": [
+     "PermissionSetGroup"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AssigneeId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "PermissionSetGroup",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "PermissionSetGroupComponent",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "PermissionSetGroupId",
+    "referenceTo": [
+     "PermissionSetGroup"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "PermissionSetId",
+    "referenceTo": [
+     "PermissionSet"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "PermissionSetLicenseAssign",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "PermissionSetLicenseId",
+    "referenceTo": [
+     "PermissionSetLicense"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AssigneeId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "PlatformCachePartition",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "PlatformCachePartitionType",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "PlatformCachePartitionId",
+    "referenceTo": [
+     "PlatformCachePartition"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Pricebook2",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "PricebookEntry",
+  "fields": [
+   {
+    "name": "Pricebook2Id",
+    "referenceTo": [
+     "Pricebook2"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "Product2Id",
+    "referenceTo": [
+     "Product2"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Product2",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ExternalDataSourceId",
+    "referenceTo": [
+     "ExternalDataSource"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ProductEntitlementTemplate",
+  "fields": [
+   {
+    "name": "Product2Id",
+    "referenceTo": [
+     "Product2"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "EntitlementTemplateId",
+    "referenceTo": [
+     "EntitlementTemplate"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "PushTopic",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "QueueSobject",
+  "fields": [
+   {
+    "name": "QueueId",
+    "referenceTo": [
+     "Group"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "QuickText",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "QuickTextShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "QuickText"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "RecordAction",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RecordId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Asset",
+     "AssetRelationship",
+     "AssociatedLocation",
+     "Campaign",
+     "CampaignMember",
+     "Case",
+     "CollaborationGroup",
+     "Contact",
+     "Contract",
+     "ContractLineItem",
+     "Entitlement",
+     "Lead",
+     "Location",
+     "MessagingSession",
+     "Opportunity",
+     "OpportunityHistory__c",
+     "Order",
+     "Pricebook2",
+     "PricebookEntry",
+     "Product2",
+     "ServiceContract",
+     "User",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "FlowInterviewId",
+    "referenceTo": [
+     "FlowInterview"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "RecordType",
+  "fields": [
+   {
+    "name": "BusinessProcessId",
+    "referenceTo": [
+     "BusinessProcess"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "SPSamlAttributes",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ConnectivityId",
+    "referenceTo": [
+     "ConnectedApplication"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "SearchPromotionRule",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "SecurityCustomBaseline",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "ServiceContract",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "Pricebook2Id",
+    "referenceTo": [
+     "Pricebook2"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ParentServiceContractId",
+    "referenceTo": [
+     "ServiceContract"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "RootServiceContractId",
+    "referenceTo": [
+     "ServiceContract"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "ServiceContractShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "ServiceContract"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "SetupEntityAccess",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "PermissionSet"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "SetupEntityId",
+    "referenceTo": [
+     "ApexClass",
+     "ApexPage",
+     "ConnectedApplication",
+     "CustomPermission",
+     "ExternalDataSource",
+     "NamedCredential",
+     "OrgWideEmailAddress"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Solution",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "StaticResource",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "StreamingChannel",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "StreamingChannelShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "StreamingChannel"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Task",
+  "fields": [
+   {
+    "name": "WhoId",
+    "referenceTo": [
+     "Contact",
+     "Lead"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "WhatId",
+    "referenceTo": [
+     "Account",
+     "Asset",
+     "AssetRelationship",
+     "Campaign",
+     "Case",
+     "Contract",
+     "ContractLineItem",
+     "Entitlement",
+     "ListEmail",
+     "Location",
+     "Opportunity",
+     "Order",
+     "Product2",
+     "ServiceContract",
+     "Solution",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "RecurrenceActivityId",
+    "referenceTo": [
+     "Task"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "TestSuiteMembership",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ApexTestSuiteId",
+    "referenceTo": [
+     "ApexTestSuite"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ApexClassId",
+    "referenceTo": [
+     "ApexClass"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "TodayGoal",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "TodayGoalShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "TodayGoal"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Topic",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "TopicAssignment",
+  "fields": [
+   {
+    "name": "TopicId",
+    "referenceTo": [
+     "Topic"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "EntityId",
+    "referenceTo": [
+     "Account",
+     "AcquiredAccount__c",
+     "Asset",
+     "Campaign",
+     "Case",
+     "Contact",
+     "ContentDocument",
+     "Contract",
+     "Event",
+     "FeedItem",
+     "Lead",
+     "Opportunity",
+     "OpportunityHistory__c",
+     "Order",
+     "Solution",
+     "Task",
+     "WorkOrder",
+     "WorkOrderLineItem"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "TransactionSecurityPolicy",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ApexPolicyId",
+    "referenceTo": [
+     "ApexClass"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ExecutionUserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "User",
+  "fields": [
+   {
+    "name": "UserRoleId",
+    "referenceTo": [
+     "UserRole"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ProfileId",
+    "referenceTo": [
+     "Profile"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "DelegatedApproverId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ManagerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CallCenterId",
+    "referenceTo": [
+     "CallCenter"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "IndividualId",
+    "referenceTo": [
+     "Individual"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "UserAppInfo",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "UserAppMenuCustomization",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ApplicationId",
+    "referenceTo": [
+     "ConnectedApplication"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "UserAppMenuCustomizationShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "UserAppMenuCustomization"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "UserListView",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ListViewId",
+    "referenceTo": [
+     "ListView"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "UserListViewCriterion",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserListViewId",
+    "referenceTo": [
+     "UserListView"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "UserPackageLicense",
+  "fields": [
+   {
+    "name": "PackageLicenseId",
+    "referenceTo": [
+     "PackageLicense"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "UserPreference",
+  "fields": [
+   {
+    "name": "UserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "UserProvAccount",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "SalesforceUserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ConnectedAppId",
+    "referenceTo": [
+     "ConnectedApplication"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "UserProvAccountStaging",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ConnectedAppId",
+    "referenceTo": [
+     "ConnectedApplication"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "SalesforceUserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "UserProvMockTarget",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "UserProvisioningConfig",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ConnectedAppId",
+    "referenceTo": [
+     "ConnectedApplication"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "NamedCredentialId",
+    "referenceTo": [
+     "NamedCredential"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "UserProvisioningLog",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserProvisioningRequestId",
+    "referenceTo": [
+     "UserProvisioningRequest"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "UserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "UserProvisioningRequest",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "SalesforceUserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ConnectedAppId",
+    "referenceTo": [
+     "ConnectedApplication"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "UserProvConfigId",
+    "referenceTo": [
+     "UserProvisioningConfig"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "UserProvAccountId",
+    "referenceTo": [
+     "UserProvAccount"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ManagerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "UserProvisioningRequest"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "UserProvisioningRequestShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "UserProvisioningRequest"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "UserRole",
+  "fields": [
+   {
+    "name": "ParentRoleId",
+    "referenceTo": [
+     "UserRole"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ForecastUserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "PortalAccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "PortalAccountOwnerId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "UserShare",
+  "fields": [
+   {
+    "name": "UserId",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "Vote",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "Idea",
+     "IdeaComment",
+     "Solution"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "WebLink",
+  "fields": [
+   {
+    "name": "ScontrolId",
+    "referenceTo": [
+     "ApexPage",
+     "Scontrol"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ },
+ {
+  "name": "WorkOrder",
+  "fields": [
+   {
+    "name": "OwnerId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "AccountId",
+    "referenceTo": [
+     "Account"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ContactId",
+    "referenceTo": [
+     "Contact"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "CaseId",
+    "referenceTo": [
+     "Case"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "EntitlementId",
+    "referenceTo": [
+     "Entitlement"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ServiceContractId",
+    "referenceTo": [
+     "ServiceContract"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AssetId",
+    "referenceTo": [
+     "Asset"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "RootWorkOrderId",
+    "referenceTo": [
+     "WorkOrder"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "Pricebook2Id",
+    "referenceTo": [
+     "Pricebook2"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "ParentWorkOrderId",
+    "referenceTo": [
+     "WorkOrder"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "BusinessHoursId",
+    "referenceTo": [
+     "BusinessHours"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "LocationId",
+    "referenceTo": [
+     "Location"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "WorkOrderLineItem",
+  "fields": [
+   {
+    "name": "CreatedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "WorkOrderId",
+    "referenceTo": [
+     "WorkOrder"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "ParentWorkOrderLineItemId",
+    "referenceTo": [
+     "WorkOrderLineItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "Product2Id",
+    "referenceTo": [
+     "Product2"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "AssetId",
+    "referenceTo": [
+     "Asset"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "OrderId",
+    "referenceTo": [
+     "Order"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "RootWorkOrderLineItemId",
+    "referenceTo": [
+     "WorkOrderLineItem"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "PricebookEntryId",
+    "referenceTo": [
+     "PricebookEntry"
+    ],
+    "nullable": true
+   },
+   {
+    "name": "LocationId",
+    "referenceTo": [
+     "Location"
+    ],
+    "nullable": true
+   }
+  ]
+ },
+ {
+  "name": "WorkOrderShare",
+  "fields": [
+   {
+    "name": "ParentId",
+    "referenceTo": [
+     "WorkOrder"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "UserOrGroupId",
+    "referenceTo": [
+     "Group",
+     "User"
+    ],
+    "nullable": false
+   },
+   {
+    "name": "LastModifiedById",
+    "referenceTo": [
+     "User"
+    ],
+    "nullable": false
+   }
+  ]
+ }
+]

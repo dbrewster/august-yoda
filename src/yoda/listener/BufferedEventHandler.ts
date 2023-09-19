@@ -10,18 +10,16 @@ export abstract class BufferedEventHandler implements EventHandler {
 
   handleEvent(event: YodaEvent): void {
     this.events = this.events.concat(event)
-    if (this.events.length > this._bufferSize) {
-      this.writeEvents(this.events)
-      this.events = []
-    }
+    this.flush()
   }
 
   flush(): void {
     if (this.events.length > 0) {
-      this.writeEvents(this.events)
+      const eventsCopy = this.events
       this.events = []
+      this.writeEvents(eventsCopy)
     }
   }
 
-  abstract writeEvents(events: YodaEvent[]): void
+  abstract writeEvents(events: YodaEvent[]): Promise<void>
 }

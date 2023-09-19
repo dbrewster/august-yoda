@@ -3,6 +3,7 @@ import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain
 import {z, ZodType} from "zod";
 import {mongoCollection} from "@/yoda/api/util.js";
 import {ChatOpenAI} from "langchain/chat_models/openai";
+import {ToolItem} from "@/yoda/new-query/Agent.js";
 
 const getDBOptions = (dialect: string) => {
   let dialectStr: string = "SQL"
@@ -41,9 +42,15 @@ interface GenerateSQLProps extends BaseOptions {
   top_k?: number // defaults to 250
 }
 
-export class GenerateSQL extends BaseLLMItem<GenerateSQLProps> {
+export class GenerateSQL extends BaseLLMItem<GenerateSQLProps> implements ToolItem {
   readonly name: string = "gen_sql"
   readonly description: string = "Generates SQL for the query and the schema"
+  inputSchema: ZodType = z.object({
+    data_products: z.string().describe("The data products"),
+    system_facts: z.string().describe("The system facts"),
+    dp_facts: z.string().describe("The data product facts"),
+    schema: z.string().describe("The SQL to execute against the database")
+  })
 
   readonly humanMessages: HumanMessagePromptTemplate[] = [HumanMessagePromptTemplate.fromTemplate(
     `You are a {db_dialect} expert. Given an input question, first create a syntactically correct PostgreSQL query to run, then look at the results of the query and return the answer to the input question.
@@ -57,7 +64,8 @@ You are generating a SQL statement for the following query:
  %%%{query}%%%
 
 Make sure you use the following facts about the tables:
-{facts}
+{system_facts}
+{dp_facts}
 
 Use every fact. The facts are not ordered. The facts may reference objects that are actually tables or columns in the database. Do your best to map the concepts in the facts to tables or columns.
 
@@ -69,6 +77,7 @@ Return a the reason you generated the query, include the following in your reaso
 
 Finally return a single SQL statement that answers the question
 
+{previous_err}
 `)];
   readonly systemMessages: SystemMessagePromptTemplate[] = [SystemMessagePromptTemplate.fromTemplate(
     `The schema for the tables in the database are:
@@ -88,20 +97,15 @@ Finally return a single SQL statement that answers the question
     const topK = this.props.top_k || 250
     const [dialectStr, extraInstructions] = getDBOptions(callOptions.db.dialect)
     const dataProducts = input.data_products as string[]
-    // get facts
-    let facts = (await mongoCollection("system_facts").then(async collection => {
-      return await collection.find({}, {projection: {_id: 0, fact: 1}}).map(d => `  * ${d.fact}`).toArray()
-    })).join("\n")
 
-    facts += (await Promise.all(dataProducts.map(async dp => {
-      return await mongoCollection(`dp_${dp}_facts`).then(async collection => {
-        return (await collection.find({}, {projection: {_id: 0, fact: 1}}).map(d => `  * ${d.fact}`).toArray()).join("\n")
-      })
-    }))).join("\n")
-    return {top_k: topK, db_dialect: dialectStr, extra_db_instructions: extraInstructions, facts: facts, ...input};
+    let prevErr = ""
+    if (input.previous_error) {
+      prevErr = `A previous SQL execution threw the following error:\n${input.previous.error}\n`
+    }
+    return {top_k: topK, db_dialect: dialectStr, extra_db_instructions: extraInstructions, ...input, previous_err: prevErr};
   }
 
   async afterLLM(input: ItemValues): Promise<ItemValues> {
-    return {sql: input.sql}
+    return {sql: input.sql, reason: input.reason}
   }
 }

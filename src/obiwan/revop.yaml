@@ -1,0 +1,17 @@
+name: revops
+label: Knowledge hub for revops related tasks
+concepts:
+  - name: opportunity
+    label: Opportunity
+    type: BaseConcept
+    description: foobar
+    identifying_facts:
+      - 1
+      - 2
+      - 3
+    properties:
+      -
+
+        Provide a detailed description of an opportunity that would be used to describe this concept to an expert user
+
+        Create a list of questions that would be used to identify the opportunity table (or tables) in a database
