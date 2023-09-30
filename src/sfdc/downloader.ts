@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import bytes from "bytes";
-import {Utils} from "./utils.js";
+import {Utils} from "./utils";
 import jsforce, {Connection} from "jsforce";
 
 const FILE_DIR = '../files';

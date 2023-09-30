@@ -1,5 +1,5 @@
-import {BaseCallContext, BaseItem, ItemValues, RunManger} from "@/yoda/new-query/BaseItem.js";
-import {ToolItem} from "@/yoda/new-query/Agent.js";
+import {BaseCallContext, BaseItem, ItemValues, RunManger} from "@/util/llm/BaseItem";
+import {ToolItem} from "@/util/llm/Agent";
 import {z, ZodType} from "zod";
 
 export class ExecuteSQL extends BaseItem implements ToolItem {

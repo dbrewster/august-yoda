@@ -1,51 +1,29 @@
-import {BaseCallContext, RunManger} from "@/yoda/new-query/BaseItem.js";
-import {GenerateSQL} from "@/yoda/new-query/GenerateSQL.js";
-import {ExecuteSQL} from "@/yoda/new-query/ExecuteSQL.js";
-import {Agent} from "@/yoda/new-query/Agent.js";
-import {ExecuteDatabaseQueryTool} from "@/yoda/new-query/ExecuteDatabaseQueryTool.js";
-import {ChatOpenAI} from "langchain/chat_models/openai";
-import process from "process";
-import {SQLDatabase} from "@/yoda/database/SQLDatabase.js";
-import {APIListener} from "@/yoda/listener/APIListener.js";
-import {mongoCollection} from "@/yoda/api/util.js";
-import {GetChatTitle} from "@/yoda/new-query/GetChatTitle.js";
+import {RunManger} from "@/util/llm/BaseItem";
+import {GenerateSQL} from "@/yoda/new-query/GenerateSQL";
+import {ExecuteSQL} from "@/yoda/new-query/ExecuteSQL";
+import {Agent} from "@/util/llm/Agent";
+import {ExecuteDatabaseQueryTool} from "@/yoda/new-query/ExecuteDatabaseQueryTool";
+import {APIListener} from "@/yoda/listener/APIListener";
+import {mongoCollection} from "@/util/util";
+import {GetChatTitle} from "@/yoda/new-query/GetChatTitle";
 import {ObjectId} from "mongodb";
-import {StdOutQueryListener} from "@/yoda/listener/StdOutQueryListener.js";
-import {MongoEventHandler} from "@/yoda/listener/MongoEventHandler.js";
-import {GenSchema} from "@/yoda/new-query/schema-generation/GenSchema.js";
-import {PlanningChainAgent} from "@/yoda/new-query/PlanningChainAgent.js";
-import {GetDataProductFacts} from "@/yoda/new-query/schema-generation/GetDataProductFacts.js";
+import {StdOutQueryListener} from "@/yoda/listener/StdOutQueryListener";
+import {MongoEventHandler} from "@/yoda/listener/MongoEventHandler";
+import {GenSchema} from "@/yoda/new-query/schema-generation/GenSchema";
+import {PlanningChainAgent} from "@/yoda/new-query/PlanningChainAgent";
+import {executeLLM} from "@/util/llm/Executor";
 
 export const executeQuery = async (userId: string, chatId: string, query: string, verbose?: string) => {
-  const model35 = new ChatOpenAI({
-    temperature: 0,
-    modelName: process.env.MODEL,
-    verbose: true
-  })
-  const model4 = new ChatOpenAI({
-    temperature: 0,
-    modelName: process.env.MODEL_4,
-    verbose: true
-  })
-
   const runManager = new RunManger()
   try {
     let runId = `${userId}-${chatId}`;
     let conversationId = new ObjectId().toString();
-    let options: BaseCallContext = {
-      model: model35,
-      model4: model4,
-      db: new SQLDatabase(),
-      userId: userId,
-      chatId: chatId,
-      conversationId: conversationId
-    };
     const isFirstCall = await mongoCollection("chat_history").then(collection => {
       return collection.find({userId: userId, chatId: chatId}).limit(1).toArray().then(v => v.length == 0)
     })
 
     if (isFirstCall) {
-      const title = (await new GetChatTitle()._call(runId, {query: query}, options, runManager)).title
+      const title = (await executeLLM(new GetChatTitle(), runId, {query: query}, userId, {chatId: chatId, conversationId: conversationId})).title
       mongoCollection("session").then(collection => {
         collection.updateOne({userId: userId, _id: ObjectId.createFromHexString(chatId)}, {"$set": {title: title}})
       })
@@ -60,7 +38,7 @@ export const executeQuery = async (userId: string, chatId: string, query: string
     }
 
     runManager.addHandler(new MongoEventHandler(userId, chatId, conversationId))
-    return await getQueryChain()._call(runId, {query: query}, options, runManager)
+    return await executeLLM(getQueryChain(), runId, {query: query}, userId, {chatId: chatId, conversationId: conversationId}, runManager)
   } finally {
     runManager.flush()
     runManager.close()

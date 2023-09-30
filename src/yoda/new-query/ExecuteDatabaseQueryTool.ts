@@ -1,5 +1,5 @@
-import {Chain} from "@/yoda/new-query/Chain.js";
-import {ToolItem} from "@/yoda/new-query/Agent.js";
+import {Chain} from "@/util/llm/Chain";
+import {ToolItem} from "@/util/llm/Agent";
 import {z, ZodObject, ZodType} from "zod";
 
 export class ExecuteDatabaseQueryTool extends Chain implements ToolItem {

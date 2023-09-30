@@ -1,4 +1,4 @@
-import {BaseGetTables} from "@/yoda/new-query/schema-generation/BaseGetTables.js";
+import {BaseGetTables} from "@/yoda/new-query/schema-generation/BaseGetTables";
 
 export class GetRelevantDimensionTables extends BaseGetTables {
   readonly name: string = "get_dim_tables"

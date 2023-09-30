@@ -2,13 +2,16 @@
   "ts-node": {
     "transpileOnly": true,
     "files": true,
+    "require": [
+      "tsconfig-paths/register"
+    ],
     "compilerOptions": {
       "module": "NodeNext",
-      "moduleResolution": "nodenext",
+      "moduleResolution": "nodenext"
     }
   },
   "compilerOptions": {
-    "outDir": "./dist",
+//    "outDir": "./dist",
     /* Specify an output folder for all emitted files. */
     "rootDir": "./src",
     "target": "es2017",
@@ -18,10 +21,11 @@
       "esnext"
     ],
     "allowJs": true,
+    "checkJs": false,
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    //    "noEmit": true,
+//    "noEmit": true,
     "incremental": true,
     "esModuleInterop": true,
     "module": "NodeNext",

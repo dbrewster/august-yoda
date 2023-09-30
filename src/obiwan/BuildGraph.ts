@@ -1,5 +1,6 @@
-import {mongoCollection} from "../yoda/api/util.js";
+import {mongoCollection} from "@/util/util";
 import {Collection, Document} from "mongodb";
+import {SchemaTable} from "@/util/SchemaDefinitions";
 
 export interface TableVertex {
   id: string,
@@ -17,28 +18,6 @@ export interface TableEdge {
   label: string
   source: string
   target: string
-}
-
-interface SchemaColumn {
-  name: string
-  is_fk: boolean
-  is_pk: boolean
-  type: string
-}
-
-interface SchemaFK {
-  name: string,
-  constrained_columns: string[]
-  referred_table: string
-  referred_columns: string[]
-}
-
-interface SchemaTable {
-  name: string
-  num_rows: number
-  primary_keys: string[]
-  columns: SchemaColumn[]
-  foreign_keys: SchemaFK[]
 }
 
 export class GraphBuilder {
@@ -60,7 +39,6 @@ export class GraphBuilder {
   }
 
   async buildNode(collection: Collection<Document>, table: SchemaTable, nodes: Record<string, TableVertex>, edges: TableEdge[]) {
-    console.log("Building ", table.name)
     let tableName = table.name.toLowerCase();
     nodes[tableName] = {
       id: tableName,

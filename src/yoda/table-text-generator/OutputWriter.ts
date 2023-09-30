@@ -1,4 +1,4 @@
-import {ForeignKey, SchemaColumn} from "@/yoda/table-text-generator/BuildSchemaText.js";
+import {ForeignKey, SchemaColumn} from "@/yoda/table-text-generator/BuildSchemaText";
 
 export abstract class OutputWriter<T> {
   tableOptions: TableOptions;
@@ -147,7 +147,7 @@ export const serializeTableType = (table: TableType, allTableNames: Set<string>)
   let description = ""
   if (table.description) {
     description = "-- " + table.description + "\n"
-    description += `-- There are ${table.numRows} rows in this table`
+    description += `-- There are ${table.numRows} rows in this table\n`
   }
   if (table.type) {
     description += `-- The ${table.name} table is a ${table.type} table.\n`
@@ -173,7 +173,7 @@ export const serializeTableType = (table: TableType, allTableNames: Set<string>)
       }
     }
   }
-  output += `\n`
+  output += `)\n`
 
   return output
 }

@@ -14,6 +14,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@flex-development/mlly": "^1.0.0-alpha.18",
+    "@flex-development/pathe": "^2.0.0",
+    "@flex-development/tsconfig-utils": "^2.0.2",
     "@types/bytes": "^3.1.1",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
@@ -22,14 +25,22 @@
     "@types/mongodb": "^4.0.7",
     "@types/node": "^20.5.6",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.2.2",
+    "underscore": "^1.13.6"
   },
   "dependencies": {
+    "@types/escodegen": "^0.0.8",
+    "@types/esprima": "^4.0.4",
+    "@types/estree": "^1.0.2",
     "@types/pg": "^8.10.2",
+    "@types/underscore": "^1.11.8",
     "@types/ws": "^8.5.5",
     "axios": "^1.4.0",
     "body-parser": "^1.20.2",
     "dotenv": "^16.3.1",
+    "escodegen": "^2.1.0",
+    "esprima": "^4.0.1",
     "express": "^4.18.2",
     "extract-pg-schema": "^4.2.2",
     "jsforce": "^1.11.1",
@@ -37,6 +48,7 @@
     "luxon": "^3.4.1",
     "mogodb": "^0.0.1-security",
     "nanoid": "^4.0.2",
+    "operator-overloading": "^0.5.1",
     "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",
     "pg-metadata": "^5.0.1",
@@ -47,6 +59,7 @@
     "tsx": "^3.12.7",
     "wildcard-match": "^5.1.2",
     "ws": "^8.13.0",
+    "yaml": "^2.3.2",
     "zod": "^3.22.2"
   }
 }

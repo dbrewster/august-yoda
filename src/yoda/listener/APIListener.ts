@@ -1,6 +1,6 @@
 // @ts-ignore
-import {createIdPatternMatcher, EventHandler, WCMatch, YodaEvent} from "@/yoda/listener/EventHandler.js";
-import {fireEvent} from "@/yoda/index.js";
+import {createIdPatternMatcher, EventHandler, WCMatch, YodaEvent} from "@/util/llm/EventHandler";
+import {fireEvent} from "@/yoda/index";
 
 export class APIListener implements EventHandler {
   private readonly chatId: string

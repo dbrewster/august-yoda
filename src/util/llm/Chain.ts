@@ -5,7 +5,7 @@ import {
   BaseNameDescriptionOptions,
   ItemValues,
   RunManger
-} from "@/yoda/new-query/BaseItem.js";
+} from "@/util/llm/BaseItem";
 import {InputValues} from "langchain/schema";
 
 

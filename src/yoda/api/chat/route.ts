@@ -1,6 +1,6 @@
 import {ObjectId} from "mongodb";
 import {DateTime} from "luxon";
-import {mongoCollection} from "@/yoda/api/util.js";
+import {mongoCollection} from "@/util/util";
 import {Application} from "express"
 
 export async function register(app: Application) {

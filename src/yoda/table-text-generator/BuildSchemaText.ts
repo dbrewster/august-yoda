@@ -1,6 +1,6 @@
-import {mongoCollection} from "@/yoda/api/util.js";
+import {mongoCollection} from "@/util/util";
 import {ObjectId} from "mongodb";
-import {OutputWriter} from "@/yoda/table-text-generator/OutputWriter.js";
+import {OutputWriter} from "@/yoda/table-text-generator/OutputWriter";
 
 export interface SchemaColumn {
   name: string;
@@ -8,6 +8,7 @@ export interface SchemaColumn {
   nullable: boolean;
   is_pk: boolean;
   is_fk: boolean;
+  num_null: number
   friendlyName?: string;
   description?: string;
 }
@@ -47,7 +48,7 @@ export class BuildSchemaText {
     writer: OutputWriter<any>,
     tableName: string,
     collectionName: string = "schema",
-    columnsToInclude: ((table: string, column: string) => boolean) | null = null
+    columnsToInclude: ((table: TableSchema, column: SchemaColumn) => boolean) | null = null
   ) {
     writer.writeTableStart();
     const schemaTable: TableSchema = await mongoCollection(collectionName).then(collection => {
@@ -83,13 +84,9 @@ export class BuildSchemaText {
     writer.writeForeignKeys(schemaTable['foreign_keys']);
     writer.writeColumnsStart();
 
-    const combinedColumns = columnsToInclude
-      ? schemaTable.columns.filter(col => columnsToInclude(tableName, col.name))
-      : schemaTable.columns;
+    let combinedColumns = schemaTable.columns;
     if (hasSchemaDescriptionEntry) {
-      const schemaDescriptionColumns = columnsToInclude
-        ? schemaDescriptionTable.columns.filter(col => columnsToInclude(tableName, col.name))
-        : schemaDescriptionTable.columns;
+      const schemaDescriptionColumns = schemaDescriptionTable.columns;
 
       for (const col of combinedColumns) {
         const descCol = schemaDescriptionColumns.find(x => x.name === col.name);
@@ -98,6 +95,9 @@ export class BuildSchemaText {
           col.description = descCol.description
         }
       }
+    }
+    if (columnsToInclude) {
+      combinedColumns = combinedColumns.filter(col => columnsToInclude(schemaTable, col))
     }
 
     for (const col of combinedColumns) {
@@ -114,8 +114,8 @@ export class BuildSchemaText {
   ) {
     await mongoCollection(collectionName).then(async collection => {
       let table_names = await (tables
-          ? collection.find({'_id': {'$in': tables.map(ObjectId.createFromHexString)}}, {projection: {'_id': 1}}).sort('_id').map(t => t['_id'].toString()).toArray()
-          : collection.find({}, {projection: {'_id': 1}}).sort('_id').map(t => t['_id'].toString()).toArray()
+          ? collection.find({'name': {'$in': tables}}, {projection: {'name': 1}}).sort('name').map(t => t['name'].toString()).toArray()
+          : collection.find({}, {projection: {'name': 1}}).sort('name').map(t => t['name'].toString()).toArray()
       )
       for (const table of table_names) {
         await this.buildTableText(writer, table, collectionName);

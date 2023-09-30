@@ -1,7 +1,7 @@
-import {BaseLLMItem, ItemValues} from "@/yoda/new-query/BaseItem.js";
+import {BaseLLMItem, ItemValues} from "@/util/llm/BaseItem";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
 import {z, ZodType} from "zod";
-import {mongoCollection} from "@/yoda/api/util.js";
+import {mongoCollection} from "@/util/util";
 import {Document} from "mongodb";
 
 export class GetDataProducts extends BaseLLMItem {

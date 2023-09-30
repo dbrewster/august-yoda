@@ -5,7 +5,7 @@ import {
   BaseNameDescriptionOptions,
   ItemValues,
   RunManger
-} from "@/yoda/new-query/BaseItem.js";
+} from "@/util/llm/BaseItem";
 
 export interface MapReduceOptions extends BaseNameDescriptionOptions {
   map(input: ItemValues): BaseItem[],

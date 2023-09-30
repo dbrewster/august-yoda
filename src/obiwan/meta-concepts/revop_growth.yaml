@@ -1,0 +1,80 @@
+name: revops
+label: Knowledge hub for revops related tasks
+concepts:
+  - name: opportunity
+    friendlyName: Opportunity
+    type: BaseConcept
+    concept_identifier:
+        "An \"Opportunity\" in customer relationship management (CRM) refers to a potential sales deal or agreement that a company can earn revenue from. It represents a probable sale and is a critical stage in the sales process. This concept is usually used in a sales CRM process to track a salesperson's interaction with potential customers or clients and forecast potential revenue.
+        Properties an opportunity might have include its value or potential revenue, estimated closing date, stage of the sales process (i.e. prospecting, research, proposal, negotiation), and probability of closing. It could also include identifiers for the salesperson managing the opportunity and the specific customer or account it's linked to.
+        Opportunities are often tied to external objects like Accounts, which house all the pertinent information about the customer or business; Contacts, which are often associated with the people involved in an Opportunity; and Products, which detail the item or service being sold.
+        Opportunities serve a significant role in understanding key metrics in a sales process. For instance, the Aggregate Revenue Potential (ARP) can be calculated by summing the value of all existing opportunities. It's also essential in understanding Monthly Recurring Revenue (MRR) and Annual Recurring Revenue (ARR) predictions as it's through forecasting the probability of closing an opportunity that companies can make these estimates.
+        Moreover, opportunities could be sorted by various stages in a sales pipeline to provide insights on potential bottlenecks in the sales process and areas where improvement may be needed. For example, if a lot of opportunities are lost at the negotiation phase, it may suggest a need for better negotiation training for the sales team."
+    properties:
+      -   name: name
+          friendlyName: Name
+          type: string
+          concept_identifier:
+            "A distinctive title or label assigned to a potential sales deal. This name is unique and descriptive, serving as an identifier to help sales teams easily track and manage the opportunity throughout the sales process.
+            The opportunity name could be based on a variety of factors:
+            1. The prospect or company’s name: If the deal involves a significant client or a well-known organization, businesses often use the prospect's name as the opportunity name. For instance, \"Microsoft Software Upgrade Project\".
+            2. The product or service offered: If the deal revolves around a specific product or service, businesses might name the opportunity after it. For example, \"Enterprise Software Package for XYZ Corp.\"
+            3. A specific event or project: For project-based sales or event-driven opportunities, businesses may name the opportunity based on the event or project. For example, \"2022 Conference Sponsorship - ABC Company\".
+            4. The expected value or scope may also be referenced, especially for high-value deals. For example, \"Fortune 500 - 100k Software Deal\".
+            The opportunity name is an important part of sales data tracking, reporting, and communication within sales teams. It's crucial for it to be detailed and consistent in its format across all opportunities for clarity and effective navigation. Furthermore, it must be easily searchable to ensure quick retrieval and reference. The opportunity name is linked to all associated interactions, quotations, notes, and-aligned to a specific stage in the sales pipeline. Meaning, it provides a comprehensive view of the opportunity at any given point in time."
+      -   name: value
+          friendlyName: Opportunity Value
+          type: number
+          concept_identifier:
+            "Opportunity Value, within a CRM context, refers to the estimated revenue that a closed deal or sale will generate. It's a critical attribute of an Opportunity and is essential in forecasting, tracking, and managing a company's potential income.
+             This value is generally computed by multiplying the price of the product or service by the quantity envisaged to be sold, or it could be set during discussions or negotiations with the customer. It's important to note this value often changes as the Opportunity progresses and more information is obtained about the client's needs and capabilities.
+             For instance, if a company is trying to sell 100 units of a product at $10 each to a prospective client, the Opportunity Value would be set at $1000. If, during the negotiation process, the client agrees to buy 150 units, the Opportunity Value would then be updated to $1500.
+             Moreover, opportunity value is critical in calculating key sales metrics and forecasts. It influences the prediction of the Monthly Recurring Revenue (MRR) or Annual Recurring Revenue (ARR) a company can anticipate, directly feeding into total projected revenue. It also helps in budget allocation, performance evaluation of the sales team, and strategic decision-making processes.
+             In a sales pipeline, opportunities can be classified by their values to show potential high-value clients and prioritize sales efforts accordingly. It can help a business understand which deals to focus their resources on and can influence the sales strategies implemented. Changes in Opportunity Value over time can also indicate trends or shifts in customer behavior or market conditions."
+
+      -   name: close_date
+          friendlyName: Close Date
+          type: date
+          concept_identifier:
+            "An \"Opportunity Close Date\" in a CRM system refers to the estimated date when a sales deal (or opportunity) is expected to be finalized, either by winning or losing the deal. It is a critical field in the Opportunity entity and assists in tracking, managing, and forecasting the sales process.
+              The close date is generally an estimation based on factors such as prior experience with similar sales, the buying behavior of the customer, or the typical sales cycle length of the industry. As negotiations progress, the close date might get updated with a more accurate prediction or when milestones in the sale process are reached.
+              For example, a software manufacturing company has an opportunity to sell its product to a client. Based on their past experiences with similar deals, they estimate that it would take approximately three months from the initial engagement to close the deal. Therefore, if they identified the opportunity on January 1st, they would set the close date as March 31st.
+              The importance of the Opportunity Close Date is twofold. Firstly, it provides an indication of when revenue from a deal could be realized. This becomes crucial for forecasting revenue, cash flow, and resource planning. Secondly, it serves as a timetable for sales teams, guiding sales activities and follow-ups.
+              Furthermore, the distribution of opportunity close dates can give insights into future sales performance. For instance, if many opportunities are estimated to close within the next month, it indicates a robust sales pipeline for that month. On the other hand, if many opportunities have been languishing with distant or continuously shifting close dates, it may signal problems in the sales process."
+      -   name: stage
+          friendlyName: Stage Name
+          type: categorical
+          concept_identifier:
+            "An \"Opportunity Stage\" in a CRM system refers to the status or progress of a potential deal in the sales pipeline. It helps in identifying where an opportunity is in the sales process and provides an understanding of how close or far is the deal from being closed.
+              Typically, predefined stages in a sales process might include:
+              1. Prospect or Lead Identification: Where the potential customer is identified.
+              2. Qualification or Need Analysis: Where it's established if the potential customer has a genuine need or interest and has the ability to purchase.
+              3. Proposal or Quote: Where a proposal is formally made or a quotation is given.
+              4. Negotiation or Review: Where terms, conditions, and prices are discussed.
+              5. Closed Won: Where the deal is successfully sealed.
+              6. Closed Lost: Where the potential deal falls through.
+              Each of these stages has specific actions associated with it and moving an opportunity from one stage to the next would typically require completion of these actions.
+              The Opportunity Stage is crucial in sales management and forecasting. By analyzing the number and value of opportunities at each stage, a company can better predict future sales and identify potential bottlenecks in the sales process. For example, if a lot of opportunities are stuck at the 'Proposal/Quote' stage, it might mean that the proposals are not enticing enough for the prospects.
+              Furthermore, the Opportunity Stage often heavily influences the Probability field of an Opportunity, which is used to weigh the Opportunity Value when forecasting. It indicates the likelihood of the deal being won based on its existing stage. For example, an opportunity at the 'Closed Won' stage has a probability of 100%, while one at the 'Lead Identification' stage might have a much lower probability."
+      -   name: close_probability
+          friendlyName: Close Probability
+          type: number
+          concept_identifier:
+            "Close Probability, within the context of a CRM system, is a percentage indicating the likelihood that a sales opportunity will be won and converted into revenue. Typically, this is estimated based on the current stage of the opportunity in the sales cycle, with each stage having a higher probability as the opportunity moves closer to a successful close.
+             For example, an opportunity in the initial 'lead identification' stage might have a lower close probability such as 10%, while an opportunity that has progressed to the 'proposal' or 'negotiation' stage might have a 70% probability. Once the opportunity reaches the 'Closed Won' stage, the close probability is 100%.
+             The close probability isn't always based solely on the sales stage; it can also take factors such as past interactions, customer's buying history, market trends, and the salesperson's assessment into consideration. 
+             The close probability is a critical factor in sales forecasting. By multiplying the opportunity value by the close probability, sales teams can estimate the weighted value of the opportunity, giving them a more accurate forecast of the expected revenue.
+             For instance, if an opportunity has a value of $10,000 and the close probability is 70%, then the weighted sales forecast for that opportunity would be $7,000. 
+             Close probability percentages also guide sales strategy by indicating where to focus effort and resources. Opportunities with high close probabilities may require more attention to ensure a successful close, while those with low probabilities may need strategies reassessed to improve the likelihood of a successful outcome.
+             Understanding and tracking close probability helps to manage sales pipelines effectively, allocate resources strategically, and assess sales performance accurately. It gives a balanced perspective of the sales forecast, preventing over-optimistic expectations that can occur when looking solely at opportunity values."
+  - name: account
+    friendlyName: Account
+    type: BaseConcept
+    concept_identifier:
+      "An account in a sales CRM process usually refers to an organization, company, or consumer with whom business is transacted or that avails a service or product. It is a commercial entity with which one has a business relationship. An account is essentially the primary record for a business, containing critical details such as the company’s name, contact information, industry, the number of employees, annual revenue, etc.
+       Some properties an account might have can include its sector or industry, location, company size, revenue, contact information (such as address, email, phone number), the account's status (active, inactive, closed), the associated contacts or leads, and opportunities that have been initiated or completed. 
+       Accounts in a CRM are often linked to other external objects like Contacts, Opportunities, and Cases. For example, a Contact usually refers to an individual or employee within an Account, while an Opportunity refers to a sales or revenue deal associated with that Account. Cases can be any customer interaction, problem, or inquiry linked with the Account.
+       When it comes to key concepts in a sales process like Annual Recurring Revenue (ARR), Monthly Recurring Revenue (MRR), forecasting etc., these metrics could be computed for each account based on the deals that are closed with them. For example, ARR would calculate the recurring revenue from a particular account on a yearly basis, while MRR would refer to the expected revenue on a monthly basis. 
+       The relevance of an account in forecasting is pivotal since forecasting typically involves assessing the future revenue from all accounts in the pipeline based on the current sales data, the status of the opportunities associated with the accounts and historical trends. 
+       Therefore, in CRM, accounts serve as the hub for organizing customer details and tracking customer engagement – a vital link between the data metrics of a company and the strategic planning of sales processes."
+

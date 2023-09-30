@@ -1,4 +1,4 @@
-import {EventHandler, YodaEvent} from "@/yoda/listener/EventHandler.js";
+import {EventHandler, YodaEvent} from "@/util/llm/EventHandler";
 
 export abstract class BufferedEventHandler implements EventHandler {
   private events: YodaEvent[] = []

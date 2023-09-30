@@ -1,15 +1,15 @@
-import {Chain} from "@/yoda/new-query/Chain.js";
-import {GetDataProducts} from "@/yoda/new-query/GetDataProducts.js";
-import {MapReduce} from "@/yoda/new-query/MapReduce.js";
-import {BindInputValue, ItemValues} from "@/yoda/new-query/BaseItem.js";
-import {GetRelevantFactTables, VettedTable} from "@/yoda/new-query/schema-generation/GetRelevantFactTables.js";
-import {GetRelevantDimensionTables} from "@/yoda/new-query/schema-generation/GetRelevantDimensionTables.js";
-import {GetRelevantSchemaForTable} from "@/yoda/new-query/schema-generation/GetRelevantSchemaForTable.js";
-import {serializeTables} from "@/yoda/table-text-generator/OutputWriter.js";
-import {ToolItem} from "@/yoda/new-query/Agent.js";
+import {Chain} from "@/util/llm/Chain";
+import {GetDataProducts} from "@/yoda/new-query/GetDataProducts";
+import {MapReduce} from "@/util/llm/MapReduce";
+import {BindInputValue, ItemValues} from "@/util/llm/BaseItem";
+import {GetRelevantFactTables, VettedTable} from "@/yoda/new-query/schema-generation/GetRelevantFactTables";
+import {GetRelevantDimensionTables} from "@/yoda/new-query/schema-generation/GetRelevantDimensionTables";
+import {GetRelevantSchemaForTable} from "@/yoda/new-query/schema-generation/GetRelevantSchemaForTable";
+import {serializeTables} from "@/yoda/table-text-generator/OutputWriter";
+import {ToolItem} from "@/util/llm/Agent";
 import {z, ZodType} from "zod";
-import {GetSystemFacts, GetSystemFacts2} from "@/yoda/new-query/schema-generation/GetSystemFacts.js";
-import {GetDataProductFacts, GetDataProductFacts2} from "@/yoda/new-query/schema-generation/GetDataProductFacts.js";
+import {GetSystemFacts, GetSystemFacts2} from "@/yoda/new-query/schema-generation/GetSystemFacts";
+import {GetDataProductFacts, GetDataProductFacts2} from "@/yoda/new-query/schema-generation/GetDataProductFacts";
 
 export class GenSchema extends Chain implements ToolItem {
   inputSchema: ZodType = z.object({

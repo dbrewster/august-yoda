@@ -1,17 +1,17 @@
 import {
-  BaseCallContext,
+  BaseCallContext, BaseChatCallContext,
   BaseItem,
   BaseNameDescriptionOptions,
   ItemValues,
   RunManger
-} from "@/yoda/new-query/BaseItem.js";
+} from "@/util/llm/BaseItem";
 import {HumanMessagePromptTemplate, MessagesPlaceholder, SystemMessagePromptTemplate} from "langchain/prompts";
 import {ZodObject, ZodType} from "zod";
 import {LLMResult} from "langchain/schema";
 // @ts-ignore
 import {zodToJsonSchema} from "zod-to-json-schema";
 import {BaseMessage, FunctionMessage, InputValues} from "langchain/schema";
-import {addMemoryMessage, getMemory} from "@/yoda/memory/YodaMemory.js";
+import {addMemoryMessage, getMemory} from "@/util/llm/YodaMemory";
 
 export interface ToolItem {
   name: string
@@ -66,7 +66,7 @@ Also note that if you have previous answers to the users question you may return
     this.maxIterations = props.maxIterations || 5
   }
 
-  async call(runId: string, input: ItemValues, options: BaseCallContext, runManager?: RunManger): Promise<ItemValues> {
+  async call(runId: string, input: ItemValues, options: BaseChatCallContext, runManager?: RunManger): Promise<ItemValues> {
     let llmResultValue = {}
 
     const maybeAddMemory = async (message: BaseMessage) => {

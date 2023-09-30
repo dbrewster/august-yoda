@@ -1,5 +1,5 @@
 import {Application} from "express";
-import {mongoCollection} from "@/yoda/api/util.js";
+import {mongoCollection} from "@/util/util";
 // @ts-ignore
 import wcmatch2 from 'wildcard-match'
 

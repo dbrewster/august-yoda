@@ -1,16 +1,16 @@
 import {
-  BaseCallContext,
+  BaseCallContext, BaseChatCallContext,
   BaseItem,
   BaseNameDescriptionItem,
   BaseNameDescriptionOptions,
   ItemValues,
   RunManger
-} from "@/yoda/new-query/BaseItem.js";
+} from "@/util/llm/BaseItem";
 import {BaseMessage, FunctionMessage, InputValues, LLMResult} from "langchain/schema";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
-import {addMemoryMessage, getMemory} from "@/yoda/memory/YodaMemory.js";
+import {addMemoryMessage, getMemory} from "@/util/llm/YodaMemory";
 import {zodToJsonSchema} from "zod-to-json-schema";
-import {ToolItem} from "@/yoda/new-query/Agent.js";
+import {ToolItem} from "@/util/llm/Agent";
 
 interface PlanningChainAgentOptions extends BaseNameDescriptionOptions {
   children: (BaseItem & ToolItem)[]
@@ -46,7 +46,7 @@ Next call the tool with the appropriate input
     }
   }
 
-  async call(runId: string, input: ItemValues, options: BaseCallContext, runManager?: RunManger): Promise<ItemValues> {
+  async call(runId: string, input: ItemValues, options: BaseChatCallContext, runManager?: RunManger): Promise<ItemValues> {
     const maybeAddMemory = async (message: BaseMessage) => {
       if (this.props.memoryContext) {
         await addMemoryMessage(options.userId, options.chatId, options.conversationId, this.props.memoryContext, message)
@@ -89,7 +89,6 @@ Next call the tool with the appropriate input
       console.error(reason.response ? reason.response.data : reason.message)
       return Promise.reject(reason.response ? reason.response.data : reason.message)
     })
-    console.log("here")
     const generation = llmResult.generations[0][0] as Record<string, any>
     // add the AI response
     await maybeAddMemory(generation.message)

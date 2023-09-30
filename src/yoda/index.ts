@@ -6,7 +6,7 @@ import {createServer} from "http";
 import {RawData, WebSocket, WebSocketServer} from "ws";
 import message_route from "@/yoda/api/chat/[id]/message/route"
 import {nanoid} from "nanoid";
-import {createIdPatternMatcher, WCMatch, YodaEvent} from "@/yoda/listener/EventHandler";
+import {createIdPatternMatcher, WCMatch, YodaEvent} from "@/util/llm/EventHandler";
 import {ErrorRequestHandler} from "express-serve-static-core";
 import {promiseMiddleware} from "@/yoda/api/promise-middleware";
 
@@ -30,16 +30,16 @@ const registerRoutes = async (name: string) => {
 }
 
 message_route(app)
-await registerRoutes("@/yoda/api/chat/route.js")
-await registerRoutes("@/yoda/api/chat/[id]/route.js")
-await registerRoutes("@/yoda/api/chat/[id]/message/[messageId]/route.js")
-await registerRoutes("@/yoda/api/chat/[id]/[conversationId]/debug/route.js")
+await registerRoutes("@/yoda/api/chat/route")
+await registerRoutes("@/yoda/api/chat/[id]/route")
+await registerRoutes("@/yoda/api/chat/[id]/message/[messageId]/route")
+await registerRoutes("@/yoda/api/chat/[id]/[conversationId]/debug/route")
 
-await registerRoutes("@/yoda/api/product/route.js")
-await registerRoutes("@/yoda/api/product/[id]/fact/route.js")
-await registerRoutes("@/yoda/api/product/[id]/fact/[factId]/route.js")
+await registerRoutes("@/yoda/api/product/route")
+await registerRoutes("@/yoda/api/product/[id]/fact/route")
+await registerRoutes("@/yoda/api/product/[id]/fact/[factId]/route")
 
-await registerRoutes("@/yoda/api/graph/route.js")
+await registerRoutes("@/yoda/api/graph/route")
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');

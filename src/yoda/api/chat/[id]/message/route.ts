@@ -1,5 +1,5 @@
-import {mongoCollection} from "@/yoda/api/util.js";
-import {executeQuery} from "@/yoda/new-query/QE2.js";
+import {mongoCollection} from "@/util/util";
+import {executeQuery} from "@/yoda/new-query/QE2";
 import {Application} from "express";
 import {Document} from "mongodb"
 

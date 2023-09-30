@@ -1,5 +1,5 @@
 import process from "process";
-import {createIdPatternMatcher, EventHandler, WCMatch, YodaEvent} from "@/yoda/listener/EventHandler.js";
+import {createIdPatternMatcher, EventHandler, WCMatch, YodaEvent} from "@/util/llm/EventHandler";
 
 export class StdOutQueryListener implements EventHandler {
   numTokensUsed: number = 0

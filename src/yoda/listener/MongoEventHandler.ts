@@ -1,6 +1,6 @@
-import {YodaEvent} from "@/yoda/listener/EventHandler.js";
-import {mongoCollection} from "@/yoda/api/util.js";
-import {BufferedEventHandler} from "@/yoda/listener/BufferedEventHandler.js";
+import {YodaEvent} from "@/util/llm/EventHandler";
+import {mongoCollection} from "@/util/util";
+import {BufferedEventHandler} from "@/util/llm/BufferedEventHandler";
 
 export class MongoEventHandler extends BufferedEventHandler {
   private readonly userId: string

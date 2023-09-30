@@ -1,4 +1,4 @@
-import {mongoCollection} from "@/yoda/api/util.js";
+import {mongoCollection} from "@/util/util";
 import {ObjectId} from "mongodb";
 import {Application} from "express";
 

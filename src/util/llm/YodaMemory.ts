@@ -1,5 +1,5 @@
 import {AIMessage, BaseMessage, FunctionMessage, HumanMessage, SystemMessage} from "langchain/schema";
-import {mongoCollection} from "@/yoda/api/util.js";
+import {mongoCollection} from "@/util/util";
 
 export const addMemoryMessage = async (userId: string, chatId: string, conversationId: string, context: string, message: BaseMessage) => {
   return mongoCollection("chat_history").then(collection => {

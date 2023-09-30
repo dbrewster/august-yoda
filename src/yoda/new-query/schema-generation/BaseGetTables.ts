@@ -1,8 +1,8 @@
-import {BaseLLMItem, ItemValues} from "@/yoda/new-query/BaseItem.js";
+import {BaseLLMItem, ItemValues} from "@/util/llm/BaseItem";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
 import {z, ZodType} from "zod";
-import {BuildSchemaText} from "@/yoda/table-text-generator/BuildSchemaText.js";
-import {ObjectOutputWriter, serializeTables} from "@/yoda/table-text-generator/OutputWriter.js";
+import {BuildSchemaText} from "@/yoda/table-text-generator/BuildSchemaText";
+import {ObjectOutputWriter, serializeTables} from "@/yoda/table-text-generator/OutputWriter";
 
 export interface VettedTable {
   data_product: string

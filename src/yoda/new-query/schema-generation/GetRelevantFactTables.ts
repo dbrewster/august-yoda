@@ -1,4 +1,4 @@
-import {BaseGetTables} from "@/yoda/new-query/schema-generation/BaseGetTables.js";
+import {BaseGetTables} from "@/yoda/new-query/schema-generation/BaseGetTables";
 
 export interface VettedTable {
   data_product: string

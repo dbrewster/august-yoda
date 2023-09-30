@@ -1,9 +1,9 @@
-import {BaseCallContext, BaseLLMItem, BaseOptions, ItemValues} from "@/yoda/new-query/BaseItem.js";
+import {BaseCallContext, BaseLLMItem, BaseOptions, ItemValues} from "@/util/llm/BaseItem";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
 import {z, ZodType} from "zod";
-import {mongoCollection} from "@/yoda/api/util.js";
+import {mongoCollection} from "@/util/util";
 import {ChatOpenAI} from "langchain/chat_models/openai";
-import {ToolItem} from "@/yoda/new-query/Agent.js";
+import {ToolItem} from "@/util/llm/Agent";
 
 const getDBOptions = (dialect: string) => {
   let dialectStr: string = "SQL"

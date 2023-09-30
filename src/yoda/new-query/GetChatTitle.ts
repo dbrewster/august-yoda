@@ -1,4 +1,4 @@
-import {BaseLLMItem} from "@/yoda/new-query/BaseItem.js";
+import {BaseLLMItem} from "@/util/llm/BaseItem";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
 import {z, ZodType} from "zod";
 

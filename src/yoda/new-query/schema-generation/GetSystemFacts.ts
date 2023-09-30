@@ -1,7 +1,7 @@
-import {BaseCallContext, BaseItem, BaseLLMItem, ItemValues, RunManger} from "@/yoda/new-query/BaseItem.js";
+import {BaseCallContext, BaseItem, BaseLLMItem, ItemValues, RunManger} from "@/util/llm/BaseItem";
 import {undefined, z, ZodObject, ZodType} from "zod";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
-import {mongoCollection} from "@/yoda/api/util.js";
+import {mongoCollection} from "@/util/util";
 
 export class GetSystemFacts extends BaseLLMItem {
   readonly name: string = "get_system_facts"
