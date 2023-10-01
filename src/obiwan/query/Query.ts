@@ -3,8 +3,8 @@ import * as console from "console";
 import {parseQuery} from "./overload"
 import {oClass, oProperty, SQLContext} from "@/obiwan/query/QueryClass";
 import {getOrBuildConceptClasses} from "@/obiwan/query/BuildConceptClasses";
-import dotenv from "dotenv";
 import {SQLDatabase} from "@/util/SQLDatabase";
+import dotenv from "dotenv";
 
 type BinaryOperand = ("+" | "-" | "*" | "/" | "&&" | "||" | "==" | "!=" | "<" | "<=" | ">" | ">=" | "in" | "%")
 type UnaryOperand = ("!")
@@ -15,6 +15,7 @@ type UnaryOperator = [UnaryOperand, any]
 class oQuery<T extends typeof oClass> {
   t: InstanceType<T>
   whereClauses: (BinaryOperator | UnaryOperator | undefined) = undefined
+  groupByClause?: oProperty[] = undefined;
   projection?: any = undefined
   limitRows?: number = undefined
 
@@ -38,8 +39,13 @@ class oQuery<T extends typeof oClass> {
     return this
   }
 
-  return(fn: (o: InstanceType<T>) => Record<string, oProperty>): oQuery<T> {
-    this.projection = fn.apply(this.t, [this.t])
+  return(fn: (o: InstanceType<T>) => (oProperty[] | Record<string, oProperty>)): oQuery<T> {
+    this.projection = fn(this.t)
+    return this
+  }
+
+  groupBy(fn: (o: InstanceType<T>) => oProperty[]): oQuery<T> {
+    this.groupByClause = fn(this.t)
     return this
   }
 
@@ -48,7 +54,7 @@ class oQuery<T extends typeof oClass> {
     return this
   }
 
-  opToSQL(op: string) {
+  opToSQL(errors: string[], op: string) {
     switch (op) {
       case "==":
         return "="
@@ -63,14 +69,15 @@ class oQuery<T extends typeof oClass> {
     }
   }
 
-  printOperator(op: (BinaryOperator | UnaryOperator | any)): string {
-    if (!op) {
+  printOperator(errors: string[], op: (BinaryOperator | UnaryOperator | any)): string {
+    if (op == null || op == undefined) {
+      errors.push("Invalid identifier " + op)
       return "null"
     }
     if (op.length == 3) {
-      return `${this.printOperator(op[0])} ${this.opToSQL(op[1])} ${this.printOperator(op[2])}`
+      return `${this.printOperator(errors, op[0])} ${this.opToSQL(errors, op[1])} ${this.printOperator(errors, op[2])}`
     } else if (op.length == 2) {
-      return `${this.opToSQL(op[0])} ${this.printOperator(op[1])}`
+      return `${this.opToSQL(errors, op[0])} ${this.printOperator(errors, op[1])}`
     } else if (op instanceof oProperty) {
       return op.toSQL()
     } else if (typeof op === "string") {
@@ -105,21 +112,9 @@ class oQuery<T extends typeof oClass> {
   }
 
   async toSQL() {
-    if (!this.projection) {
-      throw Error("Projection must not be null")
-    }
-    console.log(this.projection)
-    let projectSQL: string
-    if (Array.isArray(this.projection)) {
-      projectSQL = (this.projection as oProperty[]).map(prop => prop.toSQL()).join(",")
-    } else {
-      projectSQL = Object.keys(this.projection).map(key => `${this.projection![key].toSQL()} AS "${key}"`).join(",")
-    }
+    const errors: string[] = []
 
-    let sql =
-      `SELECT ${projectSQL}
-       FROM ${await this.getTableOrSubSelect(this.t)} ${this.t.getAlias()}
-      `
+    let fromStatement = `    FROM ${await this.getTableOrSubSelect(this.t)} ${this.t.getAlias()}`
     if (this.sqlContext.fks) {
       for (const fk of Object.values(this.sqlContext.fks)) {
         let table = this.sqlContext.getTable(fk.target);
@@ -127,15 +122,87 @@ class oQuery<T extends typeof oClass> {
         const joins = fk.sourceProperties.map((sp, i) => {
           return `${fk.source}.${sp} = ${fk.target}.${fk.targetProperties[i]}`
         }).join(" AND ")
-        sql += `    JOIN ${tableOrSubSelect} ${fk.target} ON ${joins}\n`
+        fromStatement += `    JOIN ${tableOrSubSelect} ${fk.target} ON ${joins}\n`
       }
     }
 
+    let whereStatement = ""
     if (this.whereClauses) {
-      sql += `    WHERE ${this.printOperator(this.whereClauses)}\n`
+      whereStatement = `    WHERE ${this.printOperator(errors, this.whereClauses)}\n`
     }
-    return sql
+
+    let groupByColumns = new Set<string>()
+    let groupByStatement = ""
+    if (this.groupByClause) {
+      groupByColumns = new Set(this.groupByClause.map(prop => `${prop._parent.__alias}.${prop._name}`))
+      groupByStatement = `    GROUP BY ${this.groupByClause.map(prop => prop.toSQL()).join(",")}`
+    }
+
+    if (!this.projection) {
+      throw Error("Projection must not be null")
+    }
+    let projectedColumns: Record<string, ProjectedColumn> = {}
+    if (Array.isArray(this.projection)) {
+      (this.projection as oProperty[]).forEach(prop => {
+        const fullName = `${prop._parent.__alias}.${prop._name}`
+        const prettyName = prop.makeProjectionName()
+        projectedColumns[fullName] = {
+          parent: prop._parent.__alias!,
+          name: prop._name,
+          sql: `${prop.toSQL()} AS "${prettyName}"`,
+          isAgg: prop.isAgg(),
+        }
+      })
+    } else {
+      Object.keys(this.projection).forEach(key => {
+        const prop = this.projection![key]
+        const fullName = `${prop._parent.__alias}.${prop._name}`
+        projectedColumns[fullName] = {
+          parent: prop._parent.__alias!,
+          name: prop._name,
+          sql: `${prop.toSQL()} AS "${key}"`,
+          isAgg: prop.isAgg(),
+        }
+      })
+    }
+    const projectSQL = Object.values(projectedColumns).map(v => v.sql).join(",")
+    errors.push(...this.validateColumns(groupByColumns, projectedColumns, "return"))
+
+    let orderByStatement = ""
+
+    let limitStatement = ""
+
+    if (errors.length) {
+      throw new Error(errors.join("\n"))
+    }
+
+    return `SELECT ${projectSQL}
+ ${fromStatement}
+ ${whereStatement}
+ ${groupByStatement}
+ ${orderByStatement}
+ ${limitStatement}
+`.replace(/(\n{2,})/g, '\n')
   }
+
+  validateColumns(groupByColumns: Set<string>, columns: Record<string, ProjectedColumn>, location: string): string[] {
+    const errors: string[] = []
+    for (const column in columns) {
+      const value = columns[column]
+      if (!groupByColumns.has(column) && !value.isAgg) {
+        errors.push(`${location} column ${column} must be an aggregate because it does not appear in the group by clause`)
+      }
+    }
+
+    return errors
+  }
+}
+
+interface ProjectedColumn {
+  parent: string,
+  name: string,
+  isAgg: boolean,
+  sql: string
 }
 
 export const Query = <T extends typeof oClass>(clazz: T) => {
@@ -152,12 +219,11 @@ export const executeQuery = async (query: string) => {
   return await new SQLDatabase().executeSQL(sql)
 }
 
-// todo -- write methods to convert nodes to classes and edges to linkProperties on those nodes
-//
-// dotenv.config()
-// const query = `Query(Opportunity)
-//     .where((o) => o.stage == "Closed Won" && o.close_probability == 100)
-//     .return((o) => [o.name])
-// `
-// const result = await executeQuery(query)
-// console.log(result)
+dotenv.config()
+const query = `Query(Opportunity)
+    .where((o) => o.probability > 0)
+    .groupBy((o) => [o.stage_name, o.close_date.month.asText()])
+    .return((o) => [o.stage_name, o.close_date.month.asText(), o.amount.count(), o.amount.sum()])
+`
+const result = await executeQuery(query)
+console.log(result)

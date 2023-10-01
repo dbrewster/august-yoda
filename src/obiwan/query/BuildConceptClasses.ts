@@ -1,14 +1,15 @@
 import {Concept, ConceptEdge, ConceptProperty, getAllConceptEdges, getAllConcepts} from "@/obiwan/concepts/Concept";
 import {
   BooleanProperty,
+  DateProperty,
+  DateTimeProperty,
   LinkProperty,
   NumberProperty,
   oClass,
-  oProperty,
   SQLContext,
-  StringProperty
+  StringProperty,
+  TimeProperty
 } from "@/obiwan/query/QueryClass";
-import dotenv from "dotenv";
 
 /*
 class Opportunity extends oClass {
@@ -28,18 +29,22 @@ let allClasses: Record<string, typeof oClass> = {}
 const makePropertyFromConcept = (parent: oClass, property: ConceptProperty) => {
   switch (property.type) {
     case "boolean":
-      return new BooleanProperty(parent, property.name, property.expression)
+      return new BooleanProperty(parent, property.name, property.friendlyName, property.expression)
     case "string":
-      return new StringProperty(parent, property.name, property.expression)
+      return new StringProperty(parent, property.name, property.friendlyName, property.expression)
     case "number":
-      return new NumberProperty(parent, property.name, property.expression)
+      return new NumberProperty(parent, property.name, property.friendlyName, property.expression)
     case "categorical":
-      return new StringProperty(parent, property.name, property.expression)
+      return new StringProperty(parent, property.name, property.friendlyName, property.expression)
     case "date":
-      // todo -- implement this for real
-      return new StringProperty(parent, property.name, property.expression)
+      return new DateProperty(parent, property.name, property.friendlyName, property.expression)
+    case "time":
+      return new TimeProperty(parent, property.name, property.friendlyName, property.expression)
+    case "datetime":
+      return new DateTimeProperty(parent, property.name, property.friendlyName, property.expression)
   }
 }
+
 const buildConceptClass = (info: ClassBuilderInfo) => {
   return class extends oClass {
     constructor(sqlContext: SQLContext) {

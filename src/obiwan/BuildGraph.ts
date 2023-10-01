@@ -1,6 +1,7 @@
 import {mongoCollection} from "@/util/util";
 import {Collection, Document} from "mongodb";
 import {SchemaTable} from "@/util/SchemaDefinitions";
+import {Concept, ConceptEdge} from "@/obiwan/concepts/Concept";
 
 export interface TableVertex {
   id: string,
@@ -29,13 +30,26 @@ export class GraphBuilder {
   }
 
   async buildGraph() {
-    const collection = await mongoCollection("schema")
-    const table = (await collection.findOne({name: this._tableName}))! as Record<string, any> as SchemaTable
-    const nodes: Record<string, TableVertex> = {}
-    const edges: TableEdge[] = []
-    await this.buildNode(collection, table, nodes, edges)
+    const collection = await mongoCollection("concept")
+    const concepts = await collection.find<Concept>({type: "Table"}).toArray()
+    const nodes = concepts.map(concept => ({
+      label: concept.friendlyName,
+      id: concept.name,
+      properties: concept.properties.map(prop => ({
+        name: prop.friendlyName,
+        type: prop.type
+      } as TableProperty))
+    } as TableVertex))
 
-    return [Object.values(nodes), edges]
+    const edgeCollection = await mongoCollection("concept_edge")
+    const edges = (await edgeCollection.find<ConceptEdge>({}).toArray()).map(edge => ({
+      id: `${edge.source}.${edge.name}`,
+      label: edge.friendlyName,
+      source: edge.source,
+      target: edge.target
+    } as TableEdge))
+
+    return [nodes, edges]
   }
 
   async buildNode(collection: Collection<Document>, table: SchemaTable, nodes: Record<string, TableVertex>, edges: TableEdge[]) {

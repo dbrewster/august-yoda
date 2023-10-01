@@ -1,3 +1,5 @@
+import {snakeToPascalCase} from "@/util/util";
+
 export interface LinkReference {
   propertyName: string,
   source: string,
@@ -65,11 +67,13 @@ export abstract class oProperty {
   _parent: oClass;
   _name: string;
   _expression?: string;
+  _friendlyName: string;
 
-  constructor(parent: oClass, name: string, expression?: string) {
+  constructor(parent: oClass, name: string, friendlyName: string, expression?: string) {
     this._parent = parent;
     this._name = name;
     this._expression = expression;
+    this._friendlyName = friendlyName
   }
 
   abstract getType(): string
@@ -77,11 +81,87 @@ export abstract class oProperty {
   toSQL(): string {
     return `${this._parent.__alias}.${this._name}`;
   }
+
+  isAgg() {
+    return false;
+  }
+
+  count(): NumberProperty {
+    return new CountProperty(this)
+  }
+
+  min(): NumberProperty {
+    return new MinProperty(this)
+  }
+
+  max(): NumberProperty {
+    return new MaxProperty(this)
+  }
+
+  makeProjectionName() {
+    return this._friendlyName
+  }
 }
 
 export class NumberProperty extends oProperty {
   getType(): string {
     return "number";
+  }
+
+  sum(): NumberProperty {
+    return new SumProperty(this)
+  }
+
+  avg(): NumberProperty {
+    return new AvgProperty(this)
+  }
+}
+
+abstract class NumberAggProperty extends NumberProperty {
+  _parentProperty: oProperty
+  _sqlFN: string;
+
+  constructor(parentProperty: oProperty, sqlFN: string) {
+    super(parentProperty._parent, sqlFN + "_" + parentProperty._name, `${snakeToPascalCase(sqlFN.toLowerCase())} of ${parentProperty._friendlyName}`, parentProperty._expression);
+    this._parentProperty = parentProperty;
+    this._sqlFN = sqlFN;
+  }
+  isAgg(): boolean {
+    return true;
+  }
+  toSQL(): string {
+    return `${this._sqlFN}(${this._parentProperty.toSQL()})`;
+  }
+}
+
+export class CountProperty extends NumberAggProperty {
+  constructor(parentProperty: oProperty) {
+    super(parentProperty, "COUNT");
+  }
+}
+
+
+export class MinProperty extends NumberAggProperty {
+  constructor(parentProperty: oProperty) {
+    super(parentProperty, "MIN");
+  }
+}
+
+export class MaxProperty extends NumberAggProperty {
+  constructor(parentProperty: oProperty) {
+    super(parentProperty, "MAX");
+  }
+}
+
+export class SumProperty extends NumberAggProperty {
+  constructor(parentProperty: oProperty) {
+    super(parentProperty, "SUM");
+  }
+}
+
+export class AvgProperty extends NumberAggProperty {
+  constructor(parentProperty: oProperty) {
+    super(parentProperty, "AVG");
   }
 }
 
@@ -97,12 +177,83 @@ export class BooleanProperty extends oProperty {
   }
 }
 
+export type DateTimePart = ("year" | "month" | "day" | "hour" | "minute" | "second" | "millisecond")
+
+export class NumericDatePartProperty extends NumberProperty {
+  parentProperty: oProperty
+  dateTimePart: DateTimePart
+
+  constructor(parentProperty: oProperty, dateTimePart: DateTimePart) {
+    super(parentProperty._parent, parentProperty._name, `${snakeToPascalCase(dateTimePart.toLowerCase())} of ${parentProperty._friendlyName}`, parentProperty._expression);
+    this.parentProperty = parentProperty;
+    this.dateTimePart = dateTimePart;
+  }
+
+  toSQL(): string {
+    return `date_part('${this.dateTimePart}', ${this.parentProperty.toSQL()})`;
+  }
+}
+
+export class MonthNameProperty extends StringProperty {
+  parentProperty: oProperty
+
+  constructor(parentProperty: oProperty) {
+    super(parentProperty._parent, parentProperty._name, `Month of ${parentProperty._friendlyName}`, parentProperty._expression)
+    this.parentProperty = parentProperty;
+  }
+
+  toSQL(): string {
+    return `TO_CHAR(${this.parentProperty.toSQL()}, 'Month')`
+  }
+}
+
+export class MonthDatePartProperty extends NumericDatePartProperty {
+  asText() {
+    return new MonthNameProperty(this.parentProperty)
+  }
+}
+
+export class DateProperty extends oProperty {
+  getType(): string {
+    return "Date";
+  }
+  readonly year = new NumericDatePartProperty(this, "year")
+  readonly month = new MonthDatePartProperty(this, "month")
+  readonly day = new NumericDatePartProperty(this, "day")
+}
+
+export class TimeProperty extends oProperty {
+  getType(): string {
+    return "Time";
+  }
+
+  readonly hour = new NumericDatePartProperty(this, "hour")
+  readonly minute = new NumericDatePartProperty(this, "minute")
+  readonly second= new NumericDatePartProperty(this, "second")
+  readonly millisecond = new NumericDatePartProperty(this, "millisecond")
+}
+
+export class DateTimeProperty extends oProperty {
+  getType(): string {
+    return "DateTime";
+  }
+
+  readonly year = new NumericDatePartProperty(this, "year")
+  readonly month = new NumericDatePartProperty(this, "month")
+  readonly day = new NumericDatePartProperty(this, "day")
+  readonly hour = new NumericDatePartProperty(this, "hour")
+  readonly minute = new NumericDatePartProperty(this, "minute")
+  readonly second= new NumericDatePartProperty(this, "second")
+  readonly millisecond = new NumericDatePartProperty(this, "millisecond")
+
+}
+
 export class LinkProperty<T extends typeof oClass> extends oProperty {
   private _type: T;
   private _delegate: InstanceType<T>
 
   constructor(parent: oClass, type: () => T, name: string, sourceProperties: string[], targetProperties: string[]) {
-    super(parent, name, undefined);
+    super(parent, name, name, undefined);
     const objType = type()
     this._type = objType;
     // @ts-ignore
@@ -135,7 +286,7 @@ export class ArrayProperty<T extends typeof oClass> extends oProperty {
   private _type: T;
 
   constructor(parent: oClass, type: T, name: string) {
-    super(parent, name);
+    super(parent, name, name, undefined);
     this._type = type;
   }
 
