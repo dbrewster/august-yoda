@@ -90,7 +90,6 @@ export abstract class BaseLLMItem<T extends BaseOptions = BaseOptions> extends B
 
     shouldSkipLLMCall: boolean = false
 
-
     async beforeLLM(input: ItemValues, callOptions: BaseCallContext): Promise<ItemValues> {
         return input
     }

@@ -1,10 +1,7 @@
-import * as console from "console";
-
 import {parseQuery} from "./overload"
-import {oClass, oProperty, SQLContext} from "@/obiwan/query/QueryClass";
-import {getOrBuildConceptClasses} from "@/obiwan/query/BuildConceptClasses";
+import {LinkProperty, oClass, oProperty, SQLContext} from "@/obiwan/query/QueryClass";
+import {getOrBuildConceptClasses, Namespace} from "@/obiwan/code-gen/BuildConceptClasses";
 import {SQLDatabase} from "@/util/SQLDatabase";
-import dotenv from "dotenv";
 
 type BinaryOperand = ("+" | "-" | "*" | "/" | "&&" | "||" | "==" | "!=" | "<" | "<=" | ">" | ">=" | "in" | "%")
 type UnaryOperand = ("!")
@@ -12,10 +9,12 @@ type UnaryOperand = ("!")
 type BinaryOperator = [any, BinaryOperand, any]
 type UnaryOperator = [UnaryOperand, any]
 
+type PropertyOrClass = (oProperty | oClass)
+
 class oQuery<T extends typeof oClass> {
   t: InstanceType<T>
   whereClauses: (BinaryOperator | UnaryOperator | undefined) = undefined
-  groupByClause?: oProperty[] = undefined;
+  groupByClause?: (PropertyOrClass | PropertyOrClass[]) = undefined;
   projection?: any = undefined
   limitRows?: number = undefined
 
@@ -70,7 +69,7 @@ class oQuery<T extends typeof oClass> {
   }
 
   printOperator(errors: string[], op: (BinaryOperator | UnaryOperator | any)): string {
-    if (op == null || op == undefined) {
+    if (op == null) {
       errors.push("Invalid identifier " + op)
       return "null"
     }
@@ -92,7 +91,7 @@ class oQuery<T extends typeof oClass> {
     // else it is a sub select
     // todo -- handle union sub selects
     const baseType = table.__baseConcepts[0]
-    const allTypes = await getOrBuildConceptClasses()
+    const allTypes = await getOrBuildConceptClasses(table.__namespace)
     let query = `Query(${baseType})\n`
     // todo -- handle constraints
     query += ".return((o) => ({\n"
@@ -105,9 +104,7 @@ class oQuery<T extends typeof oClass> {
       }
     }
     query += "}))\n"
-    console.log("generating subselect for ", query)
-    const sql = await getSQLForQuery(query)
-    console.log("generating subselect for ", sql)
+    const sql = await getSQLForQuery(table.__namespace, query)
     return (`(${sql})`)
   }
 
@@ -134,8 +131,21 @@ class oQuery<T extends typeof oClass> {
     let groupByColumns = new Set<string>()
     let groupByStatement = ""
     if (this.groupByClause) {
-      groupByColumns = new Set(this.groupByClause.map(prop => `${prop._parent.__alias}.${prop._name}`))
-      groupByStatement = `    GROUP BY ${this.groupByClause.map(prop => prop.toSQL()).join(",")}`
+      let transformedGbClause: PropertyOrClass[]
+      if (!Array.isArray(this.groupByClause)) {
+        transformedGbClause = [this.groupByClause]
+      } else {
+        transformedGbClause = this.groupByClause
+      }
+
+      groupByColumns = new Set(transformedGbClause.map(prop => `${prop._parent.__alias}.${prop._name}`))
+      groupByStatement = `    GROUP BY ${transformedGbClause.map(prop => {
+        if (prop instanceof oClass) {
+          return prop._sourceProperties.map((sp: string) => `${prop._parent.__alias}.${sp}`)
+        } else {
+          return [prop.toSQL()]
+        }
+      }).flat().join(",")}`
     }
 
     if (!this.projection) {
@@ -144,12 +154,19 @@ class oQuery<T extends typeof oClass> {
     let projectedColumns: Record<string, ProjectedColumn> = {}
     if (Array.isArray(this.projection)) {
       (this.projection as oProperty[]).forEach(prop => {
+        const props: oProperty[] = [prop]
+        let sql: string
+        if (prop instanceof LinkProperty) {
+          sql = prop._sourceProperties.map(p => `${prop._parent.__alias}.${p}`).join(",")
+        } else {
+          const prettyName = prop.makeProjectionName()
+          sql = `${prop.toSQL()} AS "${prettyName}"`
+        }
         const fullName = `${prop._parent.__alias}.${prop._name}`
-        const prettyName = prop.makeProjectionName()
         projectedColumns[fullName] = {
           parent: prop._parent.__alias!,
           name: prop._name,
-          sql: `${prop.toSQL()} AS "${prettyName}"`,
+          sql: sql,
           isAgg: prop.isAgg(),
         }
       })
@@ -171,6 +188,9 @@ class oQuery<T extends typeof oClass> {
     let orderByStatement = ""
 
     let limitStatement = ""
+    if (this.limitRows) {
+      limitStatement = `LIMIT ${this.limitRows}`
+    }
 
     if (errors.length) {
       throw new Error(errors.join("\n"))
@@ -187,13 +207,14 @@ class oQuery<T extends typeof oClass> {
 
   validateColumns(groupByColumns: Set<string>, columns: Record<string, ProjectedColumn>, location: string): string[] {
     const errors: string[] = []
-    for (const column in columns) {
-      const value = columns[column]
-      if (!groupByColumns.has(column) && !value.isAgg) {
-        errors.push(`${location} column ${column} must be an aggregate because it does not appear in the group by clause`)
+    if (groupByColumns.size > 0) {
+      for (const column in columns) {
+        const value = columns[column]
+        if (!groupByColumns.has(column) && !value.isAgg) {
+          errors.push(`${location} column ${column} must be an aggregate because it does not appear in the group by clause`)
+        }
       }
     }
-
     return errors
   }
 }
@@ -209,21 +230,55 @@ export const Query = <T extends typeof oClass>(clazz: T) => {
   return new oQuery<T>(clazz)
 }
 
-export const getSQLForQuery = async (query: string) => {
-  const conceptClasses = await getOrBuildConceptClasses()
+export const getSQLForQuery = async (namespace: Namespace, query: string) => {
+  const conceptClasses = await getOrBuildConceptClasses(namespace)
   return parseQuery(query, [], conceptClasses)().toSQL() as string
 }
 
-export const executeQuery = async (query: string) => {
-  const sql = await getSQLForQuery(query)
+export const executeQuery = async (namespace: Namespace, query: string) => {
+  const sql = await getSQLForQuery(namespace, query)
   return await new SQLDatabase().executeSQL(sql)
 }
 
-dotenv.config()
-const query = `Query(Opportunity)
-    .where((o) => o.probability > 0)
-    .groupBy((o) => [o.stage_name, o.close_date.month.asText()])
-    .return((o) => [o.stage_name, o.close_date.month.asText(), o.amount.count(), o.amount.sum()])
-`
-const result = await executeQuery(query)
-console.log(result)
+export const getSampleRows = async (namespace: Namespace, concept: string, limit: number) => {
+  return executeQuery(namespace, `Query(${concept})
+  .return((o) => o.allProperties())
+  .limit(${limit})`)
+}
+
+// dotenv.config()
+// const results = await getSampleRows("Opportunity", 5)
+// console.log(results)
+
+// const query = `Query(Opportunity)
+//     .where((o) => o.probability > 0)
+//     .groupBy((o) => [o.stage_name, o.close_date.month.asText()])
+//     .return((o) => [o.stage_name, o.close_date.month.asText(), o.amount.count(), o.amount.sum()])
+// `
+
+// const query = `Query(OpportunityLineItem).where(o => [
+//   o.opportunity.is_closed,
+//   '&&',
+//   [
+//     o.product2.name,
+//     '==',
+//     'Mega laptop'
+//   ]
+// ]).return(o => [o.opportunity.account.name])
+// `
+// const query = `Query(OpportunityLineItem).where(o => [
+//   o.opportunity.is_closed,
+//   '&&',
+//   [
+//     o.product2.name,
+//     '==',
+//     'Mega laptop'
+//   ]
+// ]).groupBy(o => o.opportunity.account.name).return(o => [
+//   o.opportunity.account.name,
+//   o.opportunity.account.count()
+// ])
+// `
+// const result = await executeQuery(query)
+// console.log(result)
+//

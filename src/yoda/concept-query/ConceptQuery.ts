@@ -59,5 +59,5 @@ The input to this tool is a user query in english leave the original query uncha
 
 
 dotenv.config()
-const result = await executeQuery("123", "650e4a61db7b6547e95fe740", "Show me the name of the accounts for opportunities that are closed")
+const result = await executeQuery("123", "650e4a61db7b6547e95fe740", "Show me the number of opportunities per account and the name of the accounts for opportunities that are closed and are for products with the name 'Mega laptop'")
 console.log(result)

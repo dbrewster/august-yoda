@@ -1,28 +1,33 @@
 import {oClass, oProperty, SQLContext} from "@/obiwan/query/QueryClass";
-import {getOrBuildConceptClasses} from "@/obiwan/query/BuildConceptClasses";
-import {getConcept} from "@/obiwan/concepts/Concept";
+import {getOrBuildConceptClasses} from "@/obiwan/code-gen/BuildConceptClasses";
 import dotenv from "dotenv";
+
+const typeToPropertyType: Record<string, string> = {
+  "string": "String",
+  "number": "Number",
+  "boolean": "Boolean",
+  "date": "Date",
+  "time": "Time",
+  "datetime": "DateTime"
+}
 
 export const printConceptClass = async <T extends typeof oClass>(name: string, clazz: T, printOptions: PrintOptions) => {
   const sqlContext = new SQLContext()
   // @ts-ignore
   const instance = new clazz(sqlContext)
   instance.initializeProperties()
-  const concept = await getConcept(name)
   let out = `interface ${name} extends InstanceType {\n`
-  if (concept && printOptions.IncludeConceptDescriptions) {
-    out = `/*\n${concept.description}\n*/\n` + out
+  if (instance.__description && printOptions.IncludeConceptDescriptions) {
+    out = `/*\n${instance.__description}\n*/\n` + out
   }
   out += Object.keys(instance).toSorted().filter(n => !n.startsWith("__")).map(n => {
     const property = instance[n]
-    const propertyDescription = concept?.properties?.find(p => p.name == n)
-    let description = ""
-    if (printOptions.IncludePropertyDescriptions && propertyDescription) {
-      description = ` // ${propertyDescription.description}`
-    }
     if (printOptions.IncludeProperties && property instanceof oProperty) {
-      return `    ${n}: ${property.getType()}, ${description}`
+      const description = printOptions.IncludePropertyDescriptions ? ` // ${property.__description}` : ""
+      return `    ${n}: ${typeToPropertyType[property.getType()]}, ${description}`
     } else if (printOptions.IncludeReferences && property instanceof oClass) {
+      const link = instance.__links[n]
+      const description = printOptions.IncludePropertyDescriptions ? ` // ${link.__description}` : ""
       return `    ${n}: ${property.__id}, ${description}`
     } else {
       return null
@@ -33,8 +38,8 @@ export const printConceptClass = async <T extends typeof oClass>(name: string, c
   return out
 }
 
-export const printConceptClasses = async (printOptions: PrintOptions, concepts?: string[]) => {
-  const classes = await getOrBuildConceptClasses()
+export const printConceptClasses = async (printOptions: PrintOptions, concepts?: string[], useTables: boolean = false) => {
+  const classes = await getOrBuildConceptClasses(useTables ? "table" : "concepts")
   const conceptsToPrint = concepts || Object.keys(classes)
   let ret = ""
   for (const name of conceptsToPrint) {
@@ -51,4 +56,9 @@ export interface PrintOptions {
 }
 //
 // dotenv.config()
-// console.log(await printConceptClasses(true))
+// console.log(await printConceptClasses({
+//             IncludeConceptDescriptions: true,
+//             IncludeProperties: true,
+//             IncludePropertyDescriptions: true,
+//             IncludeReferences: true
+//         }, undefined, true))

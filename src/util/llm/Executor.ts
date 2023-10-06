@@ -6,13 +6,13 @@ import {InputValues} from "langchain/schema";
 export const executeLLM = (item: BaseItem, runId: string, input: InputValues, userId: string, options: Record<string, any> = {}, runManager: RunManger | undefined = undefined, temperature: number = 0): Promise<ItemValues> => {
   const model35 = new ChatOpenAI({
     modelName: process.env.MODEL,
-    verbose: true,
+    // verbose: true,
     temperature: temperature
   })
   const model4 = new ChatOpenAI({
     temperature: temperature,
     modelName: process.env.MODEL_4,
-    verbose: true,
+    // verbose: true,
   })
   let iOptions: BaseCallContext = {
     model: model35,

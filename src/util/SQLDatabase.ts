@@ -7,7 +7,7 @@ export class SQLDatabase {
   readonly dialect: string
 
   constructor() {
-    this._db = new Sequelize(process.env.SQL_DATABASE as string)
+    this._db = new Sequelize(process.env.SQL_DATABASE as string, {logging:false})
     this.dialect = this._db.getDialect()
   }
 

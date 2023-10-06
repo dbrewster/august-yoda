@@ -60,7 +60,6 @@ export const findSchemaTable = async (tableName: string) => {
   }
   const descriptionCollection = await mongoCollection("schema_descriptions")
   const tableDescription = (await descriptionCollection.findOne<SchemaDescriptionTable>({name: tableName}))!
-
   return {...table,
     description: tableDescription.description,
     friendly_name: tableDescription.friendly_name,
@@ -82,7 +81,6 @@ export const findSchemaTables = async () => {
   const tableDescription = (await descriptionCollection.find<SchemaDescriptionTable>({}).toArray()).sort((a, b) => a.name.localeCompare(b.name))
   return table.map((t, i) => {
     const td = tableDescription[i]
-    console.log(t.name, td.name)
     if (t.name !== td.name) {
       throw Error("WTH!!!")
     }

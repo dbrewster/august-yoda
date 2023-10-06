@@ -10,8 +10,9 @@ import {ObjectOutputWriter, serializeTables} from "@/yoda/table-text-generator/O
 import {Concept, ConceptEdge, ConceptProperty, upsertConcept, upsertConceptEdges} from "@/obiwan/concepts/Concept";
 import _ from "underscore";
 import {findSchemaTable} from "@/util/SchemaDefinitions";
-import {getClosedGraph} from "@/obiwan/query/BuildConceptClasses";
-import {printConceptClasses} from "@/obiwan/query/BuildConceptInterfaces";
+import {getClosedGraph} from "@/obiwan/code-gen/BuildConceptClasses";
+import {printConceptClasses} from "@/obiwan/code-gen/PrintConceptInterfaces";
+import {ToolItem} from "@/util/llm/Agent";
 
 export class FindBaseConceptsFromTables extends BaseLLMItem {
     readonly name: string = "find_base_concepts_from_tables"
@@ -65,32 +66,12 @@ Which of the given objects are the primary objects in a {system} system?
     }
 }
 
-export class FindBaseConcepts extends BaseLLMItem {
-    readonly name: string = "find_base_concepts"
-    readonly description: string = "Finds the primary objects of a given system"
-
-    readonly humanMessages: HumanMessagePromptTemplate[] = [
-        HumanMessagePromptTemplate.fromTemplate(`What are the primary objects in a {system} system`)
-    ]
-    readonly systemMessages: SystemMessagePromptTemplate[] = [
-        SystemMessagePromptTemplate.fromTemplate(`You are an expert in customer relationship management and are defining business terms. Specifically you are looking for definitions related to the {function} function.`)
-    ]
-
-    readonly llmOutputSchema: ZodType = z.object({
-        object_names: z.array(z.string().describe("The name of the primary object")).describe("The primary objects of the given system"),
-    })
-
-    modelToUse(options: BaseCallContext): ChatOpenAI {
-        return options.model4
-    }
-}
-
-export class FindBaseConceptDetails extends BaseLLMItem {
+export class FindBaseConceptDetails extends BaseLLMItem implements ToolItem {
     readonly name: string = "find_base_concept_details"
-    readonly description: string = "Returns the details for a base concept"
+    readonly description: string = "Returns the details for a concept, how it is used, and how it relates to the key concepts for a specified system for a particular process"
 
     readonly humanMessages: HumanMessagePromptTemplate[] = [
-        HumanMessagePromptTemplate.fromTemplate(`Think about how the following topic is used in a {system} process. Include details about the object, how it is used, external objects it might link to, and how it relates to the key concepts in the {function} process.
+        HumanMessagePromptTemplate.fromTemplate(`Think about how the following topic is used in a {system} process. Include details about the object, how it is used, and how it relates to the key concepts in the {function} process.
 
 What is a {concept}?`)
     ]
@@ -100,37 +81,17 @@ What is a {concept}?`)
 
     readonly llmOutputSchema = undefined
 
-    modelToUse(options: BaseCallContext): ChatOpenAI {
-        return options.model4
-    }
-}
-
-class FindBaseConceptProperties extends BaseLLMItem {
-    readonly name: string = "find_base_concept_properties"
-    readonly description: string = "Returns properties of a concept"
-
-    readonly humanMessages: HumanMessagePromptTemplate[] = [
-        HumanMessagePromptTemplate.fromTemplate(`Think about how the following topic is used in a {system} process and write your intermediate results in the provided scratchpad. Include details about the property, how the property might be used, and how it relates to the key concepts in the {function} process.
-
-What are the properties of {concept}?`)
-    ]
-    readonly systemMessages: SystemMessagePromptTemplate[] = [
-        SystemMessagePromptTemplate.fromTemplate(`You are an expert in customer relationship management and are defining business terms. Specifically you are looking for definitions related to the {function} function.`)
-    ]
-
-    readonly llmOutputSchema = z.object({
-        scratchpad: z.string().describe("scratchpad used to reason about the solution"),
-        properties: z.array(z.object({
-            name: z.string().describe("An identifier for the property"),
-            friendlyName: z.string().describe("A human readable name for the property"),
-            definition: z.string().describe("A very detailed definition of the property"),
-        })).describe("The functional properties of the given object")
+    inputSchema: ZodType = z.object({
+        system: z.string().describe("The type of system the concept is defined in."),
+        function: z.string().describe("The function or process in the specified system."),
+        concept_name: z.string().describe("The name of the concept to create a definition for."),
     })
 
     modelToUse(options: BaseCallContext): ChatOpenAI {
         return options.model4
     }
 }
+
 
 class FindBaseConceptPropertiesFromTables extends BaseLLMItem {
     readonly name: string = "find_base_concept_properties_from_table"
@@ -236,7 +197,7 @@ Create descriptions and human readable names for the following new properties:
 
     async beforeLLM(input: ItemValues, callOptions: BaseCallContext): Promise<ItemValues> {
         let concept_name = input.concept;
-        const concepts = (await getClosedGraph(concept_name)).filter(n => n !== concept_name)
+        const concepts = (await getClosedGraph("concepts", concept_name)).filter(n => n !== concept_name)
         let printOptions = {
             IncludeReferences: false,
             IncludeConceptDescriptions: true,
@@ -372,4 +333,4 @@ dotenv.config()
 // console.log(JSON.stringify(await generateBaseConcepts("CRM", "revenue reporting"), null, 1))
 // console.log(JSON.stringify(await generateDescriptionsForBaseConcepts("CRM", "revenue reporting"), null, 1))
 // console.log(JSON.stringify(await generatePropertiesForBaseConcepts("CRM", "revenue reporting"), null, 1))
-console.log(JSON.stringify(await generateBaseConceptEdges("CRM", "revenue reporting"), null, 1))
+// console.log(JSON.stringify(await generateBaseConceptEdges("CRM", "revenue reporting"), null, 1))

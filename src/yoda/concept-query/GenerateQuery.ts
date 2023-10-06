@@ -1,9 +1,10 @@
 import {BaseCallContext, BaseLLMItem, ItemValues} from "@/util/llm/BaseItem";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
-import {z, ZodObject, ZodType} from "zod";
-import {getClosedGraph} from "@/obiwan/query/BuildConceptClasses";
-import {printConceptClasses} from "@/obiwan/query/BuildConceptInterfaces";
+import {z, ZodType} from "zod";
+import {getClosedGraph} from "@/obiwan/code-gen/BuildConceptClasses";
+import {printConceptClasses} from "@/obiwan/code-gen/PrintConceptInterfaces";
 import {executeQuery} from "@/obiwan/query/Query";
+import {printExampleSearches, printQueryTypes} from "@/obiwan/code-gen/PrintQueryLanguageInterfaces";
 
 export class GenerateQuery extends BaseLLMItem {
   readonly name: string = "generate_search_text"
@@ -18,46 +19,18 @@ export class GenerateQuery extends BaseLLMItem {
 
 and the following search syntax delineated by triple backticks:
 \`\`\`
-type BinaryOperand = ("+" | "-" | "*" | "/" | "&&" | "||" | "==" | "!=" | "<" | "<=" | ">" | ">=" | "in" | "%")
-type UnaryOperand = ("!")
-
-type BinaryOperator = [any, BinaryOperand, any]
-type UnaryOperator = [UnaryOperand, any]
-
-/*
-Class that drives the search. All search operations are derived from this class. 
-This class is instantiated with the driving table of the query. The driving table should ALWAYS be the specified driving table  
- */
-class Query {{
-  /*
-    Generates the where clause for the search. The where clause filters the results by the expressions.
-    
-    fn: A lambda expression where the input to the expression is an object of the driving table query type. The return type is the result of an expression
-  */
-  where(fn: (o: InstanceType) => (BinaryOperator | UnaryOperator)): Query
-
-  /*
-    Specifies the return values for the search. The return values are used to display the results to the user.
-  */
-  return(fn: (o: InstanceType) => any[]): Query 
-
-  /*
-    Limits the results by the specified number of rows
-  */
-  limit(numRows: number)
-}}
+{querySyntax}
 \`\`\`
 
-Example search are:
-Query(SomeObject)
-.where((o) => o.a.b.c == 10 && o.a.d = 5)
-.return((o) => [o.name, o.value])
-.limit(5)
+Example searches are:
+{exampleSearch}
 
 The driving table for this search is {driving_concept}
 
 Generate a search that best matches the user question:
 {query}
+
+Let's think step by step and show your reasoning in the provided scratchpad.
 `
     )
   ]
@@ -71,11 +44,10 @@ Generate a search that best matches the user question:
 
   async beforeLLM(input: ItemValues, callOptions: BaseCallContext): Promise<ItemValues> {
     const concept_name = input.concept
-    const allConcepts = await getClosedGraph(concept_name)
-    const interfaces = await printConceptClasses({IncludeConceptDescriptions: true, IncludePropertyDescriptions: true, IncludeProperties: true, IncludeReferences: true}, allConcepts)
-    return {...input, interfaces: interfaces, driving_concept:concept_name}
+    const allConcepts = await getClosedGraph("concepts", concept_name)
+    const interfaces = await printConceptClasses({IncludeConceptDescriptions: false, IncludePropertyDescriptions: false, IncludeProperties: true, IncludeReferences: true}, allConcepts)
+    return {...input, interfaces: interfaces, driving_concept:concept_name, querySyntax: printQueryTypes(), exampleSearch: printExampleSearches()}
   }
-
 
   async afterLLM(input: ItemValues): Promise<ItemValues> {
     const search_code = input.search_code

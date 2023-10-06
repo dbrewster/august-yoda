@@ -1,26 +1,29 @@
 import {BaseCallContext, BaseLLMItem, ItemValues} from "@/util/llm/BaseItem";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
 import {z, ZodType} from "zod";
-import {printConceptClasses} from "@/obiwan/query/BuildConceptInterfaces";
+import {printConceptClasses} from "@/obiwan/code-gen/PrintConceptInterfaces";
 import {ChatOpenAI} from "langchain/chat_models/openai";
 
 export class FindRootConcept extends BaseLLMItem {
   readonly name: string = "find_root_concept"
   readonly description: string = "Executes an LLm call to find the root concept"
   readonly humanMessages: HumanMessagePromptTemplate[] = [
-    HumanMessagePromptTemplate.fromTemplate(`Given the following interfaces and definitions describing them:
+    HumanMessagePromptTemplate.fromTemplate(`    
+    Given the following interfaces and definitions describing them:
     ***
     {concepts}
     ***
     
-    Which interface matches the following user query:
-    {query}
+    The concept MUST have a object reference path tree that answers all parts of the user question. References are forward only and traverse in a single direction.
     
-    The concept MUST have an object reference path that answers all parts of the user question
-
     Include all interfaces that might match and the probability it correctly matches all parts of the user question. Use the interfaces and its properties to help you identify the correct answer.
 
-    Let's think step by step and show your reasoning in the provided scratchpad. Interface names might not exactly match the types in the query. Interfaces have access to other interfaces based on the property name and type. List the reference chains in scratchpad.
+    Interface names might not exactly match the types in the query. Reference chains can form a tree to access the properties needed. List the reference chains in scratchpad.
+    
+    What is the root of the reference chain tree for the following expression:
+    {query}
+    
+    Let's think step by step and show your reasoning in the provided scratchpad. Verify all object references are on the correct interfaces
     `
     )
   ]
@@ -37,7 +40,7 @@ export class FindRootConcept extends BaseLLMItem {
 
 
   async beforeLLM(input: ItemValues, callOptions: BaseCallContext): Promise<ItemValues> {
-    const allClasses = await printConceptClasses({IncludeConceptDescriptions: true, IncludePropertyDescriptions: false, IncludeProperties: false, IncludeReferences: true})
+    const allClasses = await printConceptClasses({IncludeConceptDescriptions: false, IncludePropertyDescriptions: false, IncludeProperties: true, IncludeReferences: true})
     return {...input, concepts: allClasses}
   }
 

@@ -236,7 +236,7 @@ export const parse = (funcBody: string, ...args: string[]): any => {
     }));
     const retFn = new Function(...args);
     // console.log(JSON.stringify(program, null, 4));
-    console.log(retFn.toString());
+    // console.log(retFn.toString());
     return retFn;
 };
 /*
