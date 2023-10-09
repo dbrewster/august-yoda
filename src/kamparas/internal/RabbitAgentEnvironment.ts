@@ -93,7 +93,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         let queueName = this.makeIdentifierQueueName(helpee_title, helpee_identifier);
         // await this.channel!.exchangeDeclare(queueName, "direct", {durable:false})
         console.log("publish to ", queueName)
-        await this.channel!.basicPublish(queueName, queueName, JSON.stringify(JSON.stringify(response))).catch(reason => console.error(reason))
+        await this.channel!.basicPublish(queueName, queueName, JSON.stringify(response)).catch(reason => console.error(reason))
         // console.log("getting queue")
         // const channel = await this.channel!.queue(queueName, {durable: false})
         // console.log("Sending message to ", queueName)
