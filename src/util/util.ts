@@ -57,7 +57,7 @@ export class AsyncBlockingQueue<T> {
     }
 }
 
-class AsyncSemaphore {
+export class AsyncSemaphore {
     private promises = Array<(value: any) => void>()
     private maxPermits: number;
 
