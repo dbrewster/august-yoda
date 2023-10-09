@@ -31,10 +31,11 @@ export const askQuestion = async (title: string, message: Record<string, any>): 
     const ourTitle = "ask_question"
     const ourId = nanoid()
 
-    console.log("listening on ", ourTitle + "_" + ourId)
-    const receiveQ = await channel.queue(ourTitle + "_" + ourId, {durable: false})
-    console.log("listening on ", ourTitle + "_" + ourId, "done")
-    await receiveQ.subscribe({noAck: false, exclusive: true}, (message) => {
+    let queueName = ourTitle + "_" + ourId;
+    await channel.queueDeclare(queueName, {durable: false})
+    await channel.exchangeDeclare(queueName, "direct", {durable:false})
+    await channel.queueBind(queueName, queueName, queueName)
+    await channel.basicConsume(queueName,{noAck: false, exclusive: true}, (message) => {
         console.log("here")
         try {
             const body = message.bodyToString()
@@ -52,7 +53,7 @@ export const askQuestion = async (title: string, message: Record<string, any>): 
             console.error("Error receiving message on ", error)
         }
         message.nack()
-    })
+    }).catch(error => console.error("err", error))
 
     const helpMessage: HelpRequestMessage = {
         helpee_title: ourTitle,
@@ -61,15 +62,14 @@ export const askQuestion = async (title: string, message: Record<string, any>): 
         job_title: title,
         message: message
     }
-    const exchange = await channel.exchangeDeclare(title, "direct", {durable: false})
 
-    const queue = await channel!.queue(title, {durable: false})
-    await queue.publish(JSON.stringify(helpMessage))
+    // await channel.exchangeDeclare(title, "direct", {durable:false})
+    await channel.basicPublish(title, title, JSON.stringify(helpMessage)).catch(reason => console.error(reason))
 
     console.log("wait")
     await sema.wait()
     console.log("here", result)
-    await receiveQ.delete()
+    await channel.queueDelete(queueName)
     return result?.response
 }
 
@@ -90,10 +90,14 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
     }
 
     async answer(helpee_title: string, helpee_identifier: string, response: HelpResponse): Promise<void> {
-        console.log("getting queue")
-        const channel = await this.channel!.queue(this.makeIdentifierQueueName(helpee_title, helpee_identifier), {durable: false})
-        console.log("Sending message to ", this.makeIdentifierQueueName(helpee_title, helpee_identifier))
-        return channel.publish(JSON.stringify(response)).then(_ => {})
+        let queueName = this.makeIdentifierQueueName(helpee_title, helpee_identifier);
+        // await this.channel!.exchangeDeclare(queueName, "direct", {durable:false})
+        console.log("publish to ", queueName)
+        await this.channel!.basicPublish(queueName, queueName, JSON.stringify(JSON.stringify(response))).catch(reason => console.error(reason))
+        // console.log("getting queue")
+        // const channel = await this.channel!.queue(queueName, {durable: false})
+        // console.log("Sending message to ", queueName)
+        // return channel.publish(JSON.stringify(response)).then(_ => {})
     }
 
     async askForHelp(helpeeTitle: string, helpeeIdentier: string, agentTitle: string, requestId: string, content: EventContent): Promise<void> {
@@ -113,9 +117,11 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         this.handler = handler
         const connection = await getOrCreateMQConnection()
         this.channel = await connection.channel();
-        // set up subscribe to our specific queue and the general queue for our job title
-        const jobTitleQueue = await this.channel.queue(handler.title, {durable: false});
-        await jobTitleQueue.subscribe({noAck: false, exclusive: false}, async (message) => {
+        const queueName = handler.title
+        await this.channel.queueDeclare(queueName, {durable: true})
+        await this.channel.exchangeDeclare(queueName, "direct", {durable:false})
+        await this.channel.queueBind(queueName, queueName, queueName)
+        await this.channel.basicConsume(queueName,{noAck: false, exclusive: true}, async (message) => {
             console.log("Got message")
             try {
                 const body = message.bodyToString()
@@ -144,7 +150,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
                 console.error("Error receiving message on ", JSON.stringify(handler, null, 2), error)
             }
             message.nack(false)
-        })
+        }).catch(error => console.log(error))
         const workerQueue = await this.channel.queue(this.makeIdentifierQueueName(handler.title, handler.identifier), {durable: false});
         await workerQueue.subscribe({noAck: false, exclusive: false}, (message) => {
             try {
