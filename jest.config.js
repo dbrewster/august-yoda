@@ -1,6 +1,5 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
 export default {
-  preset: 'ts-jest/presets/default-esm',
+  preset: 'ts-jest/presets/js-with-ts-esm',
   testEnvironment: 'node',
   // transform: {},
   // transform: { "^.+\\.ts?$": ["ts-jest", {"rootDir": "."}]},

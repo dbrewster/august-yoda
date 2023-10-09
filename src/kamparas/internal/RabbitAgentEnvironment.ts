@@ -61,6 +61,8 @@ export const askQuestion = async (title: string, message: Record<string, any>): 
         job_title: title,
         message: message
     }
+    const exchange = await channel.exchangeDeclare(title, "direct", {durable: false})
+
     const queue = await channel!.queue(title, {durable: false})
     await queue.publish(JSON.stringify(helpMessage))
 
