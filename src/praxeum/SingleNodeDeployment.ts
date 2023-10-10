@@ -1,4 +1,4 @@
-import {AgentDeploymentDescriptor, Deployment} from "@/kamparas/DeploymentDescriptor";
+import {AgentDeploymentDescriptor, Deployment} from "@/praxeum/DeploymentDescriptor";
 import {AutonomousQAManager, AutonomousSkilledWorker, AutonomousWorkerManager} from "@/praxeum/Worker";
 import {OpenAILLM} from "@/kamparas/internal/OpenAILLM";
 import {MongoMemory} from "@/kamparas/internal/MongoMemory";

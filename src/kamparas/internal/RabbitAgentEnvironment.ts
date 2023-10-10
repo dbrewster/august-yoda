@@ -17,6 +17,7 @@ export interface HelpResponseMessage {
 export interface HelpRequestMessage {
     helpee_id: string,
     helpee_title: string,
+    task_id: string,
     request_id: string,
     job_title: string,
     message: EventContent
@@ -25,52 +26,58 @@ export interface HelpRequestMessage {
 export const askQuestion = async (title: string, message: Record<string, any>): Promise<Record<string, any> | undefined> => {
     const connection = await getOrCreateMQConnection()
     const channel = await connection.channel();
-    let result: (HelpResponseMessage | undefined)
-    const sema = new AsyncSemaphore(0)
-    const requestId = nanoid()
-    const ourTitle = "ask_question"
-    const ourId = nanoid()
+    try {
+        let result: (HelpResponseMessage | undefined)
+        const sema = new AsyncSemaphore(0)
+        const requestId = nanoid()
+        const ourTitle = "ask_question"
+        const ourId = nanoid()
 
-    let queueName = ourTitle + "_" + ourId;
-    await channel.queueDeclare(queueName, {durable: false})
-    await channel.exchangeDeclare(queueName, "direct", {durable:false})
-    await channel.queueBind(queueName, queueName, queueName)
-    await channel.basicConsume(queueName,{noAck: false, exclusive: true}, (message) => {
-        console.log("here")
-        try {
-            const body = message.bodyToString()
-            if (body) {
-                result = JSON.parse(body) as HelpResponseMessage
-                console.log("res", result)
-                // ack after we process so a worker is working on one think at a time????
-                message.ack()
-                console.log("signal")
-                sema.signal()
-                return
+        let queueName = ourTitle + "_" + ourId;
+        await channel.queueDeclare(queueName, {durable: false})
+        await channel.exchangeDeclare(queueName, "direct", {durable: false})
+        await channel.queueBind(queueName, queueName, queueName)
+        await channel.basicConsume(queueName, {noAck: false, exclusive: true}, (message) => {
+            console.log("here")
+            try {
+                const body = message.bodyToString()
+                if (body) {
+                    result = JSON.parse(body) as HelpResponseMessage
+                    console.log("res", result)
+                    // ack after we process so a worker is working on one think at a time????
+                    message.ack()
+                    console.log("signal")
+                    sema.signal()
+                    return
+                }
+            } catch (error) {
+                // todo error handler...
+                console.error("Error receiving message on ", error)
             }
-        } catch (error) {
-            // todo error handler...
-            console.error("Error receiving message on ", error)
+            message.nack()
+        }).catch(error => console.error("err", error))
+
+        const helpMessage: HelpRequestMessage = {
+            helpee_title: ourTitle,
+            helpee_id: ourId,
+            task_id: requestId,
+            request_id: requestId,
+            job_title: title,
+            message: message
         }
-        message.nack()
-    }).catch(error => console.error("err", error))
 
-    const helpMessage: HelpRequestMessage = {
-        helpee_title: ourTitle,
-        helpee_id: ourId,
-        request_id: requestId,
-        job_title: title,
-        message: message
+        console.log("publishing on queue", title)
+        // await channel.exchangeDeclare(title, "direct", {durable:false})
+        await channel.basicPublish(title, title, JSON.stringify(helpMessage)).catch(reason => console.error(reason))
+
+        console.log("wait")
+        await sema.wait()
+        console.log("here", result)
+        await channel.queueDelete(queueName)
+        return result?.response
+    } finally {
+        await channel.close()
     }
-
-    // await channel.exchangeDeclare(title, "direct", {durable:false})
-    await channel.basicPublish(title, title, JSON.stringify(helpMessage)).catch(reason => console.error(reason))
-
-    console.log("wait")
-    await sema.wait()
-    console.log("here", result)
-    await channel.queueDelete(queueName)
-    return result?.response
 }
 
 export class RabbitAgentEnvironment extends AgentEnvironment {
@@ -83,7 +90,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
 
     private channel?: AMQPChannel
 
-    async disconnect() {
+    async shutdown() {
         await this.channel?.close()
         this.channel = undefined
         return Promise.resolve()
@@ -91,7 +98,6 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
 
     async answer(helpee_title: string, helpee_identifier: string, response: HelpResponse): Promise<void> {
         let queueName = this.makeIdentifierQueueName(helpee_title, helpee_identifier);
-        // await this.channel!.exchangeDeclare(queueName, "direct", {durable:false})
         console.log("publish to ", queueName)
         await this.channel!.basicPublish(queueName, queueName, JSON.stringify(response)).catch(reason => console.error(reason))
         // console.log("getting queue")
@@ -100,17 +106,16 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         // return channel.publish(JSON.stringify(response)).then(_ => {})
     }
 
-    async askForHelp(helpeeTitle: string, helpeeIdentier: string, agentTitle: string, requestId: string, content: EventContent): Promise<void> {
+    async askForHelp(helpeeTitle: string, helpeeIdentier: string, taskId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void> {
         const message: HelpRequestMessage = {
             helpee_title: helpeeTitle,
             helpee_id: helpeeIdentier,
+            task_id: taskId,
             request_id: requestId,
             job_title: agentTitle,
             message: content
         }
-        const queue = await this.channel!.queue(agentTitle, {durable: true})
-        return queue.publish(JSON.stringify(message)).then(_ => {
-        })
+        await this.channel!.basicPublish(agentTitle, agentTitle, JSON.stringify(message)).catch(reason => console.error(reason))
     }
 
     async registerHandler(handler: EnvironmentHandler): Promise<void> {
@@ -121,6 +126,13 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         await this.channel.queueDeclare(queueName, {durable: true})
         await this.channel.exchangeDeclare(queueName, "direct", {durable:false})
         await this.channel.queueBind(queueName, queueName, queueName)
+
+        const thisQueueName = this.makeIdentifierQueueName(handler.title, handler.identifier)
+        await this.channel.queueDeclare(thisQueueName, {durable: true})
+        await this.channel.exchangeDeclare(thisQueueName, "direct", {durable:false})
+        await this.channel.queueBind(thisQueueName, thisQueueName, thisQueueName)
+
+        console.log("listening on worker title queue", queueName)
         await this.channel.basicConsume(queueName,{noAck: false, exclusive: true}, async (message) => {
             console.log("Got message")
             try {
@@ -133,7 +145,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
                         // todo -- error handler
                         throw Error("Could not parse message into input schema: " + body)
                     }
-                    const instr = handler.processInstruction({helpee_id: json.helpee_id, helpee_title: json.helpee_title, request_id: json.request_id, input: json.message}).then(_ => {
+                    const instr = handler.processInstruction({helpee_id: json.helpee_id, helpee_title: json.helpee_title, task_id: json.task_id, request_id: json.request_id, input: json.message}).then(_ => {
                         // console.log("acking")
                         // message.ack()
                     })
@@ -151,14 +163,15 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
             }
             message.nack(false)
         }).catch(error => console.log(error))
-        const workerQueue = await this.channel.queue(this.makeIdentifierQueueName(handler.title, handler.identifier), {durable: false});
-        await workerQueue.subscribe({noAck: false, exclusive: false}, (message) => {
+
+        console.log("listening on worker identifier queue", thisQueueName)
+        await this.channel.basicConsume(thisQueueName,{noAck: false, exclusive: true}, async (message) => {
             try {
                 const body = message.bodyToString()
                 if (body) {
                     const json = JSON.parse(body) as HelpResponseMessage
-                    handler.processHelpResponse(json)
-                    message.ack()
+                    await handler.processHelpResponse(json)
+                    await message.ack()
                     return
                 }
             } catch (error) {

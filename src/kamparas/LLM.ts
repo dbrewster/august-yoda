@@ -1,4 +1,4 @@
-import {AgentIdentifier} from "@/kamparas/Agent";
+import {AgentIdentifier, AgentTool} from "@/kamparas/Agent";
 import {EpisodicEvent} from "@/kamparas/Memory";
 import {EventContent} from "@/kamparas/Environment";
 
@@ -23,7 +23,7 @@ export interface LLMExecuteOptions {
 }
 
 export abstract class LLM {
-    abstract formatHelpers(availableHelpers: AgentIdentifier[]): string
+    abstract formatHelpers(availableHelpers: AgentTool[]): string
 
     abstract execute(options: LLMExecuteOptions, events: EpisodicEvent[]): Promise<LLMResult>
 }

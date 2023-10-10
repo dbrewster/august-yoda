@@ -4,6 +4,14 @@ import {AgentEnvironment, EnvironmentHandler, HelpResponse, NewTaskInstruction} 
 import {HelperCall, LLM, ModelType} from "@/kamparas/LLM";
 import {DateTime} from "luxon";
 import {ValidateFunction} from "ajv";
+import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
+import {z} from "zod";
+
+export interface AgentTool {
+    title: string
+    job_description: string
+    input_schema: ValidateFunction<object>
+}
 
 export interface AgentIdentifier {
     title: string
@@ -28,6 +36,7 @@ export interface AutonomousAgentOptions extends AgentOptions {
 
 export abstract class Agent implements EnvironmentHandler {
     environment: AgentEnvironment;
+    agent_identifier: AgentIdentifier
 
     protected constructor(options: AgentOptions) {
         this.title = options.title
@@ -36,7 +45,7 @@ export abstract class Agent implements EnvironmentHandler {
         this.outputSchema = options.answer_schema
         this.identifier = options.identifier
         this.environment = options.environment;
-        this.environment.registerHandler(this)
+        this.agent_identifier = options
     }
 
     title: string;
@@ -45,8 +54,15 @@ export abstract class Agent implements EnvironmentHandler {
     outputSchema: ValidateFunction<object>;
     identifier: string;
 
-    abstract processHelpResponse(response: HelpResponse): Promise<void>
+    async initialize() {
+        await this.environment.registerHandler(this)
+    }
 
+    async shutdown() {
+        await this.environment.shutdown()
+    }
+
+    abstract processHelpResponse(response: HelpResponse): Promise<void>
     abstract processInstruction(instruction: NewTaskInstruction): Promise<void>
 
     id_string() {
@@ -69,28 +85,34 @@ export class BuiltinAgent<T, U> extends Agent {
 
     processInstruction(instruction: NewTaskInstruction): Promise<void> {
         const validatedInput = this.inputSchema(instruction.input) as T
-        const taskId = nanoid()
         return new Promise(result => {
             console.log("going to answer")
             let buildinFuncReturn = this.func(instruction.input as T) as Record<string, any>;
-            console.log("done building func")
+            console.log("done building func", buildinFuncReturn)
             return this.environment.answer(instruction.helpee_title, instruction.helpee_id, {
-                task_id: taskId,
+                task_id: instruction.task_id,
                 helper_identifier: this.identifier,
                 helper_title: this.title,
                 request_id: instruction.request_id,
                 response: buildinFuncReturn
             }).then(answer => {
-                console.log("going to answer...done")
+                console.log("going to answer...done", answer)
                 result(answer)
             })
         })
     }
-
 }
 
+const final_answer_tool = {
+    title: "final_answer",
+    job_description: "Use this tool to return the final answer",
+    input_schema: getOrCreateSchemaManager().compileZod(z.object({
+        result: z.string().describe("The final answer")
+    }))
+} as AgentTool
+
 export class AutonomousAgent extends Agent {
-    availableHelpers: AgentIdentifier[]
+    availableHelpers: AgentTool[]
     memory: AgentMemory;
     llm: LLM
     maxConcurrentThoughts: number
@@ -108,8 +130,15 @@ export class AutonomousAgent extends Agent {
     }
 
     async processInstruction(instruction: NewTaskInstruction): Promise<void> {
-        const plan = await this.memory.readPlan(instruction.input)
         const taskId = nanoid()
+        await this.memory.recordEpisodicEvent({
+            actor: "worker",
+            type: "task_start",
+            task_id: taskId,
+            timestamp: DateTime.now().toISO()!,
+            content: instruction
+        })
+        const plan = await this.memory.readPlan(instruction.input)
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "plan",
@@ -118,7 +147,7 @@ export class AutonomousAgent extends Agent {
             content: plan
         })
 
-        const availableTools = this.llm.formatHelpers(this.availableHelpers)
+        const availableTools = this.llm.formatHelpers(this.availableHelpers.concat(final_answer_tool))
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "plan",
@@ -138,12 +167,13 @@ export class AutonomousAgent extends Agent {
     }
 
     async processHelpResponse(response: HelpResponse): Promise<void> {
+        console.log("In process help response", JSON.stringify(response))
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "response",
             task_id: response.task_id,
             timestamp: DateTime.now().toISO(),
-            content: response.response
+            content: response as Record<string, any>
         } as EpisodicEvent)
         return this.think(response.task_id)
     }
@@ -152,8 +182,11 @@ export class AutonomousAgent extends Agent {
         let numConcurrentThoughts = 0
         while (numConcurrentThoughts < this.maxConcurrentThoughts) {
             const events = await this.memory.readEpisodicEventsForTask(taskId)
-            const result = await this.llm.execute({model: this.model, temperature: this.temperature}, events)
-
+            const result = await this.llm.execute({model: this.model, temperature: this.temperature}, events).catch(e => {
+                console.error(e)
+                throw e
+            })
+            console.log("LLM result", JSON.stringify(result, null, 2))
             // first record the thoughts...
             for (const thought of result.thoughts) {
                 await this.memory.recordEpisodicEvent({
@@ -166,21 +199,32 @@ export class AutonomousAgent extends Agent {
             }
             // Now call helper function
             if (result.helperCall) {
-                let requestId = nanoid();
-                await this.memory.recordEpisodicEvent({
-                    actor: "worker",
-                    type: "help",
-                    task_id: taskId,
-                    timestamp: DateTime.now().toISO(),
-                    content: {
+                if (result.helperCall.title === final_answer_tool.title) {
+                    const taskStart = (await this.memory.readEpisodicEventsForTask(taskId)).find(e => e.type == "task_start")!.content as NewTaskInstruction
+                    this.environment.answer(taskStart.helpee_title, taskStart.helpee_id, {
+                        task_id: taskId,
+                        request_id: taskStart.request_id,
+                        helper_title:this.agent_identifier.title,
+                        helper_identifier: this.agent_identifier.identifier,
+                        response: result.helperCall.content
+                    })
+                } else {
+                    let requestId = nanoid();
+                    await this.memory.recordEpisodicEvent({
+                        actor: "worker",
                         type: "help",
-                        request_id: requestId,
-                        content: result.helperCall
-                    }
-                } as EpisodicEvent)
-                const help = result.helperCall as HelperCall
-                await this.environment.askForHelp(this.title, this.identifier, help.title, requestId, help)
-                return Promise.resolve()
+                        task_id: taskId,
+                        timestamp: DateTime.now().toISO(),
+                        content: {
+                            type: "help",
+                            request_id: requestId,
+                            content: result.helperCall.content
+                        }
+                    } as EpisodicEvent)
+                    const help = result.helperCall as HelperCall
+                    await this.environment.askForHelp(this.title, this.identifier, taskId, help.title, requestId, help.content)
+                    return Promise.resolve()
+                }
             }
         }
 

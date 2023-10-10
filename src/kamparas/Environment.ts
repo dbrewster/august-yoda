@@ -3,14 +3,16 @@ import {ValidateFunction} from "ajv";
 export type EventContent = Record<string, any>
 
 export abstract class AgentEnvironment {
-    abstract registerHandler(handler: EnvironmentHandler): void
-    abstract askForHelp(helpeeTitle: string, helpeeIdentier: string, agentTitle: string, requestId: string, content: EventContent): Promise<void>
+    abstract registerHandler(handler: EnvironmentHandler): Promise<void>
+    abstract askForHelp(helpeeTitle: string, helpeeIdentier: string, taskId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void>
     abstract answer(helpee_title: string, helpee_identifier: string, response: HelpResponse): Promise<void>
+    abstract shutdown(): Promise<void>
 }
 
 export interface NewTaskInstruction {
     helpee_title: string,
     helpee_id: string,
+    task_id: string,
     request_id: string,
     input: EventContent
 }

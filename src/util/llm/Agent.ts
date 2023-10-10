@@ -61,7 +61,8 @@ Also note that if you have previous answers to the users question you may return
     agentMessageSuffix = SystemMessagePromptTemplate.fromTemplate(``)
 
     humanMessageSuffix = HumanMessagePromptTemplate.fromTemplate('\nPlan out how you are going to answer the question on each step.\n' +
-        'Think about how each tool will help in answering the question. Be specific in your thought process and write your results in the content section of the response. Make sure you include your thoughts when calling a tool.\n')
+        'Think about how each tool will help in answering the question. Be specific in your thought process and write your results in the content section of the response. Make sure you include your thoughts when calling a tool.\n' +
+        '')
 
     outputSchema: ZodSchema = z.object({
         result: z.string().describe("The final answer")

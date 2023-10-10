@@ -1,6 +1,6 @@
-import {AgentIdentifier, AgentOptions, AutonomousAgent, BuiltinAgent} from "@/kamparas/Agent";
+import {AgentIdentifier, AgentOptions, AutonomousAgent, AutonomousAgentOptions, BuiltinAgent} from "@/kamparas/Agent";
 
-export interface WorkerOptions extends AgentOptions {
+export interface WorkerOptions extends AutonomousAgentOptions {
 }
 export interface SkilledWorkerOptions extends WorkerOptions {
     manager: AgentIdentifier

@@ -1,12 +1,9 @@
 import {EventContent} from "@/kamparas/Environment";
 
 export type EpisodicActor = ("external" | "worker")
-export type EpisodicEventType = ("plan" | "instruction" | "help" | "response" | "thought")
+export type EpisodicEventType = ("task_start" | "plan" | "instruction" | "help" | "response" | "thought")
 
-export interface StructuredEpisodicEvent {
-    type: string,
-    content: EventContent
-}
+export type StructuredEpisodicEvent = Record<string, any>
 export type UnstructuredEpisodicEvent = string
 
 export interface EpisodicEvent {
@@ -54,5 +51,4 @@ export abstract class AgentMemory {
 
     abstract readPlan(input: Record<string, any>, planId?: string): Promise<string>
     abstract readPlanInstructions(input: Record<string, any>, planId?: string): Promise<string>
-
 }
