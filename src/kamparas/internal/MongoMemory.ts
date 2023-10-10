@@ -3,7 +3,7 @@ import {AgentIdentifier} from "@/kamparas/Agent";
 import {mongoCollection} from "@/util/util";
 import {DateTime} from "luxon";
 import {FindOptions, ObjectId} from "mongodb";
-import {PromptTemplate} from "langchain";
+import {PromptTemplate} from "langchain/prompts";
 import dotenv from "dotenv";
 
 // todo collections will need index on agent_id and task_id

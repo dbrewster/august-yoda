@@ -25,7 +25,6 @@ export interface AgentIdentifier {
 }
 
 export interface AgentOptions extends AgentIdentifier {
-    availableTools: AgentIdentifier[]
     environment: AgentEnvironment
 }
 
@@ -35,6 +34,7 @@ export interface AutonomousAgentOptions extends AgentOptions {
     maxConcurrentThoughts: number,
     model: ModelType,
     temperature?: number
+    availableTools: AgentIdentifier[]
 }
 
 export abstract class Agent implements EnvironmentHandler {

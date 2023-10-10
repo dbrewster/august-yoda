@@ -1,26 +1,22 @@
-import {AgentEnvironment, EnvironmentHandler, NewTaskInstruction} from "@/kamparas/Environment";
-import {DirectMessage, HelpMessageResponse, TitleMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
-import {ValidateFunction} from "ajv";
+import {AgentEnvironment, NewTaskInstruction} from "@/kamparas/Environment";
+import {DirectMessage, HelpMessageResponse} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {z} from "zod";
 import {nanoid} from "nanoid";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
-import {rootLogger} from "@/util/RootLogger";
-import {Logger} from "winston";
+import {Agent} from "@/kamparas/Agent";
 
-export class RootQuestion implements EnvironmentHandler {
-    title: string = "RootQuestion"
-    job_description: string = ""
-    identifier: string
-    inputSchema: ValidateFunction<any>;
-    private logger: Logger;
+export class RootQuestion extends Agent {
     private requests: Record<string, {resolve: (result:any) => any, reject: (result: any) => any}> = {}
-    private environment: AgentEnvironment;
 
     constructor(environment: AgentEnvironment) {
-        this.environment = environment;
-        this.identifier = nanoid()
-        this.inputSchema = getOrCreateSchemaManager().compileZod(z.object({question: z.string()}))
-        this.logger = rootLogger.child({type: "question", title: this.title, identifier: this.identifier})
+        super({
+            title: "RootQuestion",
+            job_description: "",
+            identifier: nanoid(),
+            environment: environment,
+            input_schema: getOrCreateSchemaManager().compileZod(z.object({question: z.string()})),
+            answer_schema: getOrCreateSchemaManager().compileZod(z.object({answer: z.string()})),
+        })
     }
 
     async initialize() {
@@ -62,17 +58,5 @@ export class RootQuestion implements EnvironmentHandler {
 
     processInstruction(instruction: NewTaskInstruction): Promise<void> {
         return Promise.resolve();
-    }
-
-    processDecodeError(type: "direct" | "instruction", message: string): void {
-        this.logger.error(`decode error ${type}: ${message}`)
-    }
-
-    processDirectMessageError(directMessage: DirectMessage, error: any): void {
-        this.logger.error(`direct message error ${JSON.stringify(directMessage)}: ${JSON.stringify(error)}`)
-    }
-
-    processTitleMessageError(message: TitleMessage, error: any): void {
-        this.logger.error(`title message error ${JSON.stringify(message)}: ${JSON.stringify(error)}`)
     }
 }
