@@ -103,8 +103,8 @@ export class BuiltinAgent<T, U> extends Agent {
     }
 }
 
-const final_answer_tool = {
-    title: "report_answer",
+export const final_answer_tool = {
+    title: "Return",
     job_description: "report the final answer.",
     input_schema: getOrCreateSchemaManager().compileZod(z.object({
         result: z.string().describe("The final answer")
@@ -216,9 +216,8 @@ export class AutonomousAgent extends Agent {
                         task_id: taskId,
                         timestamp: DateTime.now().toISO(),
                         content: {
-                            type: "help",
-                            request_id: requestId,
-                            content: result.helperCall.content
+                            tool_name: result.helperCall.title,
+                            arguments: result.helperCall.content
                         }
                     } as EpisodicEvent)
                     const help = result.helperCall as HelperCall

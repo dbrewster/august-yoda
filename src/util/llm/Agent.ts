@@ -241,7 +241,7 @@ class FinalThoughtStep extends BaseItem implements ToolItem {
         this.inputSchema = outputSchema;
     }
 
-    readonly name: string = "report_answer"
+    readonly name: string = "Return"
     readonly description: string = "report the final answer."
     inputSchema: ZodSchema
 

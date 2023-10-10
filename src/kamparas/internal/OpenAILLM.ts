@@ -1,6 +1,6 @@
 import {LLM, LLMExecuteOptions, LLMResult} from "@/kamparas/LLM";
 import {EpisodicEvent} from "@/kamparas/Memory";
-import {AgentTool} from "@/kamparas/Agent";
+import {AgentTool, final_answer_tool} from "@/kamparas/Agent";
 import OpenAI, {ClientOptions} from "openai";
 import {ChatCompletionMessageParam} from "openai/resources/chat";
 import JSON5 from "json5";
@@ -81,13 +81,8 @@ ${FUNCTION_START}{
   arguments: "$arg" // The arguments to the tool. The arguments must match the schema given in the tool definition
 }${FUNCTION_END}
 
-Example:
-${FUNCTION_START}{
-  tool_name: "report_answer",
-  arguments: {
-    result: "here is the answer to your question..."
-  }
-}${FUNCTION_END}
+
+At each step consider if you know the final answer. If you know the answer, use the ${final_answer_tool.title} tool.
 `
     }
 
@@ -111,6 +106,11 @@ ${FUNCTION_START}{
                     }
                     break
                 case "help":
+                    response = {
+                        role: "assistant",
+                        content: FUNCTION_START+JSON.stringify(event.content)+FUNCTION_END,
+                    }
+                    break
                 case "thought":
                     response = {
                         role: "assistant",

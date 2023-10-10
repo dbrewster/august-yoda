@@ -37,7 +37,7 @@ describe("builtin agent", () => {
     })
     describe("two base + 1 autonomous agent communication", ()=> {
         test("communication", async () => {
-            const mathsPlan = `You are a helpful agent designed answer user questions. At any time, if you know the answer, you must use the report_answer tool to answer the question. Otherwise, break the problem down into steps and use the tool available when needed.`
+            const mathsPlan = `You are a helpful agent designed answer user questions. Break the problem down into steps and use the tool available when needed.`
             const mathsInstructions = `{problem}`
             const adder = makeBuiltinAgent("Adder", "Adds two numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), add)
             const multiplier = makeBuiltinAgent("Multiplier", "Multiplies two numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), multiply)
