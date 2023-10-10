@@ -16,7 +16,7 @@ class CommandLineEventHandler implements EventHandler {
             if (event.args.functionName === "thought_or_observation") {
                 console.log(`\x1b[38;5;110mAgent observation: ${event.args.parameters.observation}\x1b[0m`);
                 console.log(`\x1b[32mAgent thought: ${event.args.parameters.thought}\x1b[0m`);
-            } else if (event.args.functionName === "final_answer") {
+            } else if (event.args.functionName === "report_answer") {
                 console.log(`\x1b[38;5;110mAgent result: ${JSON.stringify(event.args.parameters, null, 2)}\x1b[0m`);
             } else if (event.args.functionName) {
                 console.log(`\x1b[2mAgent action: ${event.args.functionName}\x1b[0m`);

@@ -6,8 +6,8 @@ import {ChatCompletionMessageParam} from "openai/resources/chat";
 import JSON5 from "json5";
 import {HelpResponse} from "@/kamparas/Environment";
 
-const FUNCTION_START = "tool_call```"
-const FUNCTION_END = "```"
+const FUNCTION_START = "```START```"
+const FUNCTION_END = "```END```"
 
 export class OpenAILLM extends LLM {
     private openai: OpenAI;
@@ -66,7 +66,7 @@ export class OpenAILLM extends LLM {
     }
 
     formatHelpers(availableHelpers: AgentTool[]): string {
-        return `You can choose from one of the following tools to help you:\n` +
+        return `You can use the following tools:\n` +
             availableHelpers.map(helper => {
                 return `{
     name: ${helper.title},
@@ -77,11 +77,17 @@ export class OpenAILLM extends LLM {
 
 To call a tool the format of the call MUST be:
 ${FUNCTION_START}{
-  tool_name: "The name of the tool to call",
-  arguments: "The arguments to the tool. The arguments must match the schema given in the tool definition"
+  tool_name: "$name", // The name of the tool to call
+  arguments: "$arg" // The arguments to the tool. The arguments must match the schema given in the tool definition
 }${FUNCTION_END}
 
-you MUST start the beginning of the tool call with ${FUNCTION_START}
+Example:
+${FUNCTION_START}{
+  tool_name: "report_answer",
+  arguments: {
+    result: "here is the answer to your question..."
+  }
+}${FUNCTION_END}
 `
     }
 
@@ -95,20 +101,20 @@ you MUST start the beginning of the tool call with ${FUNCTION_START}
                 case "plan":
                     response = {
                         role: "system",
-                        content: JSON.stringify(event.content)
+                        content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
                     }
                     break
                 case "instruction":
                     response = {
                         role: "user",
-                        content: JSON.stringify(event.content)
+                        content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
                     }
                     break
                 case "help":
                 case "thought":
                     response = {
                         role: "assistant",
-                        content: JSON.stringify(event.content)
+                        content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
                     }
                     break
                 default:

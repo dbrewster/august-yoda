@@ -37,14 +37,10 @@ describe("builtin agent", () => {
     })
     describe("two base + 1 autonomous agent communication", ()=> {
         test("communication", async () => {
-            const mathsPlan = `You are a helpful agent designed to do math operations. First break down the math problem down into a tree of operations, then use the tools available to solve each operation, finally return the final answer`
-            const mathsInstructions = `Return the answer to the following math problem:
-{problem}
-Plan out how you are going to answer the question on each step.
-Think about how each tool will help in answering the question. Be specific in your thought process and write your results in the content section of the response. Make sure you include your thoughts when calling a tool.
-You must use the tools available to you to process the answer`
-            const adder = makeBuiltinAgent("Adder", "Adds to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), add)
-            const multiplier = makeBuiltinAgent("Multiplier", "Multiplies to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), multiply)
+            const mathsPlan = `You are a helpful agent designed answer user questions. At any time, if you know the answer, you must use the report_answer tool to answer the question. Otherwise, break the problem down into steps and use the tool available when needed.`
+            const mathsInstructions = `{problem}`
+            const adder = makeBuiltinAgent("Adder", "Adds two numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), add)
+            const multiplier = makeBuiltinAgent("Multiplier", "Multiplies two numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), multiply)
             const maths = await makeAutonomousAgent("Maths", "Does math using add and multiply",
                 z.object({problem: z.string()}), z.object({x: z.string()}),
                 mathsPlan, mathsInstructions, [adder.agent_identifier, multiplier.agent_identifier])
@@ -74,7 +70,7 @@ const add = (input: InputArgs): OutputArgs => {
 }
 
 const multiply = (input: InputArgs): OutputArgs => {
-    console.log("adding", input)
+    console.log("multiplying", input)
     return ({x: input.a * input.b})
 }
 
