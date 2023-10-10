@@ -1,35 +1,36 @@
 import {AgentIdentifier, AgentOptions, AutonomousAgent, AutonomousAgentOptions, BuiltinAgent} from "@/kamparas/Agent";
-import {askQuestion, RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
+import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {nanoid} from "nanoid";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
 import {z, ZodSchema} from "zod";
-import {AgentEnvironment} from "@/kamparas/Environment";
-import {LLM} from "@/kamparas/LLM";
-import {AgentMemory} from "@/kamparas/Memory";
 import {OpenAILLM} from "@/kamparas/internal/OpenAILLM";
 import {MongoMemory} from "@/kamparas/internal/MongoMemory";
+import {RootQuestion} from "@/kamparas/RootQuestion";
+import {getOrCreateMQConnection, shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 
 describe("builtin agent", () => {
-    beforeAll(() => {
+    beforeAll(async () => {
+        await rootQuestion.initialize()
         adder.initialize()
         multiplier.initialize()
     })
 
-    afterAll(() => {
-        adder.shutdown()
-        multiplier.shutdown()
+    afterAll(async () => {
+        await adder.shutdown()
+        await multiplier.shutdown()
+        await shutdownRabbit()
     })
 
     describe("single agent communication", ()=> {
         test("single agent communication", async () => {
-            const result = await askQuestion(adder.title, {a: 10, b: 30})
+            const result = await rootQuestion.askQuestion(adder.title, {a: 10, b: 30})
             expect(result).toStrictEqual({x: 40})
         })
     })
     describe("two agent communication", ()=> {
         test("two agent communication", async () => {
-            const addResult = await askQuestion(adder.title, {a: 10, b: 30})
-            const multiplyResult = await askQuestion(multiplier.title, {a: 10, b: 30})
+            const addResult = await rootQuestion.askQuestion(adder.title, {a: 10, b: 30})
+            const multiplyResult = await rootQuestion.askQuestion(multiplier.title, {a: 10, b: 30})
             expect(multiplyResult).toStrictEqual({x: 300})
         })
     })
@@ -38,20 +39,20 @@ describe("builtin agent", () => {
             maths.initialize()
         })
 
-        afterAll(() => {
-            maths.shutdown()
+        afterAll(async () => {
+            await maths.shutdown()
         })
         test("communication", async () => {
-            const answer = await askQuestion(maths.title, {problem: "What is 2 + 2?"})
+            const answer = await rootQuestion.askQuestion(maths.title, {problem: "What is 2 + 2?"})
             console.log(answer)
         }, 60000)
         test("multiple_calls", async () => {
-            const answer1 = await askQuestion(maths.title, {problem: "What is 2 + 2?"})
-            const answer2 = await askQuestion(maths.title, {problem: "What is 5 + 5?"})
+            const answer1 = await rootQuestion.askQuestion(maths.title, {problem: "What is 2 + 2?"})
+            const answer2 = await rootQuestion.askQuestion(maths.title, {problem: "What is 5 + 5?"})
             expect(answer1).not.toEqual(answer2)
         }, 60000)
         test("multi_tool_use", async () => {
-            const answer = await askQuestion(maths.title, {problem: "(2 + 2)*5"})
+            const answer = await rootQuestion.askQuestion(maths.title, {problem: "(2 + 2)*5"})
             console.log(answer)
         }, 60000)
     })
@@ -116,6 +117,7 @@ const makeAutonomousAgent = async (title: string, job_description: string, input
     return new AutonomousAgent(options)
 }
 
+const rootQuestion = new RootQuestion(new RabbitAgentEnvironment())
 const adder = makeBuiltinAgent( "Adder", "Adds to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), add)
 const multiplier = makeBuiltinAgent("Multiplier", "Multiplies to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), multiply)
 const mathsPlan = `You are a helpful agent designed answer user questions. Break the problem down into steps and use the tool available when needed.`

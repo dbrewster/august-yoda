@@ -5,45 +5,56 @@ import OpenAI, {ClientOptions} from "openai";
 import {ChatCompletionMessageParam} from "openai/resources/chat";
 import JSON5 from "json5";
 import {HelpResponse} from "@/kamparas/Environment";
+import {rootLogger} from "@/util/RootLogger";
+import {Logger} from "winston";
+import {logger} from "sequelize/types/utils/logger";
 
 const FUNCTION_START = "```START```"
 const FUNCTION_END = "```END```"
 
 export class OpenAILLM extends LLM {
     private openai: OpenAI;
+    logger: Logger = rootLogger
 
     constructor(options: ClientOptions) {
         super();
         this.openai = new OpenAI(options)
     }
 
+    setLogger(logger: Logger) {
+        this.logger = logger
+    }
+
     async execute(options: LLMExecuteOptions, events: EpisodicEvent[]): Promise<LLMResult> {
         let messages = this.formatMessages(events);
-        console.log("openai messages", JSON.stringify(messages, null, 2))
+        if (this.logger.isDebugEnabled()) {
+            this.logger.debug(`calling llm with messages ${JSON.stringify(messages, null, 2)}`)
+        }
         const response = await this.openai.chat.completions.create({
             messages: messages,
             ...options
         })
 
-        if (process.env.DEBUG) {
-
+        this.logger.info(`Got response from llm. Used ${JSON.stringify(response.usage)} tokens.`)
+        if (this.logger.isDebugEnabled()) {
+            this.logger.debug(`Got response from llm ${JSON.stringify(response, null, 2)}`)
         }
-
-        console.log("got response", JSON.stringify(response, null, 2))
         const message = response.choices[0].message.content || ""
         const executeResponse: LLMResult = {
             thoughts: []
         }
         let functionStart = message.indexOf(FUNCTION_START);
-        console.log("fn start", functionStart)
         if (functionStart >= 0) {
             const functionEnd = message.indexOf(FUNCTION_END, functionStart + FUNCTION_START.length)
             let functionCallStr = message.slice(functionStart + FUNCTION_START.length, functionEnd);
             const functionCall = JSON5.parse(functionCallStr)
             if (!functionCall || !functionCall.tool_name || !functionCall.arguments) {
+                this.logger.warn(`invalid function call string from llm: ${functionCallStr}`)
                 return Promise.reject("Invalid function call in response:" + functionCallStr)
             }
-            console.log("fn ", functionCall)
+            if (this.logger.isDebugEnabled()) {
+                this.logger.debug(`LLM called tool ${functionCall.tool_name} with args ${JSON.stringify(functionCall.arguments)}`)
+            }
             executeResponse.helperCall = {
                 title: functionCall.tool_name,
                 content: functionCall.arguments

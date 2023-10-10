@@ -13,7 +13,7 @@ export const getOrCreateMQConnection = async () => {
     return mqConnection
 }
 
-export const shutdown = async () => {
+export const shutdownRabbit = async () => {
     if (mqConnection) {
         await mqConnection.close()
         mqConnection = undefined

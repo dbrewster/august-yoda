@@ -1,4 +1,6 @@
 import {EventContent} from "@/kamparas/Environment";
+import {Logger} from "winston";
+import {rootLogger} from "@/util/RootLogger";
 
 export type EpisodicActor = ("external" | "worker")
 export type EpisodicEventType = ("task_start" | "plan" | "instruction" | "help" | "response" | "thought")
@@ -38,6 +40,12 @@ export interface ProceduralEvent {
 }
 
 export abstract class AgentMemory {
+    logger: Logger = rootLogger;
+
+    setLogger(logger: Logger) {
+        this.logger = logger
+    }
+
     abstract recordEpisodicEvent(event: EpisodicEvent): Promise<void>
     abstract readEpisodicEventsForTask(task_id: string): Promise<EpisodicEvent[]>
 
