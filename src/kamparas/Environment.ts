@@ -1,12 +1,24 @@
+import { rootLogger } from "@/util/RootLogger";
 import {ValidateFunction} from "ajv";
+import {Logger} from "winston";
+import {DirectMessage, DirectMessageType, TitleMessage} from "./internal/RabbitAgentEnvironment";
 
 export type EventContent = Record<string, any>
 
 export abstract class AgentEnvironment {
+    logger: Logger = rootLogger;
+
     abstract registerHandler(handler: EnvironmentHandler): Promise<void>
+
     abstract askForHelp(helpeeTitle: string, helpeeIdentier: string, taskId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void>
+
     abstract answer(helpee_title: string, helpee_identifier: string, response: HelpResponse): Promise<void>
+
     abstract shutdown(): Promise<void>
+
+    setLogger(logger: Logger) {
+        this.logger = logger
+    }
 }
 
 export interface NewTaskInstruction {
@@ -57,5 +69,9 @@ export interface EnvironmentHandler {
         Sent to an agent when response to a help request is received
         @returns: true if the instruction was processed, false if not
      */
-    processHelpResponse(response: HelpResponse): Promise<void>
+    processDirectMessage(response: DirectMessage): Promise<void>
+
+    processDecodeError(type: ("direct" | "instruction"), message: string): void
+    processTitleMessageError(message: TitleMessage, error: any): void
+    processDirectMessageError(directMessage: DirectMessage, error: any): void;
 }

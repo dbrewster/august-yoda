@@ -1,6 +1,8 @@
 import {AgentIdentifier, AgentTool} from "@/kamparas/Agent";
 import {EpisodicEvent} from "@/kamparas/Memory";
 import {EventContent} from "@/kamparas/Environment";
+import {Logger} from "winston";
+import {rootLogger} from "@/util/RootLogger";
 
 export type LLMResultType  = ("thought" | "call_helper")
 
@@ -23,6 +25,12 @@ export interface LLMExecuteOptions {
 }
 
 export abstract class LLM {
+    logger: Logger = rootLogger;
+
+    setLogger(logger: Logger) {
+        this.logger = logger
+    }
+
     abstract formatHelpers(availableHelpers: AgentTool[]): string
 
     abstract execute(options: LLMExecuteOptions, events: EpisodicEvent[]): Promise<LLMResult>

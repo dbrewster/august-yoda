@@ -5,5 +5,6 @@ export default {
   // transform: { "^.+\\.ts?$": ["ts-jest", {"rootDir": "."}]},
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'
-  }
+  },
+  setupFiles: ["<rootDir>/setupTestVars.js"]
 };
