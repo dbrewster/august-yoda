@@ -114,7 +114,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
             contents: helpResponse
         } as DirectMessage
         let responseStr = JSON.stringify(response);
-        this.logger.info(`publishing answer to queue ${queueName} ${responseStr.length} chars`)
+        this.logger.debug(`publishing answer to queue ${queueName} ${responseStr.length} chars`)
         this.logger.debug(`Message data: ${responseStr}`)
         await this.channel!.basicPublish(queueName, queueName, responseStr).catch(reason => console.error(reason))
     }
@@ -128,7 +128,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
             input: content
         }
         let messageStr = JSON.stringify(message);
-        this.logger.info(`Asking for help from ${agentTitle} ${messageStr.length} chars`)
+        this.logger.debug(`Asking for help from ${agentTitle} ${messageStr.length} chars`)
         this.logger.debug(`Message data: ${messageStr}`)
         await this.channel!.basicPublish(agentTitle, agentTitle, messageStr).catch(reason => console.error(reason))
     }

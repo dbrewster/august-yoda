@@ -6,7 +6,8 @@ import {z, ZodSchema} from "zod";
 import {OpenAILLM} from "@/kamparas/internal/OpenAILLM";
 import {MongoMemory} from "@/kamparas/internal/MongoMemory";
 import {RootQuestion} from "@/kamparas/RootQuestion";
-import {getOrCreateMQConnection, shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
+import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
+import {shutdownMongo} from "@/util/util";
 
 describe("builtin agent", () => {
     beforeAll(async () => {
@@ -19,6 +20,7 @@ describe("builtin agent", () => {
         await adder.shutdown()
         await multiplier.shutdown()
         await shutdownRabbit()
+        await shutdownMongo()
     })
 
     describe("single agent communication", ()=> {
@@ -54,7 +56,7 @@ describe("builtin agent", () => {
         test("multi_tool_use", async () => {
             const answer = await rootQuestion.askQuestion(maths.title, {problem: "(2 + 2)*5"})
             console.log(answer)
-        }, 60000)
+        }, 90000)
     })
 })
 

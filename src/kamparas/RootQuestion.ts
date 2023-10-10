@@ -36,6 +36,7 @@ export class RootQuestion extends Agent {
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(`Asking question of ${agentTitle} -- ${JSON.stringify(data)}`)
         }
+        this.logger.info(`Asking help from ${agentTitle}`)
         await this.environment.askForHelp(this.title, this.identifier, taskId, agentTitle, requestId, data)
         return responsePromise.finally(() => {
             delete this.requests[taskId]

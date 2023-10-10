@@ -1,8 +1,6 @@
 import {Collection, Document, MongoClient} from "mongodb";
 
-export interface DocumentWithStringId extends Document {
-    [_id: string]: string
-}
+let mongoClient: MongoClient | undefined
 
 export async function mongoCollection<T extends Document>(colName: string): Promise<Collection<T>> {
     if (!process.env.MONGO_CONNECTION_STR) {
@@ -14,9 +12,18 @@ export async function mongoCollection<T extends Document>(colName: string): Prom
         throw "MONGO_DATABASE is not defined in the .env file"
     }
 
-    return MongoClient.connect(process.env.MONGO_CONNECTION_STR!).then(c => c.db(process.env.MONGO_DATABASE).collection(colName))
+    if (!mongoClient) {
+        mongoClient = await MongoClient.connect(process.env.MONGO_CONNECTION_STR!)
+    }
+    return mongoClient.db(process.env.MONGO_DATABASE).collection(colName)
 }
 
+export async function shutdownMongo() {
+    if (mongoClient) {
+        await mongoClient.close()
+        mongoClient = undefined
+    }
+}
 export class AsyncBlockingQueue<T> {
     private _promises: Promise<T>[];
     private _resolvers: ((t: T) => void)[];

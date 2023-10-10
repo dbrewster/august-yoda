@@ -1,4 +1,5 @@
-import {AgentIdentifier, AgentOptions, AutonomousAgent, AutonomousAgentOptions, BuiltinAgent} from "@/kamparas/Agent";
+import {AgentIdentifier, AutonomousAgent, AutonomousAgentOptions, BuiltinAgent} from "@/kamparas/Agent";
+import {DirectMessage, TitleMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 
 export interface WorkerOptions extends AutonomousAgentOptions {
 }
@@ -41,6 +42,19 @@ export class AutonomousSkilledWorker extends AutonomousAgent implements SkilledW
         super(options);
         this.manager = options.manager
         this.qaManager = options.qaManager
+    }
+
+
+    processDecodeError(type: "direct" | "instruction", message: string) {
+        super.processDecodeError(type, message);
+    }
+
+    processDirectMessageError(directMessage: DirectMessage, error: any) {
+        super.processDirectMessageError(directMessage, error);
+    }
+
+    processTitleMessageError(message: TitleMessage, error: any) {
+        super.processTitleMessageError(message, error);
     }
 }
 
