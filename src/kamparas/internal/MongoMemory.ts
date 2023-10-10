@@ -2,45 +2,69 @@ import {AgentMemory, EpisodicEvent, ProceduralEvent, SemanticMemory} from "@/kam
 import {AgentIdentifier} from "@/kamparas/Agent";
 import {mongoCollection} from "@/util/util";
 import {DateTime} from "luxon";
-import {ObjectId} from "mongodb";
+import {FindOptions, ObjectId} from "mongodb";
 import {PromptTemplate} from "langchain";
+import dotenv from "dotenv";
 
+// todo collections will need index on agent_id and task_id
 export class MongoMemory extends AgentMemory {
     private agentIdentifier: AgentIdentifier;
 
     constructor(agentIdentifier: AgentIdentifier) {
         super();
+        dotenv.config()
         this.agentIdentifier = agentIdentifier;
     }
 
-    async readEpisodicEventsForTask(task_id: string): Promise<EpisodicEvent[]> {
+    async readEpisodicEventsForTask(task_id: string, limit?: number): Promise<EpisodicEvent[]> {
         const collection = await mongoCollection(this.makeCollectionName("episodic"))
-        return collection.find<EpisodicEvent>({task_id: task_id}).toArray()
+        let options = {sort: {"timestamp": 1}} as FindOptions;
+        if (limit !== undefined) {
+            options["limit"] = limit
+        }
+        return collection.find<EpisodicEvent>({
+            agent_id: this.agentIdentifier.identifier,
+            task_id: task_id
+        }, options).toArray()
     }
 
     async recordPlan(template: string): Promise<void> {
-        const collection = await mongoCollection(this.makeCollectionName("plan"))
+        const collection = await mongoCollection("plans")
         const timestamp = DateTime.now().toISO()!
-        return collection.insertOne({type: "plan", template: template, timestamp: timestamp}).then()
+        return collection.insertOne({
+            type: "plan",
+            agent_title: this.agentIdentifier.title,
+            agent_id: this.agentIdentifier.identifier,
+            template: template,
+            timestamp: timestamp}
+        ).then()
     }
 
     async recordPlanInstructions(template: string): Promise<void> {
-        const collection = await mongoCollection(this.makeCollectionName("plan"))
+        const collection = await mongoCollection("plans")
         const timestamp = DateTime.now().toISO()!
-        return collection.insertOne({type: "instructions", template: template, timestamp: timestamp}).then()
+        return collection.insertOne({
+            type: "instructions",
+            agent_title: this.agentIdentifier.title,
+            agent_id: this.agentIdentifier.identifier,
+            template: template,
+            timestamp: timestamp
+        }).then()
     }
 
     async readPlan(input: Record<string, any>, planId?: string): Promise<string> {
         const find: Record<string, any> = {
-            type: "plan"
+            type: "plan",
+            agent_title: this.agentIdentifier.title,
+            agent_id: this.agentIdentifier.identifier
         }
         if (planId) {
             find['_id'] = ObjectId.createFromBase64(planId)
         }
-        const collection = await mongoCollection(this.makeCollectionName("plan"))
+        const collection = await mongoCollection("plans")
         const template = await collection.findOne(find).then(d => d?.template)
         if (!template) {
-            return Promise.reject("WTH!!! -- could not find " + this.makeCollectionName("plan") + "--" + JSON.stringify(find))
+            return Promise.reject("WTH!!! -- could not find plan --" + JSON.stringify(find))
         }
 
         return PromptTemplate.fromTemplate(template).format(input);
@@ -48,15 +72,17 @@ export class MongoMemory extends AgentMemory {
 
     async readPlanInstructions(input: Record<string, any>, planId?: string): Promise<string> {
         const find: Record<string, any> = {
-            type: "instructions"
+            type: "instructions",
+            agent_title: this.agentIdentifier.title,
+            agent_id: this.agentIdentifier.identifier
         }
         if (planId) {
             find['_id'] = ObjectId.createFromBase64(planId)
         }
-        const collection = await mongoCollection(this.makeCollectionName("plan"))
+        const collection = await mongoCollection("plans")
         const template = await collection.findOne(find).then(d => d?.template)
         if (!template) {
-            return Promise.reject("WTH!!! -- could not find " + this.makeCollectionName("plan") + "--" + JSON.stringify(find))
+            return Promise.reject("WTH!!! -- could not find plan instruction --" + JSON.stringify(find))
         }
 
         return PromptTemplate.fromTemplate(template).format(input);
@@ -78,7 +104,7 @@ export class MongoMemory extends AgentMemory {
         })
     }
 
-    private makeCollectionName(memoryType: ("episodic" | "semantic" | "procedure" | "plan")) {
-        return this.agentIdentifier.identifier + "_" + this.agentIdentifier.title + memoryType
+    private makeCollectionName(memoryType: ("episodic" | "semantic" | "procedure")) {
+        return memoryType + "_" + this.agentIdentifier.title
     }
 }

@@ -9,9 +9,9 @@ export type UnstructuredEpisodicEvent = string
 export interface EpisodicEvent {
     actor: EpisodicActor,
     type: EpisodicEventType,
-    content: (UnstructuredEpisodicEvent | StructuredEpisodicEvent),
-
+    agent_id: string,
     task_id: string,
+    content: (UnstructuredEpisodicEvent | StructuredEpisodicEvent),
     timestamp: string,
 }
 
@@ -19,9 +19,9 @@ export type SemanticEventType = ("thought" | "observation")
 
 export interface SemanticMemory {
     type: SemanticEventType,
-    content: string
-
+    agent_id: string,
     task_id: string,
+    content: string
     timestamp: string,
 }
 
@@ -29,12 +29,11 @@ export type ProceduralEventType = ("instruction" | "ask_help" | "return")
 
 export interface ProceduralEvent {
     type: ProceduralEventType,
+    agent_id: string,
+    task_id: string,
     previousEvent: string,
-
     preconditions: string,
     action_taken: string,
-
-    task_id: string,
     timestamp: string,
 }
 
