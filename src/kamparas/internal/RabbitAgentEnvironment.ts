@@ -30,6 +30,7 @@ export const askQuestion = async (title: string, message: Record<string, any>): 
         let result: (HelpResponseMessage | undefined)
         const sema = new AsyncSemaphore(0)
         const requestId = nanoid()
+        console.log(`Asking Question to ${title}: ${requestId}`)
         const ourTitle = "ask_question"
         const ourId = nanoid()
 
@@ -150,9 +151,9 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
                         // message.ack()
                     })
                     // ack after we process so a worker is working on one think at a time????
-                    console.log("acking message in builtin")
+                    console.log("acking message in", queueName)
                     await message.ack()
-                    console.log("acking message in builtin... done")
+                    console.log("acking message... done")
                     await instr
                     console.log("waiting on instruc... done")
                     return
@@ -170,8 +171,12 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
                 const body = message.bodyToString()
                 if (body) {
                     const json = JSON.parse(body) as HelpResponseMessage
-                    await handler.processHelpResponse(json)
+                    const instr = handler.processHelpResponse(json)
+                    console.log("acking message in", thisQueueName)
                     await message.ack()
+                    console.log("acking message... done")
+                    await instr
+                    console.log("waiting on instruc... done")
                     return
                 }
             } catch (error) {

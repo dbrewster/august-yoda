@@ -10,48 +10,49 @@ import {OpenAILLM} from "@/kamparas/internal/OpenAILLM";
 import {MongoMemory} from "@/kamparas/internal/MongoMemory";
 
 describe("builtin agent", () => {
+    beforeAll(() => {
+        adder.initialize()
+        multiplier.initialize()
+    })
+
+    afterAll(() => {
+        adder.shutdown()
+        multiplier.shutdown()
+    })
+
     describe("single agent communication", ()=> {
         test("single agent communication", async () => {
-            const builtin = makeBuiltinAgent("Adder", "Adds to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), add)
-            await builtin.initialize()
-            const result = await askQuestion("Adder", {a: 10, b: 30})
-            await builtin.shutdown()
+            const result = await askQuestion(adder.title, {a: 10, b: 30})
             expect(result).toStrictEqual({x: 40})
         })
     })
     describe("two agent communication", ()=> {
         test("two agent communication", async () => {
-            const adder = makeBuiltinAgent( "Adder", "Adds to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), add)
-            const multiplier = makeBuiltinAgent("Multiplier", "Multiplies to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), multiply)
-            await adder.initialize()
-            await multiplier.initialize()
-
-            const addResult = await askQuestion("Adder", {a: 10, b: 30})
-            await adder.shutdown()
-            expect(addResult).toStrictEqual({x: 40})
-
-            const multiplyResult = await askQuestion("Multiplier", {a: 10, b: 30})
-            await multiplier.shutdown()
+            const addResult = await askQuestion(adder.title, {a: 10, b: 30})
+            const multiplyResult = await askQuestion(multiplier.title, {a: 10, b: 30})
             expect(multiplyResult).toStrictEqual({x: 300})
         })
     })
     describe("two base + 1 autonomous agent communication", ()=> {
+        beforeAll(() => {
+            maths.initialize()
+        })
+
+        afterAll(() => {
+            maths.shutdown()
+        })
         test("communication", async () => {
-            const mathsPlan = `You are a helpful agent designed answer user questions. Break the problem down into steps and use the tool available when needed.`
-            const mathsInstructions = `{problem}`
-            const adder = makeBuiltinAgent("Adder", "Adds two numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), add)
-            const multiplier = makeBuiltinAgent("Multiplier", "Multiplies two numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), multiply)
-            const maths = await makeAutonomousAgent("Maths", "Does math using add and multiply",
-                z.object({problem: z.string()}), z.object({x: z.string()}),
-                mathsPlan, mathsInstructions, [adder.agent_identifier, multiplier.agent_identifier])
-            await adder.initialize()
-            await multiplier.initialize()
-            await maths.initialize()
-            const answer = await askQuestion("Maths", {problem: "What is 2 + 2?"})
+            const answer = await askQuestion(maths.title, {problem: "What is 2 + 2?"})
             console.log(answer)
-            await adder.shutdown()
-            await multiplier.shutdown()
-            await maths.shutdown()
+        }, 60000)
+        test("multiple_calls", async () => {
+            const answer1 = await askQuestion(maths.title, {problem: "What is 2 + 2?"})
+            const answer2 = await askQuestion(maths.title, {problem: "What is 5 + 5?"})
+            expect(answer1).not.toEqual(answer2)
+        }, 60000)
+        test("multi_tool_use", async () => {
+            const answer = await askQuestion(maths.title, {problem: "(2 + 2)*5"})
+            console.log(answer)
         }, 60000)
     })
 })
@@ -114,3 +115,10 @@ const makeAutonomousAgent = async (title: string, job_description: string, input
     await memory.recordPlanInstructions(planInstructions)
     return new AutonomousAgent(options)
 }
+
+const adder = makeBuiltinAgent( "Adder", "Adds to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), add)
+const multiplier = makeBuiltinAgent("Multiplier", "Multiplies to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), multiply)
+const mathsPlan = `You are a helpful agent designed answer user questions. Break the problem down into steps and use the tool available when needed.`
+const maths = await makeAutonomousAgent("Maths", "Does math using add and multiply",
+    z.object({problem: z.string()}), z.object({x: z.string()}),
+    mathsPlan, `{problem}`, [adder.agent_identifier, multiplier.agent_identifier])

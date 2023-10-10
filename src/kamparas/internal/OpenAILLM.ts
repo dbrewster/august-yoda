@@ -35,7 +35,6 @@ export class OpenAILLM extends LLM {
         if (functionStart >= 0) {
             const functionEnd = message.indexOf(FUNCTION_END, functionStart + FUNCTION_START.length)
             let functionCallStr = message.slice(functionStart + FUNCTION_START.length, functionEnd);
-            console.log("fn ", functionCallStr)
             const functionCall = JSON5.parse(functionCallStr)
             if (!functionCall || !functionCall.tool_name || !functionCall.arguments) {
                 return Promise.reject("Invalid function call in response:" + functionCallStr)
