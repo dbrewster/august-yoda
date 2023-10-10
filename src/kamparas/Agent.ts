@@ -104,8 +104,8 @@ export class BuiltinAgent<T, U> extends Agent {
 }
 
 const final_answer_tool = {
-    title: "final_answer",
-    job_description: "Use this tool to return the final answer",
+    title: "report_answer",
+    job_description: "report the final answer.",
     input_schema: getOrCreateSchemaManager().compileZod(z.object({
         result: z.string().describe("The final answer")
     }))

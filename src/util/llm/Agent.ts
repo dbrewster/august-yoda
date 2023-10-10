@@ -241,8 +241,8 @@ class FinalThoughtStep extends BaseItem implements ToolItem {
         this.inputSchema = outputSchema;
     }
 
-    readonly name: string = "final_answer"
-    readonly description: string = "Call this function at the end after you have figured out the final answer."
+    readonly name: string = "report_answer"
+    readonly description: string = "report the final answer."
     inputSchema: ZodSchema
 
     async call(runId: string, input: ItemValues, options: BaseCallContext, runManager: RunManger | undefined): Promise<ItemValues> {
