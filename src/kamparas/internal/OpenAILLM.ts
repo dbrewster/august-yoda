@@ -7,7 +7,6 @@ import JSON5 from "json5";
 import {HelpResponse} from "@/kamparas/Environment";
 import {rootLogger} from "@/util/RootLogger";
 import {Logger} from "winston";
-import {logger} from "sequelize/types/utils/logger";
 
 const FUNCTION_START = "```START```"
 const FUNCTION_END = "```END```"
@@ -35,9 +34,10 @@ export class OpenAILLM extends LLM {
             ...options
         })
 
-        this.logger.info(`Got response from llm. Used ${JSON.stringify(response.usage)} tokens.`)
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(`Got response from llm ${JSON.stringify(response, null, 2)}`)
+        } else {
+            this.logger.info(`Got response from llm. Used ${JSON.stringify(response.usage)} tokens.`)
         }
         const message = response.choices[0].message.content || ""
         const executeResponse: LLMResult = {

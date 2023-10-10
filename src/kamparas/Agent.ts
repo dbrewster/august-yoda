@@ -177,6 +177,7 @@ export class AutonomousAgent extends Agent {
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "plan",
+            agent_id: this.agent_identifier.identifier,
             task_id: taskId,
             timestamp: DateTime.now().toISO(),
             content: availableTools
@@ -185,6 +186,7 @@ export class AutonomousAgent extends Agent {
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "instruction",
+            agent_id: this.agent_identifier.identifier,
             task_id: taskId,
             timestamp: DateTime.now().toISO(),
             content: instructions
@@ -253,6 +255,7 @@ export class AutonomousAgent extends Agent {
                         await this.memory.recordEpisodicEvent({
                             actor: "worker",
                             type: "help",
+                            agent_id: this.agent_identifier.identifier,
                             task_id: taskId,
                             timestamp: DateTime.now().toISO(),
                             content: {

@@ -47,7 +47,7 @@ export abstract class AgentMemory {
     }
 
     abstract recordEpisodicEvent(event: EpisodicEvent): Promise<void>
-    abstract readEpisodicEventsForTask(task_id: string): Promise<EpisodicEvent[]>
+    abstract readEpisodicEventsForTask(task_id: string, limit?: number): Promise<EpisodicEvent[]>
 
     abstract recordSemanticMemory(event: SemanticMemory): Promise<void>
 
