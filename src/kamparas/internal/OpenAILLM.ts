@@ -5,9 +5,6 @@ import OpenAI, {ClientOptions} from "openai";
 import {ChatCompletionMessageParam} from "openai/resources/chat";
 import JSON5 from "json5";
 import {HelpResponse} from "@/kamparas/Environment";
-import * as Core from "openai/src/core";
-import {APIPromise} from "openai/src/core";
-import {ChatCompletion, ChatCompletionCreateParamsNonStreaming} from "openai/src/resources/chat/completions";
 
 const FUNCTION_START = "```START```"
 const FUNCTION_END = "```END```"
