@@ -1,7 +1,7 @@
 name: define_new_concept
 builtin_workers:
-  - title: ConceptFunctions.list
-    identifier: ConceptFunctions.list_alpha
+  - title: list_concepts
+    identifier: list_concepts_alpha
     function_name: ConceptFunctions.list
     job_description: Returns all concepts used in the system. This returns the
       interface and a description of the interface.
@@ -22,21 +22,21 @@ builtin_workers:
       $schema: http://json-schema.org/draft-07/schema#
     num_to_start: 1
     available_tools: []
-  - title: ConceptFunctions.getDetails
-    identifier: ConceptFunctions.getDetails_alpha
+  - title: concept_details
+    identifier: concept_details_alpha
     function_name: ConceptFunctions.getDetails
     job_description: Returns the description and properties of one or more concepts.
     input_schema:
       type: object
       properties:
-        base_concept_identifiers:
+        concept_identifiers:
           type: array
           items:
             type: string
             description: The instance name of the base concept to get the detail of. Must be
               a valid javascript identifier
       required:
-        - base_concept_identifiers
+        - concept_identifiers
       additionalProperties: false
       $schema: http://json-schema.org/draft-07/schema#
     output_schema:
@@ -51,8 +51,8 @@ builtin_workers:
       $schema: http://json-schema.org/draft-07/schema#
     num_to_start: 1
     available_tools: []
-  - title: ConceptFunctions.getDetailsWithSample
-    identifier: ConceptFunctions.getDetailsWithSample_alpha
+  - title: concept_details_and_sample
+    identifier: concept_details_and_sample_alpha
     function_name: ConceptFunctions.getDetailsWithSample
     job_description: Returns the description and properties of an object. It also
       returns 5 sample rows of data.
@@ -80,8 +80,8 @@ builtin_workers:
       $schema: http://json-schema.org/draft-07/schema#
     num_to_start: 1
     available_tools: []
-  - title: ConceptFunctions.getInterfaces
-    identifier: ConceptFunctions.getInterfaces_alpha
+  - title: concept_query_interfaces
+    identifier: concept_query_interfaces_alpha
     function_name: ConceptFunctions.getInterfaces
     job_description: Returns the query interfaces needed to define a new query
     input_schema:
@@ -212,8 +212,8 @@ skilled_workers:
   - title: find_base_concept
     identifier: find_base_concept_alpha
     available_tools:
-      - ConceptFunctions.list
-      - ConceptFunctions.getDetails
+      - list_concepts
+      - concept_details
     job_description: Finds the base concept for a new concept.
     initial_plan: You are a helpful agent answering questions about generating
       information about creating or modifying interfaces in a concept graph. Use
@@ -279,8 +279,8 @@ skilled_workers:
   - title: find_concept_properties_and_constraints
     identifier: find_concept_properties_and_constraints_alpha
     available_tools:
-      - ConceptFunctions.getDetailsWithSample
-      - ConceptFunctions.getInterfaces
+      - concept_details_and_sample
+      - concept_query_interfaces
     job_description: Finds the optimal set of properties for the the concept given
       information about the new concept and a base concept and finds a query
       that maps the new concept to the base concept

@@ -32,7 +32,7 @@ export class GetConceptDetails extends BaseItem implements ToolItem {
     readonly name: string = "get_concept_details"
     readonly description: string = "Returns the description and properties of one or more concepts."
     inputSchema: ZodType = z.object({
-        base_concept_identifiers: z.array(z.string().describe("The instance name of the base concept to get the detail of. Must be a valid javascript identifier"))
+        concept_identifiers: z.array(z.string().describe("The instance name of the base concept to get the detail of. Must be a valid javascript identifier"))
     })
     private _readTables: boolean;
 
@@ -43,7 +43,7 @@ export class GetConceptDetails extends BaseItem implements ToolItem {
 
     async call(runId: string, input: ItemValues, options: BaseCallContext, runManager: RunManger | undefined): Promise<ItemValues> {
         const allClasses = await getOrBuildConceptClasses(this._readTables ? "table" : "concepts")
-        const baseConceptIdentifiers: string[] = input.base_concept_identifiers;
+        const baseConceptIdentifiers: string[] = input.concept_identifiers;
         const bdIds = baseConceptIdentifiers.map(id => {
             if (!allClasses[id]) {
                 console.log("invalid identifier", id)

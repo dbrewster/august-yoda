@@ -109,19 +109,24 @@ export class BuiltinAgent extends Agent {
 
     processInstruction(instruction: NewTaskInstruction): Promise<void> {
         this.logger.info(`Received new request from ${instruction.helpee_title}:${instruction.helpee_id}`)
-        const validatedInput = this.inputSchema(instruction.input) as any
-        return new Promise(result => {
-            let buildinFuncReturn = this.func(instruction.input as any) as Record<string, any>;
+        let promise: Promise<Record<string, any>>
+        if (this.func.constructor.name === "AsyncFunction") {
+            promise = this.func(instruction.input as any)
+        } else {
+            promise = new Promise(() => this.func(instruction.input as any))
+        }
+
+        return promise.then(async builtinFuncReturn => {
             this.logger.info(`Answering question from ${instruction.helpee_title}:${instruction.helpee_id}`)
-            return this.environment.answer(instruction.helpee_title, instruction.helpee_id, {
+            return await this.environment.answer(instruction.helpee_title, instruction.helpee_id, {
                 conversation_id: instruction.conversation_id,
                 helper_identifier: this.identifier,
                 helper_title: this.title,
                 request_id: instruction.request_id,
-                response: buildinFuncReturn
-            }, instruction.conversation_id).then(answer => {
-                result(answer)
-            })
+                response: builtinFuncReturn as Record<string, any>
+            }, instruction.conversation_id)
+        }).catch(error => {
+            this.logger.error('Unable to process instructions:', {instructions: instruction, error: error})
         })
     }
 }
@@ -224,6 +229,7 @@ export class AutonomousAgent extends Agent {
 
     private async think(conversationId: string): Promise<void> {
         let rejecter: (error: any) => void = (error) => {
+            this.logger.error("Error while thinking", error)
         }
 
         const returnPromise = new Promise<void>((resolve, reject) => {

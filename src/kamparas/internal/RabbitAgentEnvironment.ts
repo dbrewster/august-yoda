@@ -205,7 +205,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
             }
         } catch (error) {
             if (!this.handler) {
-                console.error("instruction",`Could not decode direct message on ${message.exchange} to string. Error: ${JSON.stringify(error)} -- ${this.logger}`)
+                this.logger.error("instruction",`Could not decode direct message on ${message.exchange} to string. Error: ${JSON.stringify(error)} -- ${this.logger}`)
             }
             this.handler!.processDecodeError("instruction",`Could not decode direct message to string. Error: ${JSON.stringify(error)}`)
         }

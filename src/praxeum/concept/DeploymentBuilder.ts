@@ -18,10 +18,10 @@ import {
 import YAML from "yaml";
 import fs from "fs";
 
-function getBuiltIn(base: ToolItem, functionName: string, outputSchema: ZodType): BuiltinWorkerDescriptor {
+function getBuiltIn(title: string, base: ToolItem, functionName: string, outputSchema: ZodType): BuiltinWorkerDescriptor {
     return {
-        title: functionName,
-        identifier: functionName + '_alpha',
+        title: title,
+        identifier: title + '_alpha',
         function_name: functionName,
         job_description: base.description,
         input_schema: zodToJsonSchema(base.inputSchema),
@@ -80,24 +80,24 @@ let fpc = new FindPropertiesAndConstraintAgent();
 const deployment: Deployment = {
     name: "define_new_concept",
     builtin_workers: [
-        getBuiltIn(new GetAllConcepts(false), "ConceptFunctions.list", z.object({
+        getBuiltIn("list_concepts", new GetAllConcepts(false), "ConceptFunctions.list", z.object({
             concepts: z.string().describe("A comma separated list of concept names")
         })),
-        getBuiltIn(new GetConceptDetails(false), "ConceptFunctions.getDetails", z.object({
+        getBuiltIn("concept_details", new GetConceptDetails(false), "ConceptFunctions.getDetails", z.object({
             concept: z.string().describe("A string describing details for requested concepts")
         })),
-        getBuiltIn(new GetConceptDetailsWithSampleRows(false), "ConceptFunctions.getDetailsWithSample", z.object({
+        getBuiltIn("concept_details_and_sample", new GetConceptDetailsWithSampleRows(false), "ConceptFunctions.getDetailsWithSample", z.object({
             concept: z.string().describe("A string describing details for the requested concept with sample rows")
         })),
-        getBuiltIn(new GetQueryInterface(false), "ConceptFunctions.getInterfaces", z.object({
+        getBuiltIn("concept_query_interfaces", new GetQueryInterface(false), "ConceptFunctions.getInterfaces", z.object({
             query_language: z.string().describe("The concept query language rules"),
             examples: z.string().describe("Examples of how to use concept the query language"),
         })),
     ],
     skilled_workers: [
         getAgentObject(dnc, dncSchema, [fc.name, fpc.name]),
-        getAgentObject(fc, fc.inputSchema, ["ConceptFunctions.list", "ConceptFunctions.getDetails"]),
-        getAgentObject(fpc, fpc.inputSchema, ["ConceptFunctions.getDetailsWithSample", "ConceptFunctions.getInterfaces"])
+        getAgentObject(fc, fc.inputSchema, ["list_concepts", "concept_details"]),
+        getAgentObject(fpc, fpc.inputSchema, ["concept_details_and_sample", "concept_query_interfaces"])
     ],
     managers: [
         getManager("upper_management"),
