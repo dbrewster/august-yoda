@@ -1,4 +1,3 @@
-import {EventContent} from "@/kamparas/Environment";
 import {Logger} from "winston";
 import {rootLogger} from "@/util/RootLogger";
 
@@ -13,7 +12,7 @@ export interface EpisodicEvent {
     type: EpisodicEventType,
     agent_title: string,
     agent_id: string,
-    task_id: string,
+    conversation_id: string,
     content: (UnstructuredEpisodicEvent | StructuredEpisodicEvent),
     timestamp: string,
 }
@@ -24,7 +23,7 @@ export interface SemanticMemory {
     type: SemanticEventType,
     agent_title: string,
     agent_id: string,
-    task_id: string,
+    conversation_id: string,
     content: string
     timestamp: string,
 }
@@ -35,7 +34,7 @@ export interface ProceduralEvent {
     type: ProceduralEventType,
     agent_title: string,
     agent_id: string,
-    task_id: string,
+    conversation_id: string,
     previousEvent: string,
     preconditions: string,
     action_taken: string,
@@ -50,7 +49,7 @@ export abstract class AgentMemory {
     }
 
     abstract recordEpisodicEvent(event: Omit<EpisodicEvent, "agent_title" | "agent_id">): Promise<void>
-    abstract readEpisodicEventsForTask(task_id: string, limit?: number): Promise<EpisodicEvent[]>
+    abstract readEpisodicEventsForTask(conversation_id: string, limit?: number): Promise<EpisodicEvent[]>
 
     abstract recordSemanticMemory(event: Omit<SemanticMemory, "agent_title" | "agent_id">): Promise<void>
 

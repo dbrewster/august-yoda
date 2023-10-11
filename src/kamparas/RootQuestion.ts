@@ -28,28 +28,28 @@ export class RootQuestion extends Agent {
         if (!this.environment.logger) {
             this.logger.crit("WTH -- environment not initialized")
         }
-        const taskId = nanoid()
+        const conversationId = nanoid()
         const requestId = nanoid()
         const responsePromise = new Promise<any>((resolve, reject) => {
-            this.requests[taskId] = {resolve, reject}
+            this.requests[conversationId] = {resolve, reject}
         })
         if (this.logger.isDebugEnabled()) {
-            this.logger.debug(`Asking question of ${agentTitle} -- ${JSON.stringify(data)}`, {task_id: taskId})
+            this.logger.debug(`Asking question of ${agentTitle} -- ${JSON.stringify(data)}`, {conversation_id: conversationId})
         }
-        this.logger.info(`Asking help from ${agentTitle}`, {task_id: taskId})
-        await this.environment.askForHelp(this.title, this.identifier, taskId, agentTitle, requestId, data)
+        this.logger.info(`Asking help from ${agentTitle}`, {conversation_id: conversationId})
+        await this.environment.askForHelp(this.title, this.identifier, conversationId, agentTitle, requestId, data)
         return responsePromise.finally(() => {
-            delete this.requests[taskId]
+            delete this.requests[conversationId]
         })
     }
 
     async processDirectMessage(message: DirectMessage): Promise<void> {
         if (message.type == "help_response") {
             const response = message.contents as HelpMessageResponse
-            if (!this.requests[response.task_id]) {
-                this.logger.error(`Could not find task id in question response object ${response.task_id} in [${Object.keys(this.requests).join(",")}]`, {task_id: response.task_id})
+            if (!this.requests[response.conversation_id]) {
+                this.logger.error(`Could not find task id in question response object ${response.conversation_id} in [${Object.keys(this.requests).join(",")}]`, {conversation_id: response.conversation_id})
             }
-            const promiseFn = this.requests[response.task_id]
+            const promiseFn = this.requests[response.conversation_id]
             promiseFn.resolve(response.response)
         } else {
             this.logger.error(`huh??? got message ${JSON.stringify(message)}`)

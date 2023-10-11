@@ -34,7 +34,7 @@ export abstract class LLM {
 
     abstract formatHelpers(availableHelpers: AgentTool[]): string | undefined
 
-    abstract execute(options: LLMExecuteOptions, taskId: string, events: EpisodicEvent[]): Promise<LLMResult>
+    abstract execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[]): Promise<LLMResult>
 }
 
 export type LLMType = ("openai.textFunctions" | "openai.function")

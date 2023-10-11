@@ -12,7 +12,7 @@ import {getOrCreateMQConnection} from "@/kamparas/internal/RabbitMQ";
 export type DirectMessageType = ("help_response" | "manager_call")
 
 export interface HelpMessageResponse {
-    task_id: string
+    conversation_id: string
     request_id: string
     helper_title: string
     helper_identifier: string
@@ -69,7 +69,7 @@ export const askQuestion = async (title: string, message: Record<string, any>): 
         const helpMessage: TitleMessage = {
             helpee_title: ourTitle,
             helpee_id: ourId,
-            task_id: requestId,
+            conversation_id: requestId,
             request_id: requestId,
             input: message
         }
@@ -105,29 +105,29 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         return Promise.resolve()
     }
 
-    async answer(helpee_title: string, helpee_identifier: string, helpResponse: HelpResponse, taskId: string): Promise<void> {
+    async answer(helpee_title: string, helpee_identifier: string, helpResponse: HelpResponse, conversationId: string): Promise<void> {
         let queueName = this.makeIdentifierQueueName(helpee_title, helpee_identifier);
         const response = {
             type: "help_response",
             contents: helpResponse
         } as DirectMessage
         let responseStr = JSON.stringify(response);
-        this.logger.debug(`publishing answer to queue ${queueName} ${responseStr.length} chars`, {task_id: taskId})
-        this.logger.debug(`Message data: ${responseStr}`, {task_id: taskId})
+        this.logger.debug(`publishing answer to queue ${queueName} ${responseStr.length} chars`, {conversation_id: conversationId})
+        this.logger.debug(`Message data: ${responseStr}`, {conversation_id: conversationId})
         await this.channel!.basicPublish(queueName, queueName, responseStr).catch(reason => console.error(reason))
     }
 
-    async askForHelp(helpeeTitle: string, helpeeIdentier: string, taskId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void> {
+    async askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void> {
         const message: TitleMessage = {
             helpee_title: helpeeTitle,
             helpee_id: helpeeIdentier,
-            task_id: taskId,
+            conversation_id: conversationId,
             request_id: requestId,
             input: content
         }
         let messageStr = JSON.stringify(message);
-        this.logger.debug(`Asking for help from ${agentTitle} ${messageStr.length} chars`, {task_id: taskId})
-        this.logger.debug(`Message data: ${messageStr}`, {task_id: taskId})
+        this.logger.debug(`Asking for help from ${agentTitle} ${messageStr.length} chars`, {conversation_id: conversationId})
+        this.logger.debug(`Message data: ${messageStr}`, {conversation_id: conversationId})
         await this.channel!.basicPublish(agentTitle, agentTitle, messageStr).catch(reason => console.error(reason))
     }
 

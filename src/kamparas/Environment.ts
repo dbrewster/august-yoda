@@ -1,7 +1,7 @@
-import { rootLogger } from "@/util/RootLogger";
+import {rootLogger} from "@/util/RootLogger";
 import {ValidateFunction} from "ajv";
 import {Logger} from "winston";
-import {DirectMessage, DirectMessageType, TitleMessage} from "./internal/RabbitAgentEnvironment";
+import {DirectMessage, TitleMessage} from "./internal/RabbitAgentEnvironment";
 
 export type EventContent = Record<string, any>
 
@@ -10,9 +10,9 @@ export abstract class AgentEnvironment {
 
     abstract registerHandler(handler: EnvironmentHandler): Promise<void>
 
-    abstract askForHelp(helpeeTitle: string, helpeeIdentier: string, taskId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void>
+    abstract askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void>
 
-    abstract answer(helpee_title: string, helpee_identifier: string, response: HelpResponse, taskId: string): Promise<void>
+    abstract answer(helpee_title: string, helpee_identifier: string, response: HelpResponse, conversationId: string): Promise<void>
 
     abstract shutdown(): Promise<void>
 
@@ -24,13 +24,13 @@ export abstract class AgentEnvironment {
 export interface NewTaskInstruction {
     helpee_title: string,
     helpee_id: string,
-    task_id: string,
+    conversation_id: string,
     request_id: string,
     input: EventContent
 }
 
 export interface HelpResponse {
-    task_id: string
+    conversation_id: string
     request_id: string
     helper_title: string
     helper_identifier: string

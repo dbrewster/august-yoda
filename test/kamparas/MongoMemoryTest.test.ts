@@ -3,8 +3,14 @@ import {ValidateFunction} from "ajv";
 import {nanoid} from "nanoid";
 import {EpisodicEvent} from "@/kamparas/Memory";
 import {AgentIdentifier} from "@/kamparas/Agent";
+import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
+import {shutdownMongo} from "@/util/util";
 
 describe("MongoMemory", () => {
+    afterAll(async () => {
+        await shutdownRabbit()
+        await shutdownMongo()
+    })
     describe("plans", () => {
         test("can read/write plan", async () => {
             let mm = mongoMemory()
@@ -23,55 +29,56 @@ describe("MongoMemory", () => {
 
     describe("episodic memory",() => {
         test("can read/write episodic memory", async () => {
-            let task_id = nanoid()
+            let conversation_id = nanoid()
             let ai = agentIdentifier()
             let mm = mongoMemory(ai)
-            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, task_id, "1"))
-            let found = await mm.readEpisodicEventsForTask(task_id)
+            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, conversation_id, "1"))
+            let found = await mm.readEpisodicEventsForTask(conversation_id)
             expect(found.length).toEqual(1)
         })
 
         test("can read multiple", async () => {
-            let task_id = nanoid()
+            let conversation_id = nanoid()
             let ai = agentIdentifier()
             let mm = mongoMemory(ai)
-            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, task_id, "1"))
-            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, task_id, "2"))
-            let found = await mm.readEpisodicEventsForTask(task_id)
+            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, conversation_id, "1"))
+            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, conversation_id, "2"))
+            let found = await mm.readEpisodicEventsForTask(conversation_id)
             expect(found.length).toEqual(2)
         })
 
         test("reads in order", async () => {
-            let task_id = nanoid()
+            let conversation_id = nanoid()
             let ai = agentIdentifier()
             let mm = mongoMemory(ai)
-            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, task_id, "1"))
-            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, task_id, "3"))
-            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, task_id, "2"))
-            let found = await mm.readEpisodicEventsForTask(task_id)
+            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, conversation_id, "1"))
+            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, conversation_id, "3"))
+            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, conversation_id, "2"))
+            let found = await mm.readEpisodicEventsForTask(conversation_id)
             expect(found.map(ee => ee.timestamp)).toEqual(["1","2","3"])
         })
 
         test("can limit responses", async () => {
-            let task_id = nanoid()
+            let conversation_id = nanoid()
             let ai = agentIdentifier()
             let mm = mongoMemory(ai)
-            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, task_id, "1"))
-            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, task_id, "3"))
-            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, task_id, "2"))
-            let found = await mm.readEpisodicEventsForTask(task_id, 2)
+            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, conversation_id, "1"))
+            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, conversation_id, "3"))
+            await mm.recordEpisodicEvent(episodicEvent(ai.identifier, conversation_id, "2"))
+            let found = await mm.readEpisodicEventsForTask(conversation_id, 2)
             expect(found.map(ee => ee.timestamp)).toEqual(["1","2"])
         })
     })
 })
 
 
-function episodicEvent(agent_id: string, task_id: string, timestamp: string): EpisodicEvent {
+function episodicEvent(agent_id: string, conversation_id: string, timestamp: string): EpisodicEvent {
     return {
         actor: "external",
         type: "task_start",
         agent_id: agent_id,
-        task_id: task_id,
+        agent_title: "title1",
+        conversation_id: conversation_id,
         content: "here is some content",
         timestamp: timestamp,
     };
