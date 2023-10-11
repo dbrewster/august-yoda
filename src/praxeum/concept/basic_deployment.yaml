@@ -1,0 +1,47 @@
+name: Test Bed for concepts
+
+builtin_workers: []
+skilled_workers:
+  - title: "base_concept_worker"
+    job_description: "You are a helpful agent answering questions about generating information about creating or modifying interfaces in a concept graph. Use the set of given tools to completely answer the users question in detail."
+    initial_plan: "plan"
+    initial_instructions: "inst"
+    input_schema: {}
+    output_schema: {}
+    manager: "concept_manager"
+    qaManager: "concept_qa"
+    model: gpt-3.5-turbo-16k
+managers:
+  - title: "concept_manager"
+    job_description: "You sit around and drink coffee"
+    initial_plan: "plan"
+    initial_instructions: "inst"
+    input_schema: {}
+    output_schema: {}
+    manager: "upper_management"
+    model: gpt-3.5-turbo-16k
+  - title: "qa_head_manager"
+    job_description: "You talk about reliability and code coverage"
+    initial_plan: "plan"
+    initial_instructions: "inst"
+    input_schema: { }
+    output_schema: { }
+    manager: "upper_management"
+    model: gpt-3.5-turbo-16k
+  - title: "upper_management"
+    job_description: "You walk around and give people high fives and fist bumps"
+    initial_plan: "plan"
+    initial_instructions: "inst"
+    input_schema: { }
+    output_schema: { }
+    manager: "upper_management"
+    model: gpt-3.5-turbo-16k
+qa_managers:
+  - title: "concept_qa"
+    job_description: "You tell workers to write more tests"
+    initial_plan: "plan"
+    initial_instructions: "inst"
+    input_schema: { }
+    output_schema: { }
+    manager: "qa_head_manager"
+    model: gpt-3.5-turbo-16k
