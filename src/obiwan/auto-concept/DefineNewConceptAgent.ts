@@ -16,9 +16,6 @@ export class DefineNewConceptAgent extends Agent {
                 humanMessage: `You are an agent finding information about concepts in a {system}, specifically for the {process} process.
 Given the brand new concept {concept_name}
 
-Additional Information:
-{additional_instructions}
-
 You need to find the following to define the new concept:
   1. You need to create a very detailed definition definition of the concept. The definition should contain the details for a concept, how it is used, and how it relates to the key concepts in a {system} system for the {process} process.
   2. You need to find the base concept this concept will derive from. 
@@ -50,7 +47,7 @@ Define the new concept. Create a very detailed definition definition of the conc
     }
 
     async beforeLLM(input: ItemValues, callOptions: BaseCallContext): Promise<ItemValues> {
-        return {...input, additional_instructions: input.additional_instructions || ""}
+        return {...input}
     }
 
     modelToUse(options: BaseCallContext): ChatOpenAI {

@@ -37,9 +37,6 @@ const executeAgentLLM = async (...args: string[]) => {
             runManager.addHandler(new CommandLineEventHandler)
             console.log(`Human: Create a new concept called "${conceptName}"`)
             const input: InputValues = {system: "CRM", process: "revenue operations", concept_name: conceptName};
-            if (args.length > 2) {
-                input.additional_instructions = args[2]
-            }
             const ret = await executeLLM(new DefineNewConceptAgent(buildFromTables), "123", input, "user1", {}, runManager, 0.2)
             const concept = ret.concept as Record<string, any>
             const interfaceDef = `/*

@@ -20,8 +20,8 @@ import fs from "fs";
 
 function getBuiltIn(base: ToolItem, functionName: string, outputSchema: ZodType): BuiltinWorkerDescriptor {
     return {
-        title: base.name,
-        identifier: base.name + '_alpha',
+        title: functionName,
+        identifier: functionName + '_alpha',
         function_name: functionName,
         job_description: base.description,
         input_schema: zodToJsonSchema(base.inputSchema),
@@ -55,7 +55,6 @@ const dncSchema = z.object({
     system: z.string().describe("The type of system the concept exists in. Eg, CRM"),
     process: z.string().describe("The system the concept exists in. Eg, revenue operations"),
     concept_name: z.string().describe("The name of the concept to define. Eg, Opportunity"),
-    additional_instructions: z.string().optional()
 })
 
 function getManager(title: string, manager: string | undefined = "upper_management"): ManagerDescriptor {

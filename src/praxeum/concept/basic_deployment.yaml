@@ -1,7 +1,7 @@
 name: define_new_concept
 builtin_workers:
-  - title: get_all_concepts
-    identifier: get_all_concepts_alpha
+  - title: ConceptFunctions.list
+    identifier: ConceptFunctions.list_alpha
     function_name: ConceptFunctions.list
     job_description: Returns all concepts used in the system. This returns the
       interface and a description of the interface.
@@ -22,8 +22,8 @@ builtin_workers:
       $schema: http://json-schema.org/draft-07/schema#
     num_to_start: 1
     available_tools: []
-  - title: get_concept_details
-    identifier: get_concept_details_alpha
+  - title: ConceptFunctions.getDetails
+    identifier: ConceptFunctions.getDetails_alpha
     function_name: ConceptFunctions.getDetails
     job_description: Returns the description and properties of one or more concepts.
     input_schema:
@@ -51,8 +51,8 @@ builtin_workers:
       $schema: http://json-schema.org/draft-07/schema#
     num_to_start: 1
     available_tools: []
-  - title: get_concept_details_with_rows
-    identifier: get_concept_details_with_rows_alpha
+  - title: ConceptFunctions.getDetailsWithSample
+    identifier: ConceptFunctions.getDetailsWithSample_alpha
     function_name: ConceptFunctions.getDetailsWithSample
     job_description: Returns the description and properties of an object. It also
       returns 5 sample rows of data.
@@ -80,8 +80,8 @@ builtin_workers:
       $schema: http://json-schema.org/draft-07/schema#
     num_to_start: 1
     available_tools: []
-  - title: get_query_interfaces
-    identifier: get_query_interfaces_alpha
+  - title: ConceptFunctions.getInterfaces
+    identifier: ConceptFunctions.getInterfaces_alpha
     function_name: ConceptFunctions.getInterfaces
     job_description: Returns the query interfaces needed to define a new query
     input_schema:
@@ -122,11 +122,6 @@ skilled_workers:
       Given the brand new concept {concept_name}
 
 
-      Additional Information:
-
-      {additional_instructions}
-
-
       You need to find the following to define the new concept:
         1. You need to create a very detailed definition definition of the concept. The definition should contain the details for a concept, how it is used, and how it relates to the key concepts in a {system} system for the {process} process.
         2. You need to find the base concept this concept will derive from. 
@@ -145,8 +140,6 @@ skilled_workers:
         concept_name:
           type: string
           description: The name of the concept to define. Eg, Opportunity
-        additional_instructions:
-          type: string
       required:
         - system
         - process

@@ -4,11 +4,12 @@ const {combine, timestamp, printf} = format
 
 const formatAgent = (type: string, title: string, identifier: string, taskId: string, maxChars: number = 40) => {
     let thisTitle = title
-    const numPadding = maxChars - (title.length + 1 + 21)
+    let numPadding = maxChars - (title.length + 1 + 21)
     if (numPadding < 0) {
         // need to truncate title
         const left = title.length - ((numPadding-3) * -1 /2)
         thisTitle = title.slice(0, left) + "..." + title.slice(title.length - left)
+        numPadding = 0
     }
 
     let agentChar = ""

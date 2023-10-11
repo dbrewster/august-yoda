@@ -183,14 +183,16 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
             if (body) {
                 try {
                     const titleMessage = JSON.parse(body) as TitleMessage
-                    const parseFn = this.handler!.inputSchema
                     const parsedJson = this.handler!.inputSchema(titleMessage.input)
                     if (parsedJson) {
                         // run in background
                         this.logger.debug(`calling title handler`)
                         this.handler!.processInstruction(titleMessage)
                     } else {
-                        this.handler?.processTitleMessageError(titleMessage, "Could not parse input based on input schema")
+                        this.handler?.processTitleMessageError(titleMessage, {
+                            description: "Could not parse input based on input schema",
+                            parsing_errors: this.handler!.inputSchema.errors
+                        })
                     }
                     // ack after we process so a worker is working on one think at a time????
                     await message.ack()

@@ -86,7 +86,7 @@ export abstract class Agent implements EnvironmentHandler {
     }
 
     processTitleMessageError(message: TitleMessage, error: any): void {
-        console.error(`Error executing title message ${JSON.stringify(message)} -- error: ${error}`)
+        console.error(`Error executing title message ${JSON.stringify(message)} -- error:`, error)
     }
 
     id_string() {
