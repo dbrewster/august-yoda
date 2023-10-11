@@ -12,7 +12,6 @@ import {
     AutonomousWorkerManager,
     BuiltinSkilledWorker
 } from "@/praxeum/Worker";
-import {OpenAILLM} from "@/kamparas/internal/OpenAILLM";
 import {MongoMemory} from "@/kamparas/internal/MongoMemory";
 import {AgentIdentifier} from "@/kamparas/Agent";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
@@ -22,6 +21,7 @@ import yaml from "yaml"
 import fs from "node:fs";
 import {rootLogger} from "@/util/RootLogger";
 import {builtinFunctions} from "@/praxeum/BuiltinFunctions";
+import {makeLLM} from "@/kamparas/internal/LLMRegistry";
 
 interface DescriptorAndIdentifier<T extends BaseWorkerDescriptor> {
     identifier: AgentIdentifier
@@ -63,7 +63,7 @@ export const startServer = async (yamlFileLocation: string) => {
 
     const skilledWorkers: AutonomousSkilledWorker[] = []
     for (const workerId of Object.values(skilledWorkerIdentifiers)) {
-        const llm = new OpenAILLM({})
+        const llm = makeLLM(workerId.descriptor.llm)
         const memory = new MongoMemory(workerId.identifier)
         const environment = new RabbitAgentEnvironment()
 
@@ -88,7 +88,7 @@ export const startServer = async (yamlFileLocation: string) => {
 
     const qaManagers: AutonomousQAManager[] = []
     for (const workerId of Object.values(qaIdentifiers)) {
-        const llm = new OpenAILLM({})
+        const llm = makeLLM(workerId.descriptor.llm)
         const memory = new MongoMemory(workerId.identifier)
         const environment = new RabbitAgentEnvironment()
 
@@ -110,7 +110,7 @@ export const startServer = async (yamlFileLocation: string) => {
 
     const managers: AutonomousWorkerManager[] = []
     for (const workerId of Object.values(managerIdentifiers)) {
-        const llm = new OpenAILLM({})
+        const llm = makeLLM(workerId.descriptor.llm)
         const memory = new MongoMemory(workerId.identifier)
         const environment = new RabbitAgentEnvironment()
         await memory.recordPlan(workerId.descriptor.initial_plan)

@@ -75,6 +75,7 @@ skilled_workers:
           type: "string"
           description: "The result"
       required: ["x"]
+    llm: "openai.function"
     model: gpt-3.5-turbo-16k
     temperature: 0.2
     num_to_start: 1
@@ -104,6 +105,7 @@ managers:
           type: "string"
           description: "The result"
       required: [ "result" ]
+    llm: "openai.function"
     model: 'gpt-3.5-turbo-16k'
     temperature: 0.2
     num_to_start: 1
@@ -131,6 +133,7 @@ qa_managers:
           type: "string"
           description: "The result"
       required: [ "result" ]
+    llm: "openai.function"
     model: 'gpt-3.5-turbo-16k'
     temperature: 0.2
     num_to_start: 1

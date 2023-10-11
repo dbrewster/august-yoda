@@ -166,7 +166,6 @@ export class AutonomousAgent extends Agent {
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "task_start",
-            agent_id: this.agent_identifier.identifier,
             task_id: taskId,
             timestamp: DateTime.now().toISO()!,
             content: instruction
@@ -175,26 +174,25 @@ export class AutonomousAgent extends Agent {
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "plan",
-            agent_id: this.agent_identifier.identifier,
             task_id: taskId,
             timestamp: DateTime.now().toISO()!,
             content: plan
         })
 
         const availableTools = this.llm.formatHelpers(this.availableHelpers.concat(final_answer_tool))
-        await this.memory.recordEpisodicEvent({
-            actor: "worker",
-            type: "plan",
-            agent_id: this.agent_identifier.identifier,
-            task_id: taskId,
-            timestamp: DateTime.now().toISO(),
-            content: availableTools
-        } as EpisodicEvent)
+        if (availableTools) {
+            await this.memory.recordEpisodicEvent({
+                actor: "worker",
+                type: "plan",
+                task_id: taskId,
+                timestamp: DateTime.now().toISO(),
+                content: availableTools
+            } as EpisodicEvent)
+        }
         const instructions: string = await this.memory.readPlanInstructions(instruction.input)
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "instruction",
-            agent_id: this.agent_identifier.identifier,
             task_id: taskId,
             timestamp: DateTime.now().toISO(),
             content: instructions
@@ -209,15 +207,14 @@ export class AutonomousAgent extends Agent {
                 this.logger.info(`Received help response from ${response.helper_title}:${response.helper_identifier}`, {task_id: response.task_id})
                 await this.memory.recordEpisodicEvent({
                     actor: "worker",
-                    agent_id: this.agent_identifier.identifier,
                     type: "response",
                     task_id: response.task_id,
-                    timestamp: DateTime.now().toISO(),
+                    timestamp: DateTime.now().toISO()!,
                     content: {
                         helper_title: response.helper_title,
                         response: response.response
                     }
-                } as EpisodicEvent)
+                })
                 return this.think(response.task_id)
         }
     }
@@ -240,13 +237,22 @@ export class AutonomousAgent extends Agent {
                     throw e
                 })
                 this.logger.info(`Return from LLM with ${result.thoughts.length} thoughts and ${result.helperCall ? ("a call to " + result.helperCall.title) : "no function call"}`, {task_id: taskId})
-                // first record the thoughts...
+                // first record the observations...
+                for (const thought of result.observations) {
+                    await this.memory.recordEpisodicEvent({
+                        actor: "worker",
+                        type: "observation",
+                        task_id: taskId,
+                        timestamp: DateTime.now().toISO(),
+                        content: thought
+                    } as EpisodicEvent)
+                }
+                // then record the thoughts...
                 for (const thought of result.thoughts) {
                     await this.memory.recordEpisodicEvent({
                         actor: "worker",
                         type: "thought",
                         task_id: taskId,
-                        agent_id: this.agent_identifier.identifier,
                         timestamp: DateTime.now().toISO(),
                         content: thought
                     } as EpisodicEvent)
@@ -256,6 +262,13 @@ export class AutonomousAgent extends Agent {
                     if (result.helperCall.title === final_answer_tool.title) {
                         const taskStart = (await this.memory.readEpisodicEventsForTask(taskId)).find(e => e.type == "task_start")!.content as NewTaskInstruction
                         this.logger.info(`answering question from ${taskStart.helpee_title}:${taskStart.helpee_id}`, {task_id: taskId})
+                        await this.memory.recordEpisodicEvent({
+                            actor: "worker",
+                            type: "answer",
+                            task_id: taskId,
+                            timestamp: DateTime.now().toISO(),
+                            content: result.helperCall.content
+                        } as EpisodicEvent)
                         this.environment.answer(taskStart.helpee_title, taskStart.helpee_id, {
                             task_id: taskStart.task_id,
                             request_id: taskStart.request_id,
@@ -269,14 +282,13 @@ export class AutonomousAgent extends Agent {
                         await this.memory.recordEpisodicEvent({
                             actor: "worker",
                             type: "help",
-                            agent_id: this.agent_identifier.identifier,
                             task_id: taskId,
-                            timestamp: DateTime.now().toISO(),
+                            timestamp: DateTime.now().toISO()!,
                             content: {
                                 tool_name: result.helperCall.title,
                                 arguments: result.helperCall.content
                             }
-                        } as EpisodicEvent)
+                        })
                         const help = result.helperCall as HelperCall
                         if (!this.availableHelpers.find(v => v.title == result.helperCall!.title)) {
                             await this.processHallucination("bad_tool", taskId, requestId, help)

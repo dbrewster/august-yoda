@@ -1,4 +1,4 @@
-import {AgentIdentifier, AgentTool} from "@/kamparas/Agent";
+import {AgentTool} from "@/kamparas/Agent";
 import {EpisodicEvent} from "@/kamparas/Memory";
 import {EventContent} from "@/kamparas/Environment";
 import {Logger} from "winston";
@@ -14,6 +14,7 @@ export interface HelperCall {
 
 export interface LLMResult {
     thoughts: string[]
+    observations: string[]
     helperCall?: HelperCall
 }
 
@@ -21,7 +22,7 @@ export type ModelType = ('gpt-4' | 'gpt-4-32k' | 'gpt-3.5-turbo' | 'gpt-3.5-turb
 
 export interface LLMExecuteOptions {
     model: ModelType,
-    temperature?: number
+    temperature?: number,
 }
 
 export abstract class LLM {
@@ -31,7 +32,9 @@ export abstract class LLM {
         this.logger = logger
     }
 
-    abstract formatHelpers(availableHelpers: AgentTool[]): string
+    abstract formatHelpers(availableHelpers: AgentTool[]): string | undefined
 
     abstract execute(options: LLMExecuteOptions, taskId: string, events: EpisodicEvent[]): Promise<LLMResult>
 }
+
+export type LLMType = ("openai.textFunctions" | "openai.function")

@@ -3,7 +3,7 @@ import {Logger} from "winston";
 import {rootLogger} from "@/util/RootLogger";
 
 export type EpisodicActor = ("external" | "worker")
-export type EpisodicEventType = ("task_start" | "plan" | "instruction" | "help" | "response" | "thought" | "hallucination")
+export type EpisodicEventType = ("task_start" | "plan" | "instruction" | "answer" | "help" | "response" | "thought" | "observation" | "hallucination")
 
 export type StructuredEpisodicEvent = Record<string, any>
 export type UnstructuredEpisodicEvent = string
@@ -11,6 +11,7 @@ export type UnstructuredEpisodicEvent = string
 export interface EpisodicEvent {
     actor: EpisodicActor,
     type: EpisodicEventType,
+    agent_title: string,
     agent_id: string,
     task_id: string,
     content: (UnstructuredEpisodicEvent | StructuredEpisodicEvent),
@@ -21,6 +22,7 @@ export type SemanticEventType = ("thought" | "observation")
 
 export interface SemanticMemory {
     type: SemanticEventType,
+    agent_title: string,
     agent_id: string,
     task_id: string,
     content: string
@@ -31,6 +33,7 @@ export type ProceduralEventType = ("instruction" | "ask_help" | "return")
 
 export interface ProceduralEvent {
     type: ProceduralEventType,
+    agent_title: string,
     agent_id: string,
     task_id: string,
     previousEvent: string,
@@ -46,12 +49,12 @@ export abstract class AgentMemory {
         this.logger = logger
     }
 
-    abstract recordEpisodicEvent(event: EpisodicEvent): Promise<void>
+    abstract recordEpisodicEvent(event: Omit<EpisodicEvent, "agent_title" | "agent_id">): Promise<void>
     abstract readEpisodicEventsForTask(task_id: string, limit?: number): Promise<EpisodicEvent[]>
 
-    abstract recordSemanticMemory(event: SemanticMemory): Promise<void>
+    abstract recordSemanticMemory(event: Omit<SemanticMemory, "agent_title" | "agent_id">): Promise<void>
 
-    abstract recordProceduralEvent(event: ProceduralEvent): Promise<void>
+    abstract recordProceduralEvent(event: Omit<ProceduralEvent, "agent_title" | "agent_id">): Promise<void>
 
     abstract recordPlan(template: string): Promise<void>
     abstract recordPlanInstructions(template: string): Promise<void>

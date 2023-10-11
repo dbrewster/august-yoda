@@ -3,11 +3,11 @@ import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment
 import {nanoid} from "nanoid";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
 import {z, ZodSchema} from "zod";
-import {OpenAILLM} from "@/kamparas/internal/OpenAILLM";
 import {MongoMemory} from "@/kamparas/internal/MongoMemory";
 import {RootQuestion} from "@/kamparas/RootQuestion";
 import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 import {shutdownMongo} from "@/util/util";
+import {makeLLM} from "@/kamparas/internal/LLMRegistry";
 
 describe("builtin agent", () => {
     beforeAll(async () => {
@@ -102,7 +102,7 @@ const makeAutonomousAgent = async (title: string, job_description: string, input
         answer_schema: getOrCreateSchemaManager().compileZod(outputSchema),
     } as AgentIdentifier
     const environment = new RabbitAgentEnvironment()
-    const llm = new OpenAILLM({})
+    const llm = makeLLM("openai.textFunctions")
     const memory = new MongoMemory(agentIdentifier)
     const options = {
         ...agentIdentifier,

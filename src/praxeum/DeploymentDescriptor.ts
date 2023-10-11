@@ -1,4 +1,4 @@
-import {ModelType} from "@/kamparas/LLM";
+import {LLMType, ModelType} from "@/kamparas/LLM";
 
 
 // todo, builtin worker does not use concepts of other tools or num to start. Should probably be own interface
@@ -9,6 +9,7 @@ export interface BuiltinWorkerDescriptor extends BaseWorkerDescriptor {
 export interface AutonomousWorkerDescriptor extends BaseWorkerDescriptor {
     initial_plan: string,
     initial_instructions: string,
+    llm: LLMType
     model: ModelType
     temperature?: number
 }
