@@ -1,47 +1,430 @@
-name: Test Bed for concepts
-
-builtin_workers: []
+name: define_new_concept
+builtin_workers:
+  - title: get_all_concepts
+    function_name: ConceptFunctions.list
+    job_description: Returns all concepts used in the system. This returns the
+      interface and a description of the interface.
+    input_schema:
+      type: object
+      properties: {}
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    output_schema:
+      type: object
+      properties:
+        concepts:
+          type: string
+          description: A comma separated list of concept names
+      required:
+        - concepts
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    num_to_start: 1
+    available_tools: []
+  - title: get_concept_details
+    function_name: ConceptFunctions.getDetails
+    job_description: Returns the description and properties of one or more concepts.
+    input_schema:
+      type: object
+      properties:
+        base_concept_identifiers:
+          type: array
+          items:
+            type: string
+            description: The instance name of the base concept to get the detail of. Must be
+              a valid javascript identifier
+      required:
+        - base_concept_identifiers
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    output_schema:
+      type: object
+      properties:
+        concept:
+          type: string
+          description: A string describing details for requested concepts
+      required:
+        - concept
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    num_to_start: 1
+    available_tools: []
+  - title: get_concept_details_with_rows
+    function_name: ConceptFunctions.getDetailsWithSample
+    job_description: Returns the description and properties of an object. It also
+      returns 5 sample rows of data.
+    input_schema:
+      type: object
+      properties:
+        concept_identifier:
+          type: string
+          description: The instance name of the concept to get the detail of. Must be a
+            valid javascript identifier
+      required:
+        - concept_identifier
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    output_schema:
+      type: object
+      properties:
+        concept:
+          type: string
+          description: A string describing details for the requested concept with sample
+            rows
+      required:
+        - concept
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    num_to_start: 1
+    available_tools: []
+  - title: get_query_interfaces
+    function_name: ConceptFunctions.getInterfaces
+    job_description: Returns the query interfaces needed to define a new query
+    input_schema:
+      type: object
+      properties: {}
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    output_schema:
+      type: object
+      properties:
+        query_language:
+          type: string
+          description: The concept query language rules
+        examples:
+          type: string
+          description: Examples of how to use concept the query language
+      required:
+        - query_language
+        - examples
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    num_to_start: 1
+    available_tools: []
 skilled_workers:
-  - title: "base_concept_worker"
-    job_description: "You are a helpful agent answering questions about generating information about creating or modifying interfaces in a concept graph. Use the set of given tools to completely answer the users question in detail."
-    initial_plan: "plan"
-    initial_instructions: "inst"
-    input_schema: {}
-    output_schema: {}
-    manager: "concept_manager"
-    qaManager: "concept_qa"
+  - title: define_new_concept
+    available_tools:
+      - find_base_concept
+      - find_concept_properties_and_constraints
+    job_description: Defines the necessary components of a new concept.
+    initial_plan: You are a helpful agent answering questions about the creation of
+      a new concept which is represented by an interface in our system. Use the
+      set of given tools to completely answer the users question in detail.
+    initial_instructions: >
+      You are an agent finding information about concepts in a {system},
+      specifically for the {process} process.
+
+      Given the brand new concept {concept_name}
+
+
+      Additional Information:
+
+      {additional_instructions}
+
+
+      You need to find the following to define the new concept:
+        1. You need to create a very detailed definition definition of the concept. The definition should contain the details for a concept, how it is used, and how it relates to the key concepts in a {system} system for the {process} process.
+        2. You need to find the base concept this concept will derive from. 
+        3. You need to find the constraint clause and the properties on the new concept. Be absolutely certain you use the base concept found from step 2.
+
+      Define the new concept. Create a very detailed definition definition of the concept based on your knowledge as the very first thing
+    input_schema:
+      type: object
+      properties:
+        system:
+          type: string
+          description: The type of system the concept exists in. Eg, CRM
+        process:
+          type: string
+          description: The system the concept exists in. Eg, revenue operations
+        concept_name:
+          type: string
+          description: The name of the concept to define. Eg, Opportunity
+        additional_instructions:
+          type: string
+      required:
+        - system
+        - process
+        - concept_name
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    output_schema:
+      type: object
+      properties:
+        concept:
+          type: object
+          properties:
+            concept_identifier:
+              type: string
+              description: A legal javascript identifier for the new concept
+            friendly_name:
+              type: string
+              description: A human readable name for the new concept
+            definition:
+              type: string
+              description: "The definition of the new concept "
+            base_concept:
+              type: string
+              description: The base concept identifier
+            constraint_query:
+              type: string
+              description: A query that constrains and maps this concept to the base concept.
+            properties:
+              type: array
+              items:
+                type: object
+                properties:
+                  property_name:
+                    type: string
+                    description: The name of the property. The name must be a legal javascript
+                      identifier starting with a lower case character
+                  friendly_name:
+                    type: string
+                    description: A human readable name of the property
+                  description:
+                    type: string
+                    description: A detailed description of the property
+                  type:
+                    type: string
+                    description: The type of the property.
+                required:
+                  - property_name
+                  - friendly_name
+                  - description
+                  - type
+                additionalProperties: false
+          required:
+            - concept_identifier
+            - friendly_name
+            - definition
+            - base_concept
+            - constraint_query
+            - properties
+          additionalProperties: false
+      required:
+        - concept
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
     model: gpt-3.5-turbo-16k
+    temperature: 0.2
+    num_to_start: 1
+    manager: concept_manager
+    qaManager: concept_qa
+  - title: find_base_concept
+    available_tools:
+      - ConceptFunctions.list
+      - ConceptFunctions.getDetails
+    job_description: Finds the base concept for a new concept.
+    initial_plan: You are a helpful agent answering questions about generating
+      information about creating or modifying interfaces in a concept graph. Use
+      the set of given tools to completely answer the users question in detail.
+    initial_instructions: >
+      You are an agent finding information about concepts in a {system},
+      specifically for the {process} process.
+
+      Given the brand new concept {concept_name} and it's definition:
+
+      {concept_definition}
+
+
+      You are finding the correct base concept to derive this concept from. You can think of the base concept as a delegate concept for this new type. The base concept must be at the same grain, or level, as the new concept.
+
+
+      Find the list of base concepts that might be a match. Return the concept name, a reason why it was chosen, and a probability, between 0 and 1, that it is a good candidate.
+
+
+      Once you have the list, order the list by best probability (closest to 1), limit the check to 3-5 items, and then check the result by getting the details of the top few candidates. Use the details to make your final decision.
+
+
+      Think about how each interface is used in a {system} process and write your intermediate results
+    input_schema:
+      type: object
+      properties:
+        system:
+          type: string
+          description: The type system we are defining concepts for
+        process:
+          type: string
+          description: The specific process in the system we are defining for
+        concept_name:
+          type: string
+          description: The name of the concept
+        concept_definition:
+          type: string
+          description: A very detailed definition of the concept we are finding the base
+            concept for
+      required:
+        - system
+        - process
+        - concept_name
+        - concept_definition
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    output_schema:
+      type: object
+      properties:
+        base_concept:
+          type: string
+          description: "The identifier of the base concept "
+      required:
+        - base_concept
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    model: gpt-3.5-turbo-16k
+    temperature: 0.2
+    num_to_start: 1
+    manager: concept_manager
+    qaManager: concept_qa
+  - title: find_concept_properties_and_constraints
+    available_tools:
+      - ConceptFunctions.getDetailsWithSample
+      - ConceptFunctions.getInterfaces
+    job_description: Finds the optimal set of properties for the the concept given
+      information about the new concept and a base concept and finds a query
+      that maps the new concept to the base concept
+    initial_plan: You are a helpful agent answering questions about generating
+      information about creating or modifying interfaces in a concept graph. Use
+      the set of given tools to completely answer the users question in detail.
+    initial_instructions: >
+      You are an agent finding information about concepts in a {system},
+      specifically for the {process} process.
+
+      Given the brand new concept {concept_name} and it's description:
+
+      {concept_description}
+
+
+      And a base concept of {base_concept}
+
+
+      You are finding the optimal set of properties that should exist on this new concept. You will do this by:
+        1. Use the provided tool to load the definition of the query interfaces
+        2. Get a detailed description of the base concept, {base_concept}
+        3. Analyze the properties to determine which properties you can drop off of the new concept. You can drop properties that will only appear in a where clause to create this concept, or properties that are no longer relevant to the new concept. You can also combine properties into higher order properties, if that is necessary.
+        4. Generate a Query that maps the base object to this object. You will be filling in the the "where" and "return" parts of the query. The query will start with "Query({base_concept}).
+        5. Filter the properties to the necessary list. Explain why you filtered a property
+        6. Finally return the new properties and the mapping query
+
+        
+      Define the properties and constraint query for the new concept
+
+
+      Think about how each interface is used in a {system} process and write your intermediate results
+    input_schema:
+      type: object
+      properties:
+        system:
+          type: string
+          description: The type system we are defining concepts for
+        process:
+          type: string
+          description: The specific process in the system we are defining for
+        concept_name:
+          type: string
+          description: The name of the concept
+        concept_description:
+          type: string
+          description: A detailed description of the concept we are finding the base
+            concept for
+        base_concept:
+          type: string
+          description: The identifier of the base concept to derive the properties from
+      required:
+        - system
+        - process
+        - concept_name
+        - concept_description
+        - base_concept
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    output_schema:
+      type: object
+      properties:
+        constraint_query:
+          type: string
+          description: The constraint query that maps this concept to the base concept
+        properties:
+          type: array
+          items:
+            type: object
+            properties:
+              property_name:
+                type: string
+                description: The name of the property. The name must be a legal javascript
+                  identifier starting with a lower case character
+              friendly_name:
+                type: string
+                description: A human readable name of the property
+              description:
+                type: string
+                description: A detailed description of the property
+              type:
+                type: string
+                description: The type of the property.
+              reason:
+                type: string
+                description: The reason why this property is on the property and why it should
+                  be kept
+              should_drop:
+                type: boolean
+                description: Should this property be dropped or kept on the concept
+            required:
+              - property_name
+              - friendly_name
+              - description
+              - type
+              - reason
+              - should_drop
+            additionalProperties: false
+      required:
+        - constraint_query
+        - properties
+      additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    model: gpt-3.5-turbo-16k
+    temperature: 0.2
+    num_to_start: 1
+    manager: concept_manager
+    qaManager: concept_qa
 managers:
-  - title: "concept_manager"
-    job_description: "You sit around and drink coffee"
-    initial_plan: "plan"
-    initial_instructions: "inst"
+  - title: upper_management
+    job_description: job description
+    initial_plan: plan
+    initial_instructions: inst
     input_schema: {}
     output_schema: {}
-    manager: "upper_management"
+    available_tools: []
+    num_to_start: 1
+    manager: upper_management
     model: gpt-3.5-turbo-16k
-  - title: "qa_head_manager"
-    job_description: "You talk about reliability and code coverage"
-    initial_plan: "plan"
-    initial_instructions: "inst"
-    input_schema: { }
-    output_schema: { }
-    manager: "upper_management"
+  - title: qa_head_manager
+    job_description: job description
+    initial_plan: plan
+    initial_instructions: inst
+    input_schema: {}
+    output_schema: {}
+    available_tools: []
+    num_to_start: 1
+    manager: upper_management
     model: gpt-3.5-turbo-16k
-  - title: "upper_management"
-    job_description: "You walk around and give people high fives and fist bumps"
-    initial_plan: "plan"
-    initial_instructions: "inst"
-    input_schema: { }
-    output_schema: { }
-    manager: "upper_management"
+  - title: concept_manager
+    job_description: job description
+    initial_plan: plan
+    initial_instructions: inst
+    input_schema: {}
+    output_schema: {}
+    available_tools: []
+    num_to_start: 1
+    manager: upper_management
     model: gpt-3.5-turbo-16k
 qa_managers:
-  - title: "concept_qa"
-    job_description: "You tell workers to write more tests"
-    initial_plan: "plan"
-    initial_instructions: "inst"
-    input_schema: { }
-    output_schema: { }
-    manager: "qa_head_manager"
+  - title: concept_qa
+    job_description: You tell workers to write more tests
+    initial_plan: plan
+    initial_instructions: inst
+    input_schema: {}
+    output_schema: {}
+    available_tools: []
+    num_to_start: 1
+    manager: qa_head_manager
     model: gpt-3.5-turbo-16k

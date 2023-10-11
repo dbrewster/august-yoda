@@ -1,5 +1,7 @@
 import {ModelType} from "@/kamparas/LLM";
 
+
+// todo, builtin worker does not use concepts of other tools or num to start. Should probably be own interface
 export interface BuiltinWorkerDescriptor extends BaseWorkerDescriptor {
     function_name: string
 }
