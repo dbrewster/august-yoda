@@ -26,7 +26,7 @@ export class RootQuestion extends Agent {
 
     async askQuestion(agentTitle: string, data: Record<string, any>) {
         if (!this.environment.logger) {
-            this.logger.crit("WTH -- environment not initialized")
+            this.logger.error("WTH -- environment not initialized")
         }
         const conversationId = nanoid()
         const requestId = nanoid()

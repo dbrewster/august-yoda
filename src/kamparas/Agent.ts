@@ -236,7 +236,7 @@ export class AutonomousAgent extends Agent {
                 const events = await this.memory.readEpisodicEventsForTask(conversationId)
                 this.logger.info(`Thinking with ${events.length} events`, {conversation_id: conversationId})
                 const result = await this.llm.execute({model: this.model, temperature: this.temperature}, conversationId, events).catch(e => {
-                    this.logger.crit(e, {conversation_id: conversationId})
+                    this.logger.error(e, {conversation_id: conversationId})
                     throw e
                 })
                 this.logger.info(`Return from LLM with ${result.thoughts.length} thoughts and ${result.helperCall ? ("a call to " + result.helperCall.title) : "no function call"}`, {conversation_id: conversationId})
