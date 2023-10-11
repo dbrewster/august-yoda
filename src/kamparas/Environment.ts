@@ -12,7 +12,7 @@ export abstract class AgentEnvironment {
 
     abstract askForHelp(helpeeTitle: string, helpeeIdentier: string, taskId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void>
 
-    abstract answer(helpee_title: string, helpee_identifier: string, response: HelpResponse): Promise<void>
+    abstract answer(helpee_title: string, helpee_identifier: string, response: HelpResponse, taskId: string): Promise<void>
 
     abstract shutdown(): Promise<void>
 

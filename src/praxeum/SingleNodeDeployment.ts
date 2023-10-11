@@ -15,7 +15,6 @@ import {
 import {OpenAILLM} from "@/kamparas/internal/OpenAILLM";
 import {MongoMemory} from "@/kamparas/internal/MongoMemory";
 import {AgentIdentifier} from "@/kamparas/Agent";
-import {nanoid} from "nanoid";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
 import _ from "underscore";
 import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
@@ -32,7 +31,7 @@ interface DescriptorAndIdentifier<T extends BaseWorkerDescriptor> {
 function descriptorToIdentifier<T extends BaseWorkerDescriptor>(workerDescriptor: T) {
     return {
         identifier: {
-            identifier: nanoid(),
+            identifier: workerDescriptor.identifier,
             title: workerDescriptor.title,
             job_description: workerDescriptor.job_description,
             input_schema: getOrCreateSchemaManager().compile(JSON.stringify(workerDescriptor.input_schema)),

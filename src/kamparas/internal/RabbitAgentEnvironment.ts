@@ -8,8 +8,6 @@ import {
 import dotenv from "dotenv";
 import {AMQPChannel, AMQPMessage} from "@cloudamqp/amqp-client";
 import {getOrCreateMQConnection} from "@/kamparas/internal/RabbitMQ";
-import {AsyncSemaphore} from "@/util/util";
-import {nanoid} from "nanoid";
 
 export type DirectMessageType = ("help_response" | "manager_call")
 
@@ -107,15 +105,15 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         return Promise.resolve()
     }
 
-    async answer(helpee_title: string, helpee_identifier: string, helpResponse: HelpResponse): Promise<void> {
+    async answer(helpee_title: string, helpee_identifier: string, helpResponse: HelpResponse, taskId: string): Promise<void> {
         let queueName = this.makeIdentifierQueueName(helpee_title, helpee_identifier);
         const response = {
             type: "help_response",
             contents: helpResponse
         } as DirectMessage
         let responseStr = JSON.stringify(response);
-        this.logger.debug(`publishing answer to queue ${queueName} ${responseStr.length} chars`)
-        this.logger.debug(`Message data: ${responseStr}`)
+        this.logger.debug(`publishing answer to queue ${queueName} ${responseStr.length} chars`, {task_id: taskId})
+        this.logger.debug(`Message data: ${responseStr}`, {task_id: taskId})
         await this.channel!.basicPublish(queueName, queueName, responseStr).catch(reason => console.error(reason))
     }
 
@@ -128,8 +126,8 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
             input: content
         }
         let messageStr = JSON.stringify(message);
-        this.logger.debug(`Asking for help from ${agentTitle} ${messageStr.length} chars`)
-        this.logger.debug(`Message data: ${messageStr}`)
+        this.logger.debug(`Asking for help from ${agentTitle} ${messageStr.length} chars`, {task_id: taskId})
+        this.logger.debug(`Message data: ${messageStr}`, {task_id: taskId})
         await this.channel!.basicPublish(agentTitle, agentTitle, messageStr).catch(reason => console.error(reason))
     }
 

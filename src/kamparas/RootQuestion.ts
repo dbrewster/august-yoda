@@ -34,9 +34,9 @@ export class RootQuestion extends Agent {
             this.requests[taskId] = {resolve, reject}
         })
         if (this.logger.isDebugEnabled()) {
-            this.logger.debug(`Asking question of ${agentTitle} -- ${JSON.stringify(data)}`)
+            this.logger.debug(`Asking question of ${agentTitle} -- ${JSON.stringify(data)}`, {task_id: taskId})
         }
-        this.logger.info(`Asking help from ${agentTitle}`)
+        this.logger.info(`Asking help from ${agentTitle}`, {task_id: taskId})
         await this.environment.askForHelp(this.title, this.identifier, taskId, agentTitle, requestId, data)
         return responsePromise.finally(() => {
             delete this.requests[taskId]
@@ -47,7 +47,7 @@ export class RootQuestion extends Agent {
         if (message.type == "help_response") {
             const response = message.contents as HelpMessageResponse
             if (!this.requests[response.task_id]) {
-                this.logger.error(`Could not find task id in question response object ${response.task_id} in [${Object.keys(this.requests).join(",")}]`)
+                this.logger.error(`Could not find task id in question response object ${response.task_id} in [${Object.keys(this.requests).join(",")}]`, {task_id: response.task_id})
             }
             const promiseFn = this.requests[response.task_id]
             promiseFn.resolve(response.response)

@@ -2,6 +2,7 @@ name: Test Bed for concepts
 builtin_workers:
   - title: "Adder"
     job_description: "Adds two numbers"
+    identifier: "1"
     function_name: "SampleFunctions.add"
     available_tools: []
     input_schema:
@@ -25,8 +26,9 @@ builtin_workers:
       required: ["x"]
     num_to_start: 1
   - title: "Multiplier"
-    available_tools: []
+    identifier: "1"
     job_description: "Multiplies two numbers"
+    available_tools: []
     function_name: "SampleFunctions.multiply"
     input_schema:
       $id: "http://yourdomain.com/schemas/mult_in.json"
@@ -51,6 +53,7 @@ builtin_workers:
 
 skilled_workers:
   - title: "Maths"
+    identifier: "1"
     job_description: "Does math using add and multiply"
     available_tools: ["Adder", "Multiplier"]
     initial_plan: "You are a helpful agent designed answer user questions. Break the problem down into steps and use the tool available when needed."
@@ -79,6 +82,7 @@ skilled_workers:
     qaManager: "math_qa"
 managers:
   - title: "math_manager"
+    identifier: "1"
     job_description: "Manges math"
     available_tools: []
     initial_plan: "You are a helpful agent designed manage other agents. Break the problem down into steps and use the tool available when needed."
@@ -106,6 +110,7 @@ managers:
 
 qa_managers:
   - title: "math_qa"
+    identifier: "1"
     job_description: "Does qa for math"
     available_tools: []
     initial_plan: "You are a helpful agent designed do qa for other agents. Break the problem down into steps and use the tool available when needed. Return the answer when you know it"
