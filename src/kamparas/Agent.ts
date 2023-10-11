@@ -44,7 +44,7 @@ export abstract class Agent implements EnvironmentHandler {
 
     protected constructor(options: AgentOptions) {
         this.title = options.title
-        this.logger = rootLogger.child({type: "agent", title: options.title, identifier: options.identifier})
+        this.logger = rootLogger.child({type: this.getLogType(), title: options.title, identifier: options.identifier})
         this.job_description = options.job_description
         this.inputSchema = options.input_schema
         this.outputSchema = options.answer_schema
@@ -60,6 +60,9 @@ export abstract class Agent implements EnvironmentHandler {
     outputSchema: ValidateFunction<object>;
     identifier: string;
 
+    getLogType() {
+        return "agent"
+    }
     async initialize() {
         this.environment.setLogger(this.logger.child({subType: "environment"}))
         await this.environment.registerHandler(this)
@@ -89,11 +92,11 @@ export abstract class Agent implements EnvironmentHandler {
     }
 }
 
-export class BuiltinAgent<T, U> extends Agent {
-    func: (args:T) => U
+export class BuiltinAgent extends Agent {
+    func: (args:any) => any
 
 
-    constructor(options: AgentOptions, func: (args: T) => U) {
+    constructor(options: AgentOptions, func: (args: any) => any) {
         super(options);
         this.func = func;
     }
@@ -103,9 +106,9 @@ export class BuiltinAgent<T, U> extends Agent {
     }
 
     processInstruction(instruction: NewTaskInstruction): Promise<void> {
-        const validatedInput = this.inputSchema(instruction.input) as T
+        const validatedInput = this.inputSchema(instruction.input) as any
         return new Promise(result => {
-            let buildinFuncReturn = this.func(instruction.input as T) as Record<string, any>;
+            let buildinFuncReturn = this.func(instruction.input as any) as Record<string, any>;
             return this.environment.answer(instruction.helpee_title, instruction.helpee_id, {
                 task_id: instruction.task_id,
                 helper_identifier: this.identifier,
@@ -201,10 +204,14 @@ export class AutonomousAgent extends Agent {
                 this.logger.info(`Received help response from ${response.helper_title}:${response.helper_identifier}`)
                 await this.memory.recordEpisodicEvent({
                     actor: "worker",
+                    agent_id: this.agent_identifier.identifier,
                     type: "response",
                     task_id: response.task_id,
                     timestamp: DateTime.now().toISO(),
-                    content: response as Record<string, any>
+                    content: {
+                        helper_title: response.helper_title,
+                        response: response.response
+                    }
                 } as EpisodicEvent)
                 return this.think(response.task_id)
         }
@@ -223,6 +230,7 @@ export class AutonomousAgent extends Agent {
                 const events = await this.memory.readEpisodicEventsForTask(taskId)
                 this.logger.info(`Thinking with ${events.length} events`)
                 const result = await this.llm.execute({model: this.model, temperature: this.temperature}, events).catch(e => {
+                    this.logger.crit(e)
                     throw e
                 })
                 this.logger.info(`Return from LLM with ${result.thoughts.length} thoughts and ${result.helperCall ? ("a call to " + result.helperCall.title) : "no function call"}`)
@@ -269,6 +277,7 @@ export class AutonomousAgent extends Agent {
                         return Promise.resolve()
                     }
                 }
+                ++numConcurrentThoughts
             }
             rejecter(`Too many consecutive thoughts for worker ${this.id_string()}, task_id:${taskId}`)
         } catch (e) {

@@ -3,7 +3,9 @@ import {ZodSchema} from "zod";
 import {zodToJsonSchema} from "zod-to-json-schema";
 
 class SchemaManager {
-    private ajv = new Ajv()
+    private ajv = new Ajv({
+
+    })
 
     compile<T>(schema: string): ValidateFunction<T> {
         return this.ajv.compile<T>(JSON.parse(schema))

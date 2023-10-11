@@ -120,7 +120,7 @@ const makeAutonomousAgent = async (title: string, job_description: string, input
 }
 
 const rootQuestion = new RootQuestion(new RabbitAgentEnvironment())
-const adder = makeBuiltinAgent( "Adder", "Adds to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), add)
+const adder = makeBuiltinAgent( "Adder", "Adds two numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), add)
 const multiplier = makeBuiltinAgent("Multiplier", "Multiplies to numbers", z.object({a: z.number(), b: z.number()}), z.object({x: z.number()}), multiply)
 const mathsPlan = `You are a helpful agent designed answer user questions. Break the problem down into steps and use the tool available when needed.`
 const maths = await makeAutonomousAgent("Maths", "Does math using add and multiply",

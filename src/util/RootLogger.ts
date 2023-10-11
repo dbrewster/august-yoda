@@ -2,7 +2,7 @@ import winston, {Logger, format} from "winston"
 
 const {combine, timestamp, printf} = format
 
-const formatAgent = (title: string, identifier: string, maxChars: number = 40) => {
+const formatAgent = (type: string, title: string, identifier: string, maxChars: number = 40) => {
     let thisTitle = title
     const numPadding = maxChars - (title.length + 1 + 21)
     if (numPadding < 0) {
@@ -10,13 +10,39 @@ const formatAgent = (title: string, identifier: string, maxChars: number = 40) =
         const left = title.length - ((numPadding-3) * -1 /2)
         thisTitle = title.slice(0, left) + "..." + title.slice(title.length - left)
     }
-    return `\u{1D4D0} - ${title}:${identifier}${" ".repeat(numPadding)}`
+    let agentChar = ""
+    switch (type) {
+        case "agent":
+            agentChar = "\u{1D4D0}"
+            break
+        case "skilledWorker":
+            agentChar = "\u{1D4E2}"
+            break
+        case "builtinWorker":
+            agentChar = "\u{1D4D1}"
+            break
+        case "manager":
+            agentChar = "\u{1D4DC}"
+            break
+        case "qaManager":
+            agentChar = "\u{1D4E0}"
+            break
+        default:
+            break
+    }
+
+    return `${agentChar} - ${title}:${identifier}${" ".repeat(numPadding)}`
 }
 
 const myFormat = printf(({ level, message, timestamp, type, subType, title, identifier }) => {
     let module = type as string
-    if (type === "agent") {
-        module = formatAgent(title, identifier)
+    switch (type) {
+        case "agent":
+        case "skilledWorker":
+        case "builtinWorker":
+        case "manager":
+        case "qaManager":
+            module = formatAgent(type, title, identifier)
     }
     let outMessage = message
     if (subType) {
@@ -24,14 +50,6 @@ const myFormat = printf(({ level, message, timestamp, type, subType, title, iden
     }
   return `${timestamp} [${module}] ${level}: ${outMessage}`;
 });
-
-export const rootLogger: Logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    transports: [
-        // new winston.transports.File({filename: "out.log"}),
-    ]
-})
 
 const consoleTransport = new winston.transports.Console({
     level: 'info',
@@ -43,9 +61,21 @@ const consoleTransport = new winston.transports.Console({
     )
 })
 
+export const rootLogger: Logger = winston.createLogger({
+    // levels: winston.config.syslog.levels,
+    level: 'info',
+    format: winston.format.json(),
+    transports: [
+        consoleTransport
+    ]
+})
+
 if (process.env.NODE_ENV === 'production') {
     consoleTransport.level = 'info'
 }
 
-rootLogger.add(consoleTransport)
 
+export function setRootLoggerLevel(level: string) {
+    consoleTransport.level = level.trim()
+    console.log("setting log level to ", consoleTransport.level.trim())
+}

@@ -96,7 +96,7 @@ ${FUNCTION_START}{
 }${FUNCTION_END}
 
 
-At each step consider if you know the final answer. If you know the answer, use the ${final_answer_tool.title} tool.
+At each step consider if you know the final answer. Use the ${final_answer_tool.title} tool when you know the final answer to return the result.
 `
     }
 

@@ -1,0 +1,132 @@
+name: Test Bed for concepts
+builtin_workers:
+  - title: "Adder"
+    job_description: "Adds two numbers"
+    function_name: "SampleFunctions.add"
+    available_tools: []
+    input_schema:
+      $id: "http://yourdomain.com/schemas/adder_in.json"
+      type: "object"
+      properties:
+        a:
+          type: "number"
+          description: "The LHS value"
+        b:
+          type: "number"
+          description: "The RHS value"
+      required: ["a", "b"]
+    output_schema:
+      $id: "http://yourdomain.com/schemas/adder_out.json"
+      type: "object"
+      properties:
+        x:
+          type: "number"
+          description: "The result"
+      required: ["x"]
+    num_to_start: 1
+  - title: "Multiplier"
+    available_tools: []
+    job_description: "Multiplies two numbers"
+    function_name: "SampleFunctions.multiply"
+    input_schema:
+      $id: "http://yourdomain.com/schemas/mult_in.json"
+      type: "object"
+      properties:
+        a:
+          type: "number"
+          description: "The LHS value"
+        b:
+          type: "number"
+          description: "The RHS value"
+      required: ["a", "b"]
+    output_schema:
+      $id: "http://yourdomain.com/schemas/mult_out.json"
+      type: "object"
+      properties:
+        x:
+          type: "number"
+          description: "The result"
+    required: ["x"]
+    num_to_start: 1
+
+skilled_workers:
+  - title: "Maths"
+    job_description: "Does math using add and multiply"
+    available_tools: ["Adder", "Multiplier"]
+    initial_plan: "You are a helpful agent designed answer user questions. Break the problem down into steps and use the tool available when needed."
+    initial_instructions: '{problem}
+      Let''s think step by step.'
+    input_schema:
+      $id: "http://yourdomain.com/schemas/maths_in.json"
+      type: "object"
+      properties:
+        problem:
+          type: "string"
+          description: "The math question"
+      required: ["problem"]
+    output_schema:
+      $id: "http://yourdomain.com/schemas/maths_out.json"
+      type: "object"
+      properties:
+        x:
+          type: "string"
+          description: "The result"
+      required: ["x"]
+    model: gpt-3.5-turbo-16k
+    temperature: 0.2
+    num_to_start: 1
+    manager: "math_manager"
+    qaManager: "math_qa"
+managers:
+  - title: "math_manager"
+    job_description: "Manges math"
+    available_tools: []
+    initial_plan: "You are a helpful agent designed manage other agents. Break the problem down into steps and use the tool available when needed."
+    initial_instructions: '{problem}
+      Let''s think step by step.'
+    input_schema:
+      $id: "http://yourdomain.com/schemas/math_manager_in.json"
+      type: "object"
+      properties:
+        problem:
+          type: "string"
+          description: "The problem to solve"
+      required: [ "problem" ]
+    output_schema:
+      $id: "http://yourdomain.com/schemas/math_manager_out.json"
+      type: "object"
+      properties:
+        result:
+          type: "string"
+          description: "The result"
+      required: [ "result" ]
+    model: 'gpt-3.5-turbo-16k'
+    temperature: 0.2
+    num_to_start: 1
+
+qa_managers:
+  - title: "math_qa"
+    job_description: "Does qa for math"
+    available_tools: []
+    initial_plan: "You are a helpful agent designed do qa for other agents. Break the problem down into steps and use the tool available when needed. Return the answer when you know it"
+    initial_instructions: "{problem}"
+    input_schema:
+      $id: "http://yourdomain.com/schemas/math_qa_in.json"
+      type: "object"
+      properties:
+        problem:
+          type: "string"
+          description: "The problem to solve"
+      required: [ "problem" ]
+    output_schema:
+      $id: "http://yourdomain.com/schemas/math_qa_out.json"
+      type: "object"
+      properties:
+        result:
+          type: "string"
+          description: "The result"
+      required: [ "result" ]
+    model: 'gpt-3.5-turbo-16k'
+    temperature: 0.2
+    num_to_start: 1
+    manager: "math_manager"

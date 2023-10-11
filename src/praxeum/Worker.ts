@@ -31,7 +31,10 @@ export interface SkilledWorker extends Worker {
     qaManager?: AgentIdentifier
 }
 
-export class BuiltinSkilledWorker<T, U> extends BuiltinAgent<T, U> {
+export class BuiltinSkilledWorker extends BuiltinAgent {
+    getLogType(): string {
+        return "builtinWorker"
+    }
 }
 
 export class AutonomousSkilledWorker extends AutonomousAgent implements SkilledWorker {
@@ -44,6 +47,9 @@ export class AutonomousSkilledWorker extends AutonomousAgent implements SkilledW
         this.qaManager = options.qaManager
     }
 
+    getLogType(): string {
+        return "skilledWorker"
+    }
 
     processDecodeError(type: "direct" | "instruction", message: string) {
         super.processDecodeError(type, message);
@@ -65,6 +71,10 @@ export class AutonomousWorkerManager extends AutonomousAgent implements WorkerMa
         super(options);
         this.manager = options.manager
     }
+
+    getLogType(): string {
+        return "manager"
+    }
 }
 
 export class AutonomousQAManager extends AutonomousAgent implements QAManager {
@@ -73,5 +83,9 @@ export class AutonomousQAManager extends AutonomousAgent implements QAManager {
     constructor(options: QAManagerOptions) {
         super(options);
         this.manager = options.manager
+    }
+
+    getLogType(): string {
+        return "qaManager"
     }
 }

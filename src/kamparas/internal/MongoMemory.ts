@@ -90,7 +90,7 @@ export class MongoMemory extends AgentMemory {
 
     async recordEpisodicEvent(event: EpisodicEvent): Promise<void> {
         const collection = await mongoCollection(this.makeCollectionName("episodic"))
-        return collection.insertOne(event).then(res => {})
+        return collection.insertOne({...event, agent_id:this.agentIdentifier.identifier}).then(res => {})
     }
 
     async recordProceduralEvent(event: ProceduralEvent): Promise<void> {
