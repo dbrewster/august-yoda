@@ -107,27 +107,23 @@ export class BuiltinAgent extends Agent {
         return Promise.resolve();
     }
 
-    processInstruction(instruction: NewTaskInstruction): Promise<void> {
+    async processInstruction(instruction: NewTaskInstruction): Promise<void> {
         this.logger.info(`Received new request from ${instruction.helpee_title}:${instruction.helpee_id}`)
-        let promise: Promise<Record<string, any>>
+        let builtinFuncReturn: Record<string, any>
         if (this.func.constructor.name === "AsyncFunction") {
-            promise = this.func(instruction.input as any)
+            builtinFuncReturn = await this.func(instruction.input as any)
         } else {
-            promise = new Promise(() => this.func(instruction.input as any))
+            builtinFuncReturn = this.func(instruction.input as any)
         }
 
-        return promise.then(async builtinFuncReturn => {
-            this.logger.info(`Answering question from ${instruction.helpee_title}:${instruction.helpee_id}`)
-            return await this.environment.answer(instruction.helpee_title, instruction.helpee_id, {
-                conversation_id: instruction.conversation_id,
-                helper_identifier: this.identifier,
-                helper_title: this.title,
-                request_id: instruction.request_id,
-                response: builtinFuncReturn as Record<string, any>
-            }, instruction.conversation_id)
-        }).catch(error => {
-            this.logger.error('Unable to process instructions:', {instructions: instruction, error: error})
-        })
+        this.logger.info(`Answering question from ${instruction.helpee_title}:${instruction.helpee_id}`)
+        return await this.environment.answer(instruction.helpee_title, instruction.helpee_id, {
+            conversation_id: instruction.conversation_id,
+            helper_identifier: this.identifier,
+            helper_title: this.title,
+            request_id: instruction.request_id,
+            response: builtinFuncReturn as Record<string, any>
+        }, instruction.conversation_id)
     }
 }
 

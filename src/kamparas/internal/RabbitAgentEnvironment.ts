@@ -187,7 +187,9 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
                     if (parsedJson) {
                         // run in background
                         this.logger.debug(`calling title handler`)
-                        this.handler!.processInstruction(titleMessage)
+                        this.handler!.processInstruction(titleMessage).catch(error => {
+                            this.logger.error("Unable to process instructions", {body: titleMessage, error: error})
+                        })
                     } else {
                         this.handler?.processTitleMessageError(titleMessage, {
                             description: "Could not parse input based on input schema",
