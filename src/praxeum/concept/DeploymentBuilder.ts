@@ -5,22 +5,23 @@ import {Agent, ToolItem} from "@/util/llm/Agent";
 import {FindBaseConceptAgent, GetAllConcepts, GetConceptDetails} from "@/obiwan/auto-concept/FindBaseConceptAgent";
 import {
     FindPropertiesAndConstraintAgent,
-    GetConceptDetailsWithSampleRows, GetQueryInterface
+    GetConceptDetailsWithSampleRows,
+    GetQueryInterface
 } from "@/obiwan/auto-concept/FindPropertiesAndConstraintAgent";
-import {z, ZodObject, ZodType} from "zod";
+import {z, ZodType} from "zod";
 import {
     BuiltinWorkerDescriptor,
     Deployment,
-    ManagerDescriptor, QAManagerDescriptor,
+    ManagerDescriptor,
     SkilledWorkerDescriptor
 } from "@/praxeum/DeploymentDescriptor";
 import YAML from "yaml";
 import fs from "fs";
-import path from "path";
 
 function getBuiltIn(base: ToolItem, functionName: string, outputSchema: ZodType): BuiltinWorkerDescriptor {
     return {
         title: base.name,
+        identifier: base.name + '_alpha',
         function_name: functionName,
         job_description: base.description,
         input_schema: zodToJsonSchema(base.inputSchema),
@@ -33,6 +34,7 @@ function getBuiltIn(base: ToolItem, functionName: string, outputSchema: ZodType)
 function getAgentObject(agent: Agent, input_schema: ZodType, tools: string[] | undefined = undefined): SkilledWorkerDescriptor {
     return {
         title: agent.name,
+        identifier: agent.name + '_alpha',
         available_tools: tools || [],
         job_description: agent.props.description,
         initial_plan: agent.props.agentMessage!,
@@ -59,6 +61,7 @@ const dncSchema = z.object({
 function getManager(title: string, manager: string | undefined = "upper_management"): ManagerDescriptor {
     return {
         title: title,
+        identifier: title + '_alpha',
         job_description: "job description",
         initial_plan: "plan",
         initial_instructions: "inst",
@@ -102,6 +105,7 @@ const deployment: Deployment = {
     ],
     qa_managers: [{
         title: "concept_qa",
+        identifier: "concept_qa_alpha",
         job_description: "You tell workers to write more tests",
         initial_plan: "plan",
         initial_instructions: "inst",

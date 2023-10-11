@@ -1,6 +1,7 @@
 name: define_new_concept
 builtin_workers:
   - title: get_all_concepts
+    identifier: get_all_concepts_alpha
     function_name: ConceptFunctions.list
     job_description: Returns all concepts used in the system. This returns the
       interface and a description of the interface.
@@ -22,6 +23,7 @@ builtin_workers:
     num_to_start: 1
     available_tools: []
   - title: get_concept_details
+    identifier: get_concept_details_alpha
     function_name: ConceptFunctions.getDetails
     job_description: Returns the description and properties of one or more concepts.
     input_schema:
@@ -50,6 +52,7 @@ builtin_workers:
     num_to_start: 1
     available_tools: []
   - title: get_concept_details_with_rows
+    identifier: get_concept_details_with_rows_alpha
     function_name: ConceptFunctions.getDetailsWithSample
     job_description: Returns the description and properties of an object. It also
       returns 5 sample rows of data.
@@ -78,6 +81,7 @@ builtin_workers:
     num_to_start: 1
     available_tools: []
   - title: get_query_interfaces
+    identifier: get_query_interfaces_alpha
     function_name: ConceptFunctions.getInterfaces
     job_description: Returns the query interfaces needed to define a new query
     input_schema:
@@ -103,6 +107,7 @@ builtin_workers:
     available_tools: []
 skilled_workers:
   - title: define_new_concept
+    identifier: define_new_concept_alpha
     available_tools:
       - find_base_concept
       - find_concept_properties_and_constraints
@@ -211,6 +216,7 @@ skilled_workers:
     manager: concept_manager
     qaManager: concept_qa
   - title: find_base_concept
+    identifier: find_base_concept_alpha
     available_tools:
       - ConceptFunctions.list
       - ConceptFunctions.getDetails
@@ -276,6 +282,7 @@ skilled_workers:
     manager: concept_manager
     qaManager: concept_qa
   - title: find_concept_properties_and_constraints
+    identifier: find_concept_properties_and_constraints_alpha
     available_tools:
       - ConceptFunctions.getDetailsWithSample
       - ConceptFunctions.getInterfaces
@@ -388,6 +395,7 @@ skilled_workers:
     qaManager: concept_qa
 managers:
   - title: upper_management
+    identifier: upper_management_alpha
     job_description: job description
     initial_plan: plan
     initial_instructions: inst
@@ -398,6 +406,7 @@ managers:
     manager: upper_management
     model: gpt-3.5-turbo-16k
   - title: qa_head_manager
+    identifier: qa_head_manager_alpha
     job_description: job description
     initial_plan: plan
     initial_instructions: inst
@@ -408,6 +417,7 @@ managers:
     manager: upper_management
     model: gpt-3.5-turbo-16k
   - title: concept_manager
+    identifier: concept_manager_alpha
     job_description: job description
     initial_plan: plan
     initial_instructions: inst
@@ -419,6 +429,7 @@ managers:
     model: gpt-3.5-turbo-16k
 qa_managers:
   - title: concept_qa
+    identifier: concept_qa_alpha
     job_description: You tell workers to write more tests
     initial_plan: plan
     initial_instructions: inst
