@@ -2,7 +2,7 @@ import winston, {Logger, format} from "winston"
 
 const {combine, timestamp, printf} = format
 
-const formatAgent = (type: string, title: string, identifier: string, maxChars: number = 40) => {
+const formatAgent = (type: string, title: string, identifier: string, taskId: string, maxChars: number = 40) => {
     let thisTitle = title
     const numPadding = maxChars - (title.length + 1 + 21)
     if (numPadding < 0) {
@@ -10,6 +10,7 @@ const formatAgent = (type: string, title: string, identifier: string, maxChars: 
         const left = title.length - ((numPadding-3) * -1 /2)
         thisTitle = title.slice(0, left) + "..." + title.slice(title.length - left)
     }
+
     let agentChar = ""
     switch (type) {
         case "agent":
@@ -31,10 +32,12 @@ const formatAgent = (type: string, title: string, identifier: string, maxChars: 
             break
     }
 
-    return `${agentChar} - ${title}:${identifier}${" ".repeat(numPadding)}`
+    const thisTaskId = taskId || " ".repeat(21)
+
+    return `${agentChar} - ${thisTitle}:${identifier}:${thisTaskId}${" ".repeat(numPadding)}`
 }
 
-const myFormat = printf(({ level, message, timestamp, type, subType, title, identifier }) => {
+const myFormat = printf(({ level, message, timestamp, type, subType, title, identifier, task_id}) => {
     let module = type as string
     switch (type) {
         case "agent":
@@ -42,7 +45,7 @@ const myFormat = printf(({ level, message, timestamp, type, subType, title, iden
         case "builtinWorker":
         case "manager":
         case "qaManager":
-            module = formatAgent(type, title, identifier)
+            module = formatAgent(type, title, identifier, task_id)
     }
     let outMessage = message
     if (subType) {

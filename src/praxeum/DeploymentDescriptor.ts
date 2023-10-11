@@ -26,9 +26,9 @@ export  interface QAManagerDescriptor extends AutonomousWorkerDescriptor {
     manager: string
 }
 
-
 export interface BaseWorkerDescriptor {
     title: string,
+    identifier: string,
     job_description: string,
     input_schema: Record<string, any>
     output_schema: Record<string, any>

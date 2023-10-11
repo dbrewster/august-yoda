@@ -3,7 +3,7 @@ import {Logger} from "winston";
 import {rootLogger} from "@/util/RootLogger";
 
 export type EpisodicActor = ("external" | "worker")
-export type EpisodicEventType = ("task_start" | "plan" | "instruction" | "help" | "response" | "thought")
+export type EpisodicEventType = ("task_start" | "plan" | "instruction" | "help" | "response" | "thought" | "hallucination")
 
 export type StructuredEpisodicEvent = Record<string, any>
 export type UnstructuredEpisodicEvent = string

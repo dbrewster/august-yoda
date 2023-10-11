@@ -7,6 +7,7 @@ import JSON5 from "json5";
 import {HelpResponse} from "@/kamparas/Environment";
 import {rootLogger} from "@/util/RootLogger";
 import {Logger} from "winston";
+import * as events from "events";
 
 const FUNCTION_START = "```START```"
 const FUNCTION_END = "```END```"
@@ -24,10 +25,10 @@ export class OpenAILLM extends LLM {
         this.logger = logger
     }
 
-    async execute(options: LLMExecuteOptions, events: EpisodicEvent[]): Promise<LLMResult> {
+    async execute(options: LLMExecuteOptions, taskId: string, events: EpisodicEvent[]): Promise<LLMResult> {
         let messages = this.formatMessages(events);
         if (this.logger.isDebugEnabled()) {
-            this.logger.debug(`calling llm with messages ${JSON.stringify(messages, null, 2)}`)
+            this.logger.debug(`calling llm with messages ${JSON.stringify(messages, null, 2)}`, {task_id: taskId})
         }
         const response = await this.openai.chat.completions.create({
             messages: messages,
@@ -35,9 +36,9 @@ export class OpenAILLM extends LLM {
         })
 
         if (this.logger.isDebugEnabled()) {
-            this.logger.debug(`Got response from llm ${JSON.stringify(response, null, 2)}`)
+            this.logger.debug(`Got response from llm ${JSON.stringify(response, null, 2)}`, {task_id: taskId})
         } else {
-            this.logger.info(`Got response from llm. Used ${JSON.stringify(response.usage)} tokens.`)
+            this.logger.info(`Got response from llm. Used ${JSON.stringify(response.usage)} tokens.`, {task_id: taskId})
         }
         const message = response.choices[0].message.content || ""
         const executeResponse: LLMResult = {
@@ -49,11 +50,11 @@ export class OpenAILLM extends LLM {
             let functionCallStr = message.slice(functionStart + FUNCTION_START.length, functionEnd);
             const functionCall = JSON5.parse(functionCallStr)
             if (!functionCall || !functionCall.tool_name || !functionCall.arguments) {
-                this.logger.warn(`invalid function call string from llm: ${functionCallStr}`)
+                this.logger.warn(`invalid function call string from llm: ${functionCallStr}`, {task_id: taskId})
                 return Promise.reject("Invalid function call in response:" + functionCallStr)
             }
             if (this.logger.isDebugEnabled()) {
-                this.logger.debug(`LLM called tool ${functionCall.tool_name} with args ${JSON.stringify(functionCall.arguments)}`)
+                this.logger.debug(`LLM called tool ${functionCall.tool_name} with args ${JSON.stringify(functionCall.arguments)}`, {task_id: taskId})
             }
             executeResponse.helperCall = {
                 title: functionCall.tool_name,
@@ -96,7 +97,7 @@ ${FUNCTION_START}{
 }${FUNCTION_END}
 
 
-At each step consider if you know the final answer. Use the ${final_answer_tool.title} tool when you know the final answer to return the result.
+At each step consider if you know the final answer. You MUST use the ${final_answer_tool.title} tool to return the final answer.
 `
     }
 
@@ -114,6 +115,12 @@ At each step consider if you know the final answer. Use the ${final_answer_tool.
                     }
                     break
                 case "instruction":
+                    response = {
+                        role: "user",
+                        content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
+                    }
+                    break
+                case "hallucination":
                     response = {
                         role: "user",
                         content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)

@@ -33,5 +33,5 @@ export abstract class LLM {
 
     abstract formatHelpers(availableHelpers: AgentTool[]): string
 
-    abstract execute(options: LLMExecuteOptions, events: EpisodicEvent[]): Promise<LLMResult>
+    abstract execute(options: LLMExecuteOptions, taskId: string, events: EpisodicEvent[]): Promise<LLMResult>
 }
