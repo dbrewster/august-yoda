@@ -5,8 +5,8 @@ export interface AgentDeploymentDescriptor {
     job_description: string,
     initial_plan: string,
     initial_instructions: string,
-    input_schema: string
-    output_schema: string
+    input_schema: Record<string, any>
+    output_schema: Record<string, any>
     model: ModelType
     temperature?: number
     num_to_start: number
@@ -15,7 +15,7 @@ export interface AgentDeploymentDescriptor {
 }
 
 export interface Deployment {
-    exe_name: string,
+    name: string,
     builtin_workers: AgentDeploymentDescriptor[]
     skilled_workers: AgentDeploymentDescriptor[]
     managers: AgentDeploymentDescriptor[]

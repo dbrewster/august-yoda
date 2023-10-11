@@ -7,6 +7,9 @@ import {nanoid} from "nanoid";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
 import _ from "underscore";
 import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
+import yaml from "yaml"
+import fs from "node:fs";
+import {Command} from "commander";
 
 interface DescriptorAndIdentifier {
     identifier: AgentIdentifier
@@ -19,14 +22,17 @@ function descriptorToIdentifier(workerDescriptor: AgentDeploymentDescriptor) {
             identifier: nanoid(),
             title: workerDescriptor.title,
             job_description: workerDescriptor.job_description,
-            input_schema: getOrCreateSchemaManager().compile(JSON.parse(workerDescriptor.input_schema)),
-            answer_schema: getOrCreateSchemaManager().compile(JSON.parse(workerDescriptor.output_schema)),
+            input_schema: getOrCreateSchemaManager().compile(JSON.stringify(workerDescriptor.input_schema)),
+            answer_schema: getOrCreateSchemaManager().compile(JSON.stringify(workerDescriptor.output_schema)),
         } as AgentIdentifier,
         descriptor: workerDescriptor
     } as DescriptorAndIdentifier
 }
 
-export const startServer = (deployment: Deployment) => {
+export const startServer = (yamlFileLocation: string) => {
+    const file = fs.readFileSync(yamlFileLocation, "utf-8")
+    const deployment = yaml.parse(file) as Deployment
+
     const builtinWorkerIdentifiers: Record<string, DescriptorAndIdentifier> = _(deployment.skilled_workers.map(descriptorToIdentifier)).indexBy("title")
     const skilledWorkerIdentifiers: Record<string, DescriptorAndIdentifier> = _(deployment.skilled_workers.map(descriptorToIdentifier)).indexBy("title")
     const managerIdentifiers: Record<string, DescriptorAndIdentifier> = _(deployment.managers.map(descriptorToIdentifier)).indexBy("title")
