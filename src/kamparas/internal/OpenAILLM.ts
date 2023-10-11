@@ -16,10 +16,10 @@ abstract class BaseOpenAILLM extends LLM {
         this.openai = new OpenAI({})
     }
 
-    async sendRequest(events: EpisodicEvent[], taskId: string, options: LLMExecuteOptions) {
+    async sendRequest(events: EpisodicEvent[], conversationId: string, options: LLMExecuteOptions) {
         let messages = this.formatMessages(events);
         if (this.logger.isDebugEnabled()) {
-            this.logger.debug(`calling llm with messages ${JSON.stringify(messages, null, 2)}`, {task_id: taskId})
+            this.logger.debug(`calling llm with messages ${JSON.stringify(messages, null, 2)}`, {conversation_id: conversationId})
         }
         const response = await this.openai.chat.completions.create({
             messages: messages,
@@ -27,9 +27,9 @@ abstract class BaseOpenAILLM extends LLM {
         })
 
         if (this.logger.isDebugEnabled()) {
-            this.logger.debug(`Got response from llm ${JSON.stringify(response, null, 2)}`, {task_id: taskId})
+            this.logger.debug(`Got response from llm ${JSON.stringify(response, null, 2)}`, {conversation_id: conversationId})
         } else {
-            this.logger.info(`Got response from llm. Used ${JSON.stringify(response.usage)} tokens.`, {task_id: taskId})
+            this.logger.info(`Got response from llm. Used ${JSON.stringify(response.usage)} tokens.`, {conversation_id: conversationId})
         }
         return response;
     }
@@ -106,9 +106,9 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
         }))
     } as AgentTool
 
-    async execute(options: LLMExecuteOptions, taskId: string, events: EpisodicEvent[]): Promise<LLMResult> {
+    async execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[]): Promise<LLMResult> {
         const optionsWithFunctions = {...options, functions: this.functions}
-        const response = await this.sendRequest(events, taskId, optionsWithFunctions);
+        const response = await this.sendRequest(events, conversationId, optionsWithFunctions);
         let choice = response.choices[0];
         const message = choice.message.content || ""
         const executeResponse: LLMResult = {
@@ -121,7 +121,7 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
         if (choice.message.function_call) {
             const args = JSON5.parse(choice.message.function_call.arguments)
             if (!args) {
-                this.logger.warn(`invalid function call arguments from llm: ${choice.message.function_call.arguments}`, {task_id: taskId})
+                this.logger.warn(`invalid function call arguments from llm: ${choice.message.function_call.arguments}`, {conversation_id: conversationId})
                 return Promise.reject("Invalid function call in response:" + choice.message.function_call.arguments)
             }
             if (choice.message.function_call.name === this.thought_and_observation_tool.title) {
@@ -133,7 +133,7 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
                     content: args
                 }
                 if (this.logger.isDebugEnabled()) {
-                    this.logger.debug(`LLM called tool ${executeResponse.helperCall.title} with args ${choice.message.function_call.arguments}`, {task_id: taskId})
+                    this.logger.debug(`LLM called tool ${executeResponse.helperCall.title} with args ${choice.message.function_call.arguments}`, {conversation_id: conversationId})
                 }
             }
         }
@@ -172,8 +172,8 @@ const FUNCTION_END = "```END```"
 
 export class OpenAITextFunctionsLLM extends BaseOpenAILLM {
 
-    async execute(options: LLMExecuteOptions, taskId: string, events: EpisodicEvent[]): Promise<LLMResult> {
-        const response = await this.sendRequest(events, taskId, options);
+    async execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[]): Promise<LLMResult> {
+        const response = await this.sendRequest(events, conversationId, options);
         const message = response.choices[0].message.content || ""
         const executeResponse: LLMResult = {
             thoughts: [],
@@ -185,11 +185,11 @@ export class OpenAITextFunctionsLLM extends BaseOpenAILLM {
             let functionCallStr = message.slice(functionStart + FUNCTION_START.length, functionEnd);
             const functionCall = JSON5.parse(functionCallStr)
             if (!functionCall || !functionCall.tool_name || !functionCall.arguments) {
-                this.logger.warn(`invalid function call string from llm: ${functionCallStr}`, {task_id: taskId})
+                this.logger.warn(`invalid function call string from llm: ${functionCallStr}`, {conversation_id: conversationId})
                 return Promise.reject("Invalid function call in response:" + functionCallStr)
             }
             if (this.logger.isDebugEnabled()) {
-                this.logger.debug(`LLM called tool ${functionCall.tool_name} with args ${JSON.stringify(functionCall.arguments)}`, {task_id: taskId})
+                this.logger.debug(`LLM called tool ${functionCall.tool_name} with args ${JSON.stringify(functionCall.arguments)}`, {conversation_id: conversationId})
             }
             executeResponse.helperCall = {
                 title: functionCall.tool_name,

@@ -6,7 +6,7 @@ import {FindOptions, ObjectId} from "mongodb";
 import {PromptTemplate} from "langchain/prompts";
 import dotenv from "dotenv";
 
-// todo collections will need index on agent_id and task_id
+// todo collections will need index on agent_id and conversation_id
 export class MongoMemory extends AgentMemory {
     private agentIdentifier: AgentIdentifier;
 
@@ -16,7 +16,7 @@ export class MongoMemory extends AgentMemory {
         this.agentIdentifier = agentIdentifier;
     }
 
-    async readEpisodicEventsForTask(task_id: string, limit?: number): Promise<EpisodicEvent[]> {
+    async readEpisodicEventsForTask(conversation_id: string, limit?: number): Promise<EpisodicEvent[]> {
         const collection = await mongoCollection(this.makeCollectionName("episodic"))
         let options = {sort: {"timestamp": 1}} as FindOptions;
         if (limit !== undefined) {
@@ -24,7 +24,7 @@ export class MongoMemory extends AgentMemory {
         }
         return collection.find<EpisodicEvent>({
             agent_id: this.agentIdentifier.identifier,
-            task_id: task_id
+            conversation_id: conversation_id
         }, options).toArray()
     }
 
