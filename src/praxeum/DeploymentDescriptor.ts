@@ -1,4 +1,4 @@
-import {ModelType} from "@/kamparas/LLM";
+import {LLMType, ModelType} from "@/kamparas/LLM";
 
 export interface BuiltinWorkerDescriptor extends BaseWorkerDescriptor {
     function_name: string
@@ -7,6 +7,7 @@ export interface BuiltinWorkerDescriptor extends BaseWorkerDescriptor {
 export interface AutonomousWorkerDescriptor extends BaseWorkerDescriptor {
     initial_plan: string,
     initial_instructions: string,
+    llm: LLMType
     model: ModelType
     temperature?: number
 }

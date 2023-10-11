@@ -1,31 +1,22 @@
 import {LLM, LLMExecuteOptions, LLMResult} from "@/kamparas/LLM";
 import {EpisodicEvent} from "@/kamparas/Memory";
 import {AgentTool, final_answer_tool} from "@/kamparas/Agent";
-import OpenAI, {ClientOptions} from "openai";
+import OpenAI from "openai";
 import {ChatCompletionMessageParam} from "openai/resources/chat";
 import JSON5 from "json5";
 import {HelpResponse} from "@/kamparas/Environment";
-import {rootLogger} from "@/util/RootLogger";
-import {Logger} from "winston";
-import * as events from "events";
+import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
+import {z} from "zod";
 
-const FUNCTION_START = "```START```"
-const FUNCTION_END = "```END```"
+abstract class BaseOpenAILLM extends LLM {
+    protected openai: OpenAI;
 
-export class OpenAILLM extends LLM {
-    private openai: OpenAI;
-    logger: Logger = rootLogger
-
-    constructor(options: ClientOptions) {
+    constructor() {
         super();
-        this.openai = new OpenAI(options)
+        this.openai = new OpenAI({})
     }
 
-    setLogger(logger: Logger) {
-        this.logger = logger
-    }
-
-    async execute(options: LLMExecuteOptions, taskId: string, events: EpisodicEvent[]): Promise<LLMResult> {
+    async sendRequest(events: EpisodicEvent[], taskId: string, options: LLMExecuteOptions) {
         let messages = this.formatMessages(events);
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(`calling llm with messages ${JSON.stringify(messages, null, 2)}`, {task_id: taskId})
@@ -40,9 +31,153 @@ export class OpenAILLM extends LLM {
         } else {
             this.logger.info(`Got response from llm. Used ${JSON.stringify(response.usage)} tokens.`, {task_id: taskId})
         }
+        return response;
+    }
+
+    private formatMessages(events: EpisodicEvent[]) {
+        return events.filter(e => e.type !== "task_start").map(event => {
+            if (event.actor !== "worker") {
+                throw Error("Invalid message actor type")
+            }
+            return this.formatMessage(event);
+        })
+    }
+
+    formatMessage(event: EpisodicEvent) {
+        let response: ChatCompletionMessageParam
+        switch (event.type) {
+            case "plan":
+                response = {
+                    role: "system",
+                    content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
+                }
+                break
+            case "instruction":
+                response = {
+                    role: "user",
+                    content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
+                }
+                break
+            case "hallucination":
+                response = {
+                    role: "user",
+                    content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
+                }
+                break
+            case "help":
+                response = {
+                    role: "assistant",
+                    content: FUNCTION_START + JSON.stringify(event.content) + FUNCTION_END,
+                }
+                break
+            case "thought":
+                response = {
+                    role: "assistant",
+                    content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
+                }
+                break
+            case "observation":
+                response = {
+                    role: "assistant",
+                    content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
+                }
+                break
+            default:
+                const msg = event.content as any as HelpResponse
+                response = {
+                    role: "function",
+                    name: msg.helper_title,
+                    content: JSON.stringify(msg.response)
+                }
+        }
+
+        return response
+    }
+}
+
+export class OpenAIFunctionsLLM extends BaseOpenAILLM {
+    private functions?: any
+    thought_and_observation_tool = {
+        title: "thought_or_observation",
+        job_description: "Records a very detailed thought or observation you might have.",
+        input_schema: getOrCreateSchemaManager().compileZod(z.object({
+            observation: z.string().describe("A very detailed observation. This should include detailed observations on the action or thought that just occured"),
+            thought: z.string().describe("A very detailed thought. This should include your detailed thoughts on what you should do next."),
+        }))
+    } as AgentTool
+
+    async execute(options: LLMExecuteOptions, taskId: string, events: EpisodicEvent[]): Promise<LLMResult> {
+        const optionsWithFunctions = {...options, functions: this.functions}
+        const response = await this.sendRequest(events, taskId, optionsWithFunctions);
+        let choice = response.choices[0];
+        const message = choice.message.content || ""
+        const executeResponse: LLMResult = {
+            thoughts: [],
+            observations: []
+        }
+        if (message && message.length) {
+            executeResponse.thoughts.push(message)
+        }
+        if (choice.message.function_call) {
+            const args = JSON5.parse(choice.message.function_call.arguments)
+            if (!args) {
+                this.logger.warn(`invalid function call arguments from llm: ${choice.message.function_call.arguments}`, {task_id: taskId})
+                return Promise.reject("Invalid function call in response:" + choice.message.function_call.arguments)
+            }
+            if (choice.message.function_call.name === this.thought_and_observation_tool.title) {
+                executeResponse.observations.push(args.observation)
+                executeResponse.thoughts.push(args.thought)
+            } else {
+                executeResponse.helperCall = {
+                    title: choice.message.function_call.name,
+                    content: args
+                }
+                if (this.logger.isDebugEnabled()) {
+                    this.logger.debug(`LLM called tool ${executeResponse.helperCall.title} with args ${choice.message.function_call.arguments}`, {task_id: taskId})
+                }
+            }
+        }
+        return Promise.resolve(executeResponse);
+    }
+
+    formatHelpers(availableHelpers: AgentTool[]): string | undefined {
+        this.functions = availableHelpers.concat(this.thought_and_observation_tool).map(helper => {
+            return {
+                name: helper.title,
+                description: helper.job_description,
+                parameters: helper.input_schema.schema as Record<string, any>
+            }
+        })
+        return `Only use the tools available to you. You have a tool available to ask for more tools. Return an empty response or "I don't know" if you still can not answer the question.`
+    }
+
+    formatMessage(event: EpisodicEvent): ChatCompletionMessageParam {
+        if (event.type === "help") {
+            const helperCall = event.content as Record<string, any>
+            return {
+                role: "assistant",
+                content: "",
+                function_call: {
+                    name: helperCall.tool_name,
+                    arguments: JSON.stringify(helperCall.arguments)
+                }
+            }
+        }
+        return super.formatMessage(event);
+    }
+}
+
+const FUNCTION_START = "```START```"
+const FUNCTION_END = "```END```"
+
+export class OpenAITextFunctionsLLM extends BaseOpenAILLM {
+
+    async execute(options: LLMExecuteOptions, taskId: string, events: EpisodicEvent[]): Promise<LLMResult> {
+        const response = await this.sendRequest(events, taskId, options);
         const message = response.choices[0].message.content || ""
         const executeResponse: LLMResult = {
-            thoughts: []
+            thoughts: [],
+            observations: []
         }
         let functionStart = message.indexOf(FUNCTION_START);
         if (functionStart >= 0) {
@@ -101,53 +236,5 @@ At each step consider if you know the final answer. You MUST use the ${final_ans
 `
     }
 
-    private formatMessages(events: EpisodicEvent[]) {
-        return events.filter(e => e.type !== "task_start").map(event => {
-            if (event.actor !== "worker") {
-                throw Error("Invalid message actor type")
-            }
-            let response: ChatCompletionMessageParam
-            switch (event.type) {
-                case "plan":
-                    response = {
-                        role: "system",
-                        content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
-                    }
-                    break
-                case "instruction":
-                    response = {
-                        role: "user",
-                        content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
-                    }
-                    break
-                case "hallucination":
-                    response = {
-                        role: "user",
-                        content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
-                    }
-                    break
-                case "help":
-                    response = {
-                        role: "assistant",
-                        content: FUNCTION_START+JSON.stringify(event.content)+FUNCTION_END,
-                    }
-                    break
-                case "thought":
-                    response = {
-                        role: "assistant",
-                        content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
-                    }
-                    break
-                default:
-                    const msg = event.content as any as HelpResponse
-                    response = {
-                        role: "function",
-                        name: msg.helper_title,
-                        content: JSON.stringify(msg.response)
-                    }
-            }
-
-            return response
-        })
-    }
 }
+
