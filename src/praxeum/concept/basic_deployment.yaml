@@ -203,11 +203,12 @@ skilled_workers:
         - concept
       additionalProperties: false
       $schema: http://json-schema.org/draft-07/schema#
-    model: gpt-3.5-turbo-16k
     temperature: 0.2
     num_to_start: 1
     manager: concept_manager
     qaManager: concept_qa
+    model: gpt-4
+    llm: openai.function
   - title: find_base_concept
     identifier: find_base_concept_alpha
     available_tools:
@@ -269,11 +270,12 @@ skilled_workers:
         - base_concept
       additionalProperties: false
       $schema: http://json-schema.org/draft-07/schema#
-    model: gpt-3.5-turbo-16k
     temperature: 0.2
     num_to_start: 1
     manager: concept_manager
     qaManager: concept_qa
+    model: gpt-4
+    llm: openai.function
   - title: find_concept_properties_and_constraints
     identifier: find_concept_properties_and_constraints_alpha
     available_tools:
@@ -381,11 +383,12 @@ skilled_workers:
         - properties
       additionalProperties: false
       $schema: http://json-schema.org/draft-07/schema#
-    model: gpt-3.5-turbo-16k
     temperature: 0.2
     num_to_start: 1
     manager: concept_manager
     qaManager: concept_qa
+    model: gpt-4
+    llm: openai.function
 managers:
   - title: upper_management
     identifier: upper_management_alpha
@@ -396,8 +399,8 @@ managers:
     output_schema: {}
     available_tools: []
     num_to_start: 1
-    manager: upper_management
-    model: gpt-3.5-turbo-16k
+    model: gpt-4
+    llm: openai.function
   - title: qa_head_manager
     identifier: qa_head_manager_alpha
     job_description: job description
@@ -408,7 +411,8 @@ managers:
     available_tools: []
     num_to_start: 1
     manager: upper_management
-    model: gpt-3.5-turbo-16k
+    model: gpt-4
+    llm: openai.function
   - title: concept_manager
     identifier: concept_manager_alpha
     job_description: job description
@@ -419,7 +423,8 @@ managers:
     available_tools: []
     num_to_start: 1
     manager: upper_management
-    model: gpt-3.5-turbo-16k
+    model: gpt-4
+    llm: openai.function
 qa_managers:
   - title: concept_qa
     identifier: concept_qa_alpha
@@ -431,4 +436,5 @@ qa_managers:
     available_tools: []
     num_to_start: 1
     manager: qa_head_manager
-    model: gpt-3.5-turbo-16k
+    model: gpt-4
+    llm: openai.function

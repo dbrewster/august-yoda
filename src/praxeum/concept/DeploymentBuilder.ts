@@ -31,21 +31,22 @@ function getBuiltIn(base: ToolItem, functionName: string, outputSchema: ZodType)
     }
 }
 
-function getAgentObject(agent: Agent, input_schema: ZodType, tools: string[] | undefined = undefined): SkilledWorkerDescriptor {
+function getAgentObject(agent: Agent, input_schema: ZodType, tools: string[]): SkilledWorkerDescriptor {
     return {
         title: agent.name,
         identifier: agent.name + '_alpha',
-        available_tools: tools || [],
+        available_tools: tools,
         job_description: agent.props.description,
         initial_plan: agent.props.agentMessage!,
         initial_instructions: agent.props.humanMessage,  // defines input schema
         input_schema: zodToJsonSchema(input_schema),
         output_schema: zodToJsonSchema(agent.outputSchema),
-        model: "gpt-3.5-turbo-16k",
         temperature: 0.2,
         num_to_start: 1,
         manager: "concept_manager",
         qaManager: "concept_qa",
+        model: "gpt-4",
+        llm: "openai.function",
     }
 }
 
@@ -57,7 +58,7 @@ const dncSchema = z.object({
     concept_name: z.string().describe("The name of the concept to define. Eg, Opportunity"),
 })
 
-function getManager(title: string, manager: string | undefined = "upper_management"): ManagerDescriptor {
+function getManager(title: string, manager?: string): ManagerDescriptor {
     return {
         title: title,
         identifier: title + '_alpha',
@@ -69,7 +70,8 @@ function getManager(title: string, manager: string | undefined = "upper_manageme
         available_tools: [],
         num_to_start: 1,
         manager: manager,
-        model: "gpt-3.5-turbo-16k"
+        model: "gpt-4",
+        llm: "openai.function",
     }
 }
 
@@ -98,9 +100,9 @@ const deployment: Deployment = {
         getAgentObject(fpc, fpc.inputSchema, ["ConceptFunctions.getDetailsWithSample", "ConceptFunctions.getInterfaces"])
     ],
     managers: [
-        getManager("upper_management", undefined),
-        getManager("qa_head_manager"),
-        getManager("concept_manager")
+        getManager("upper_management"),
+        getManager("qa_head_manager", "upper_management"),
+        getManager("concept_manager", "upper_management")
     ],
     qa_managers: [{
         title: "concept_qa",
@@ -113,7 +115,8 @@ const deployment: Deployment = {
         available_tools: [],
         num_to_start: 1,
         manager: "qa_head_manager",
-        model: "gpt-3.5-turbo-16k"
+        model: "gpt-4",
+        llm: "openai.function",
     }],
 }
 
