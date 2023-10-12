@@ -156,7 +156,7 @@ type AgentToolCall = {
     call: (agent: AutonomousAgent, conversationId: string, requestId: string, help: HelperCall) => Promise<void>
 }
 
-const remoteAgentCall = (tool_def: AgentTool): AgentToolCall => ({
+export const remoteAgentCall = (tool_def: AgentTool): AgentToolCall => ({
     tool_def: tool_def,
     call: async (agent: AutonomousAgent, conversationId: string, requestId: string, help: HelperCall): Promise<void> => {
         await agent.memory.recordEpisodicEvent({

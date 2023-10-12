@@ -1,13 +1,10 @@
 import {
     AgentIdentifier,
-    AgentTool,
     AutonomousAgent,
     AutonomousAgentOptions,
     BuiltinAgent,
-    localAgentCall
+    remoteAgentCall
 } from "@/kamparas/Agent";
-import {EventContent} from "@/kamparas/Environment";
-import {DateTime} from "luxon";
 
 export interface WorkerOptions extends AutonomousAgentOptions {
 }
@@ -45,11 +42,6 @@ export class BuiltinSkilledWorker extends BuiltinAgent {
     }
 }
 
-export const ask_manager_tool = {
-    title: "ask_manager",
-    job_description: "Ask your manager for help regarding something you aren't sure, a missing tool, or anything you need more information on",
-} as AgentTool
-
 abstract class AutonomousWorker extends AutonomousAgent {
     manager?: AgentIdentifier
 
@@ -60,26 +52,8 @@ abstract class AutonomousWorker extends AutonomousAgent {
     async initialize(): Promise<void> {
         await super.initialize();
         if (this.manager) {
-            this.availableHelpers[ask_manager_tool.title] = localAgentCall({...ask_manager_tool, input_schema: this.manager.input_schema}, this.askManager.bind(this))
+            this.availableHelpers[this.manager.title] = remoteAgentCall(this.manager)
         }
-    }
-
-    async askManager(conversationId: string, requestId: string, content: EventContent) {
-        const remoteTitle: string = this.manager!.title
-        await this.memory.recordEpisodicEvent({
-            actor: "worker",
-            type: "help",
-            conversation_id: conversationId,
-            timestamp: DateTime.now().toISO()!,
-            content: {
-                tool_name: remoteTitle,
-                arguments: content
-            }
-        })
-        this.logger.info(`Asking help from ${remoteTitle}`, {conversation_id: conversationId})
-        // noinspection ES6MissingAwait
-        this.environment.askForHelp(this.title, this.identifier, conversationId, remoteTitle, requestId, content)
-        return Promise.resolve()
     }
 }
 
