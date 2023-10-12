@@ -330,7 +330,7 @@ export const generateBaseConceptEdges = async (system: string, businessFunction:
 }
 
 dotenv.config()
-// console.log(JSON.stringify(await generateBaseConcepts("CRM", "revenue reporting"), null, 1))
-// console.log(JSON.stringify(await generateDescriptionsForBaseConcepts("CRM", "revenue reporting"), null, 1))
-// console.log(JSON.stringify(await generatePropertiesForBaseConcepts("CRM", "revenue reporting"), null, 1))
-// console.log(JSON.stringify(await generateBaseConceptEdges("CRM", "revenue reporting"), null, 1))
+console.log(JSON.stringify(await generateBaseConcepts("CRM", "revenue reporting"), null, 1))
+console.log(JSON.stringify(await generateDescriptionsForBaseConcepts("CRM", "revenue reporting"), null, 1))
+console.log(JSON.stringify(await generatePropertiesForBaseConcepts("CRM", "revenue reporting"), null, 1))
+console.log(JSON.stringify(await generateBaseConceptEdges("CRM", "revenue reporting"), null, 1))

@@ -300,20 +300,26 @@ export class AutonomousAgent extends Agent {
         }
     }
 
-    private async think(conversationId: string): Promise<void> {
-        let rejecter: (error: any) => void = (error) => {
-            this.logger.error("Error while thinking", error)
-        }
+    private async handleError(conversationId: string, error: any) {
+        this.logger.error(`Error while thinking`, error)
+        const taskStart = (await this.memory.readEpisodicEventsForTask(conversationId)).find(e => e.type == "task_start")!.content as NewTaskInstruction
+        await this.environment.answer(taskStart.helpee_title, taskStart.helpee_id, {
+            conversation_id: taskStart.helpee_conversation_id,
+            request_id: taskStart.request_id,
+            helper_title: this.agent_identifier.title,
+            helper_identifier: this.agent_identifier.identifier,
+            status: 'failure',
+            response: {error: error instanceof Error ? error.toString() : error}
+        }, conversationId)
+    }
 
-        const returnPromise = new Promise<void>((resolve, reject) => {
-            resolve(undefined)
-            rejecter = reject
-        })
+    private async think(conversationId: string): Promise<void> {
+
         try {
             let numConcurrentThoughts = 0
             while (numConcurrentThoughts < this.maxConcurrentThoughts) {
                 const events = await this.memory.readEpisodicEventsForTask(conversationId)
-                this.logger.info(`Thinking with ${events.length} events`, {conversation_id: conversationId})
+                this.logger.info(`Thinking with ${events.length} events: (Thought #${numConcurrentThoughts})`, {conversation_id: conversationId})
                 const result = await this.llm.execute({model: this.model, temperature: this.temperature}, conversationId, events).catch(async e => {
                     this.logger.warn(e, {conversation_id: conversationId})
                     // add an error to the episodic memory, increment the thought counter, and continue
@@ -370,18 +376,18 @@ export class AutonomousAgent extends Agent {
                         await this.processHallucination("bad_tool", conversationId, requestId, help)
                     } else {
                         await this.availableHelpers[result.helperCall!.title].call(this, conversationId, requestId, help)
-                        return Promise.resolve()
+                        return
                     }
                 }
                 ++numConcurrentThoughts
             }
-            await this.processHallucination("bad_tool", conversationId, "", "")
-            rejecter(`Too many consecutive thoughts for worker ${this.id_string()}, conversation_id:${conversationId}`)
+            await this.processHallucination("too_many_thoughts", conversationId, "", "")
+            await this.handleError(conversationId, `Too many consecutive thoughts for worker ${this.id_string()}, conversation_id:${conversationId}`)
         } catch (e) {
-            rejecter(e)
+            await this.handleError(conversationId, e)
         }
 
-        return returnPromise
+        return
     }
 
 

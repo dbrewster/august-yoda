@@ -11,21 +11,12 @@ import {getOrCreateMQConnection} from "@/kamparas/internal/RabbitMQ";
 
 export type DirectMessageType = ("help_response" | "manager_call")
 
-export interface HelpMessageResponse {
-    conversation_id: string
-    request_id: string
-    helper_title: string
-    helper_identifier: string
-
-    response: EventContent
-}
-
 interface ManagerCall {
 }
 
 export interface DirectMessage {
     type: DirectMessageType,
-    contents: (HelpMessageResponse | ManagerCall)
+    contents: (HelpResponse | ManagerCall)
 }
 
 export interface TitleMessage extends NewTaskInstruction {
