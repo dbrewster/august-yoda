@@ -114,7 +114,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         let responseStr = JSON.stringify(response);
         this.logger.debug(`publishing answer to queue ${queueName} ${responseStr.length} chars`, {conversation_id: conversationId})
         this.logger.debug(`Message data: ${responseStr}`, {conversation_id: conversationId})
-        await this.channel!.basicPublish(queueName, queueName, responseStr).catch(reason => console.error(reason))
+        await this.channel!.basicPublish(queueName, queueName, responseStr).catch(reason => this.logger.error(reason))
     }
 
     async askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void> {
@@ -190,10 +190,10 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
                         // run in background
                         this.logger.debug(`calling title handler`)
                         this.handler!.processInstruction(titleMessage).catch(error => {
-                            this.logger.error("Unable to process instructions", {body: body, error: error})
+                            this.handler!.processInstructionError(titleMessage, error)
                         })
                     } else {
-                        this.handler?.processTitleMessageError(titleMessage, {
+                        this.handler?.processInstructionError(titleMessage, {
                             description: "Could not parse input based on input schema",
                             parsing_errors: this.handler!.inputSchema.errors
                         })

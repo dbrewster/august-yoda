@@ -14,7 +14,7 @@ import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
 import {z} from "zod";
 import {Logger} from "winston"
 import {rootLogger} from "@/util/RootLogger"
-import {DirectMessage, TitleMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
+import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 
 export interface AgentTool {
     title: string
@@ -83,16 +83,25 @@ export abstract class Agent implements EnvironmentHandler {
 
     abstract processInstruction(instruction: NewTaskInstruction): Promise<void>
 
+    processInstructionError(instruction: NewTaskInstruction, error: any): void {
+        this.logger.error("Error processing Instruction:", error)
+        const helpResponse: HelpResponse = {
+            conversation_id: instruction.helpee_conversation_id,
+            request_id: instruction.request_id,
+            helper_title: this.title,
+            helper_identifier: this.identifier,
+            status: 'failure',
+            response: {error: error instanceof Error ? error.toString() : error},
+        }
+        this.environment.answer(instruction.helpee_title, instruction.helpee_id, helpResponse, instruction.helpee_conversation_id)
+    }
+
     processDecodeError(type: "direct" | "instruction", message: string): void {
         console.error(`Error decoding ${type} message: ${message}`)
     }
 
     processDirectMessageError(directMessage: DirectMessage, error: any): void {
         console.error(`Error executing direct message ${JSON.stringify(directMessage)} -- error: ${error}`)
-    }
-
-    processTitleMessageError(message: TitleMessage, error: any): void {
-        console.error(`Error executing title message ${JSON.stringify(message)} -- error:`, error)
     }
 
     id_string() {
@@ -127,6 +136,7 @@ export class BuiltinAgent extends Agent {
             helper_identifier: this.identifier,
             helper_title: this.title,
             request_id: instruction.request_id,
+            status: 'success',
             response: builtinFuncReturn as Record<string, any>
         }, instruction.helpee_conversation_id)
     }
@@ -220,6 +230,7 @@ export class AutonomousAgent extends Agent {
             request_id: taskStart.request_id,
             helper_title: this.agent_identifier.title,
             helper_identifier: this.agent_identifier.identifier,
+            status: 'success',
             response: content
         }, conversationId)
         return Promise.resolve()

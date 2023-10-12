@@ -1,7 +1,7 @@
 import {rootLogger} from "@/util/RootLogger";
 import {ValidateFunction} from "ajv";
 import {Logger} from "winston";
-import {DirectMessage, TitleMessage} from "./internal/RabbitAgentEnvironment";
+import {DirectMessage} from "./internal/RabbitAgentEnvironment";
 
 export type EventContent = Record<string, any>
 
@@ -35,7 +35,7 @@ export interface HelpResponse {
     request_id: string
     helper_title: string
     helper_identifier: string
-
+    status: ("success" | "failure")
     response: EventContent
 }
 
@@ -72,7 +72,7 @@ export interface EnvironmentHandler {
      */
     processDirectMessage(response: DirectMessage): Promise<void>
 
+    processInstructionError(instruction: NewTaskInstruction, error: any): void
     processDecodeError(type: ("direct" | "instruction"), message: string): void
-    processTitleMessageError(message: TitleMessage, error: any): void
     processDirectMessageError(directMessage: DirectMessage, error: any): void;
 }

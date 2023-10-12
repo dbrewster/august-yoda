@@ -1,14 +1,13 @@
 import {
-    AgentIdentifier, AgentTool,
+    AgentIdentifier,
+    AgentTool,
     AutonomousAgent,
     AutonomousAgentOptions,
-    BuiltinAgent, localAgentCall
+    BuiltinAgent,
+    localAgentCall
 } from "@/kamparas/Agent";
-import {DirectMessage, TitleMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {EventContent} from "@/kamparas/Environment";
 import {DateTime} from "luxon";
-import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
-import {z} from "zod";
 
 export interface WorkerOptions extends AutonomousAgentOptions {
 }
@@ -96,18 +95,6 @@ export class AutonomousSkilledWorker extends AutonomousWorker implements Skilled
 
     getLogType(): string {
         return "skilledWorker"
-    }
-
-    processDecodeError(type: "direct" | "instruction", message: string) {
-        super.processDecodeError(type, message);
-    }
-
-    processDirectMessageError(directMessage: DirectMessage, error: any) {
-        super.processDirectMessageError(directMessage, error);
-    }
-
-    processTitleMessageError(message: TitleMessage, error: any) {
-        super.processTitleMessageError(message, error);
     }
 }
 
