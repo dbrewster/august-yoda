@@ -1,5 +1,5 @@
-import {AgentEnvironment, NewTaskInstruction} from "@/kamparas/Environment";
-import {DirectMessage, HelpMessageResponse} from "@/kamparas/internal/RabbitAgentEnvironment";
+import {AgentEnvironment, HelpResponse, NewTaskInstruction} from "@/kamparas/Environment";
+import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {z} from "zod";
 import {nanoid} from "nanoid";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
@@ -45,7 +45,7 @@ export class RootQuestion extends Agent {
 
     async processDirectMessage(message: DirectMessage): Promise<void> {
         if (message.type == "help_response") {
-            const response = message.contents as HelpMessageResponse
+            const response = message.contents as HelpResponse
             if (!this.requests[response.conversation_id]) {
                 this.logger.error(`Could not find task id in question response object ${response.conversation_id} in [${Object.keys(this.requests).join(",")}]`, {conversation_id: response.conversation_id})
             }

@@ -84,7 +84,7 @@ export abstract class Agent implements EnvironmentHandler {
     abstract processInstruction(instruction: NewTaskInstruction): Promise<void>
 
     processInstructionError(instruction: NewTaskInstruction, error: any): void {
-        this.logger.error("Error processing Instruction:", error)
+        this.logger.error("Error processing Instruction", error)
         const helpResponse: HelpResponse = {
             conversation_id: instruction.helpee_conversation_id,
             request_id: instruction.request_id,
@@ -280,7 +280,11 @@ export class AutonomousAgent extends Agent {
         switch (message.type) {
             case "help_response":
                 const response = message.contents as HelpResponse
-                this.logger.info(`Received help response from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
+                if (response.status === 'success') {
+                    this.logger.info(`Received help response from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
+                } else {
+                    this.logger.warn(`Received ERROR response from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
+                }
                 await this.memory.recordEpisodicEvent({
                     actor: "worker",
                     type: "response",
@@ -288,6 +292,7 @@ export class AutonomousAgent extends Agent {
                     timestamp: DateTime.now().toISO()!,
                     content: {
                         helper_title: response.helper_title,
+                        status: response.status,
                         response: response.response
                     }
                 })
