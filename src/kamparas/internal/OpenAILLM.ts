@@ -70,6 +70,13 @@ abstract class BaseOpenAILLM extends LLM {
                     content: FUNCTION_START + JSON.stringify(event.content) + FUNCTION_END,
                 }
                 break
+            case "llm_error":
+                response = {
+                    role: "user",
+                    content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
+                }
+                break
+
             case "thought":
                 response = {
                     role: "assistant",
@@ -119,7 +126,12 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
             executeResponse.thoughts.push(message)
         }
         if (choice.message.function_call) {
-            const args = JSON5.parse(choice.message.function_call.arguments)
+            let args: any
+            try {
+                args = JSON5.parse(choice.message.function_call.arguments)
+            } catch (e) {
+                throw new Error(`Error parsing return function arguments: ${e}`)
+            }
             if (!args) {
                 this.logger.warn(`invalid function call arguments from llm: ${choice.message.function_call.arguments}`, {conversation_id: conversationId})
                 return Promise.reject("Invalid function call in response:" + choice.message.function_call.arguments)
@@ -148,7 +160,7 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
                 parameters: helper.input_schema.schema as Record<string, any>
             }
         })
-        return `Only use the tools available to you. You have a tool available to ask for more tools. Return an empty response or "I don't know" if you still can not answer the question.`
+        return `Try using one of these tools [${availableHelpers.map(t => t.title).join(",")}] to find the answer or return an appropriate negative response, an empty response or "I don't know" if you still can not answer the question.`
     }
 
     formatMessage(event: EpisodicEvent): ChatCompletionMessageParam {

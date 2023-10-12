@@ -29,27 +29,44 @@ export class MongoMemory extends AgentMemory {
     }
 
     async recordPlan(template: string): Promise<void> {
-        const collection = await mongoCollection("plans")
-        const timestamp = DateTime.now().toISO()!
-        return collection.insertOne({
+        const find: Record<string, any> = {
             type: "plan",
             agent_title: this.agentIdentifier.title,
-            agent_id: this.agentIdentifier.identifier,
-            template: template,
-            timestamp: timestamp}
+            agent_id: this.agentIdentifier.identifier
+        }
+        const collection = await mongoCollection("plans")
+        const timestamp = DateTime.now().toISO()!
+        return collection.updateOne(find, {
+                "$set": {
+                    type: "plan",
+                    agent_title: this.agentIdentifier.title,
+                    agent_id: this.agentIdentifier.identifier,
+                    template: template,
+                    timestamp: timestamp
+                }
+            }, {
+                upsert: true
+            }
         ).then()
     }
 
     async recordPlanInstructions(template: string): Promise<void> {
-        const collection = await mongoCollection("plans")
-        const timestamp = DateTime.now().toISO()!
-        return collection.insertOne({
+        const find: Record<string, any> = {
             type: "instructions",
             agent_title: this.agentIdentifier.title,
-            agent_id: this.agentIdentifier.identifier,
-            template: template,
-            timestamp: timestamp
-        }).then()
+            agent_id: this.agentIdentifier.identifier
+        }
+        const collection = await mongoCollection("plans")
+        const timestamp = DateTime.now().toISO()!
+        return collection.updateOne(find, {
+            "$set": {
+                type: "instructions",
+                agent_title: this.agentIdentifier.title,
+                agent_id: this.agentIdentifier.identifier,
+                template: template,
+                timestamp: timestamp
+            }
+        }, {upsert: true}).then()
     }
 
     async readPlan(input: Record<string, any>, planId?: string): Promise<string> {
@@ -90,17 +107,19 @@ export class MongoMemory extends AgentMemory {
 
     async recordEpisodicEvent(event: Omit<EpisodicEvent, "agent_title" | "agent_id">): Promise<void> {
         const collection = await mongoCollection(this.makeCollectionName("episodic"))
-        return collection.insertOne({...event, agent_title: this.agentIdentifier.title, agent_id:this.agentIdentifier.identifier}).then(res => {})
+        return collection.insertOne({...event, agent_title: this.agentIdentifier.title, agent_id: this.agentIdentifier.identifier}).then(res => {
+        })
     }
 
     async recordProceduralEvent(event: Omit<ProceduralEvent, "agent_title" | "agent_id">): Promise<void> {
         const collection = await mongoCollection(this.makeCollectionName("procedure"))
-        return collection.insertOne({...event, agent_title: this.agentIdentifier.title, agent_id:this.agentIdentifier.identifier}).then(res => {})
+        return collection.insertOne({...event, agent_title: this.agentIdentifier.title, agent_id: this.agentIdentifier.identifier}).then(res => {
+        })
     }
 
     async recordSemanticMemory(event: Omit<SemanticMemory, "agent_title" | "agent_id">): Promise<void> {
         const collection = await mongoCollection(this.makeCollectionName("semantic"))
-        return collection.insertOne({...event, agent_title: this.agentIdentifier.title, agent_id:this.agentIdentifier.identifier}).then(res => {
+        return collection.insertOne({...event, agent_title: this.agentIdentifier.title, agent_id: this.agentIdentifier.identifier}).then(res => {
         })
     }
 

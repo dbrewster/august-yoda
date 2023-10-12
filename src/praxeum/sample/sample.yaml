@@ -1,5 +1,29 @@
 name: Test Bed for concepts
 builtin_workers:
+  - title: "DeploymentTools_FindRelevantTools"
+    job_description: "Finds all tools that match in the input description"
+    identifier: "1"
+    function_name: "DeploymentTools.findRelevantTools"
+    available_tools: []
+    input_schema:
+      $id: "http://yourdomain.com/schemas/findRelevantTools_in.json"
+      type: "object"
+      properties:
+        tool_description:
+          type: "string"
+          description: "A detailed description of the tool you are looking for"
+      required: ["tool_description"]
+    output_schema:
+      $id: "http://yourdomain.com/schemas/findRelevantTools_out.json"
+      type: "object"
+      properties:
+        tools:
+          type: "array"
+          description: "The tools that might match"
+          items:
+            type: "string"
+      required: ["tools"]
+    num_to_start: 1
   - title: "Adder"
     job_description: "Adds two numbers"
     identifier: "1"
@@ -52,11 +76,52 @@ builtin_workers:
     num_to_start: 1
 
 skilled_workers:
+  - title: "FindRelevantTools"
+    identifier: "1"
+    job_description: "Finds tools in the system that match the given input"
+    available_tools: ["DeploymentTools_FindRelevantTools"]
+    initial_plan: "You are a helpful agent designed find tools in the system. Break the problem down into steps and use the tool available when needed."
+    initial_instructions: '{tool_description}
+      Let''s think step by step.'
+    input_schema:
+      $id: "http://yourdomain.com/schemas/frt_in.json"
+      type: "object"
+      properties:
+        tool_description:
+          type: "string"
+          description: "A detailed description of the tool you are looking for"
+      required: ["tool_description"]
+    output_schema:
+      $id: "http://yourdomain.com/schemas/frt_out.json"
+      type: "object"
+      properties:
+        tools:
+          type: "array"
+          description: "The tools that might match"
+          items:
+            type: "object"
+            properties:
+              title:
+                type: string
+                description: The job title of the tool
+              job_description:
+                type: string
+                description: The job description of the tool
+      required: ["tools"]
+    llm: "openai.function"
+    model: gpt-3.5-turbo-16k
+    temperature: 0.2
+    num_to_start: 1
+    manager: "deployment_tools_manager"
+    qaManager: "math_qa"
   - title: "Maths"
     identifier: "1"
-    job_description: "Does math using add and multiply"
+    job_description: "A general purpose math tool that can only add and multiply."
     available_tools: ["Adder", "Multiplier"]
-    initial_plan: "You are a helpful agent designed answer user questions. Break the problem down into steps and use the tool available when needed."
+    initial_plan: |
+      You are a helpful agent designed answer user questions about math. You can only answer questions about addition and multiplication.
+      
+      Break the problem down into steps and use the tool available when needed.
     initial_instructions: '{problem}
       Let''s think step by step.'
     input_schema:
@@ -85,8 +150,13 @@ managers:
   - title: "math_manager"
     identifier: "1"
     job_description: "Manges math"
-    available_tools: []
-    initial_plan: "You are a helpful agent designed manage other agents. Break the problem down into steps and use the tool available when needed."
+    available_tools: ["FindRelevantTools"]
+    initial_plan: |
+      You are a helpful agent designed to manage other agents.
+      You will be asked a variety of questions. Use the tools available to you to answer. 
+      Return all of the information the tool gave you back to the user.
+      
+      Break the problem down into steps and use the tool available when needed.
     initial_instructions: '{problem}
       Let''s think step by step.'
     input_schema:
@@ -106,7 +176,39 @@ managers:
           description: "The result"
       required: [ "result" ]
     llm: "openai.function"
-    model: 'gpt-3.5-turbo-16k'
+    model: 'gpt-4'
+    temperature: 0.2
+    num_to_start: 1
+
+  - title: "deployment_tools_manager"
+    identifier: "1"
+    job_description: "Manges Deployment Tools"
+    available_tools: []
+    initial_plan: |
+      You are a helpful agent designed to manage other agents.
+      You will be asked a variety of questions. Use the tools available to you to answer. 
+      
+      Break the problem down into steps and use the tool available when needed.
+    initial_instructions: '{problem}
+      Let''s think step by step.'
+    input_schema:
+      $id: "http://yourdomain.com/schemas/dt_manager_in.json"
+      type: "object"
+      properties:
+        problem:
+          type: "string"
+          description: "The problem to solve"
+      required: [ "problem" ]
+    output_schema:
+      $id: "http://yourdomain.com/schemas/dt_manager_out.json"
+      type: "object"
+      properties:
+        result:
+          type: "string"
+          description: "The result"
+      required: [ "result" ]
+    llm: "openai.function"
+    model: 'gpt-4'
     temperature: 0.2
     num_to_start: 1
 

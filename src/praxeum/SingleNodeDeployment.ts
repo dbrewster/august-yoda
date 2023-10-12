@@ -41,6 +41,8 @@ function descriptorToIdentifier<T extends BaseWorkerDescriptor>(workerDescriptor
     } as DescriptorAndIdentifier<T>
 }
 
+export let allToolIdentifiers: Record<string, DescriptorAndIdentifier<any>> = {}
+
 export const startServer = async (yamlFileLocation: string) => {
     const file = fs.readFileSync(yamlFileLocation, "utf-8")
     const deployment = yaml.parse(file) as Deployment
@@ -50,7 +52,7 @@ export const startServer = async (yamlFileLocation: string) => {
     const managerIdentifiers: Record<string, DescriptorAndIdentifier<ManagerDescriptor>> = _(deployment.managers.map(descriptorToIdentifier)).indexBy((x) => x.identifier.title)
     const qaIdentifiers: Record<string, DescriptorAndIdentifier<QAManagerDescriptor>> = _(deployment.qa_managers.map(descriptorToIdentifier)).indexBy((x) => x.identifier.title)
 
-    const allToolIdentifiers = {...builtinWorkerIdentifiers, ...skilledWorkerIdentifiers}
+    allToolIdentifiers = {...builtinWorkerIdentifiers, ...skilledWorkerIdentifiers}
 
     const builtinWorkers = Object.values(builtinWorkerIdentifiers).map(workerId => {
         const environment = new RabbitAgentEnvironment()

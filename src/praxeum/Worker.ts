@@ -1,5 +1,14 @@
-import {AgentIdentifier, AutonomousAgent, AutonomousAgentOptions, BuiltinAgent} from "@/kamparas/Agent";
+import {
+    AgentIdentifier, AgentTool,
+    AutonomousAgent,
+    AutonomousAgentOptions,
+    BuiltinAgent, localAgentCall
+} from "@/kamparas/Agent";
 import {DirectMessage, TitleMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
+import {EventContent} from "@/kamparas/Environment";
+import {DateTime} from "luxon";
+import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
+import {z} from "zod";
 
 export interface WorkerOptions extends AutonomousAgentOptions {
 }
@@ -37,7 +46,45 @@ export class BuiltinSkilledWorker extends BuiltinAgent {
     }
 }
 
-export class AutonomousSkilledWorker extends AutonomousAgent implements SkilledWorker {
+export const ask_manager_tool = {
+    title: "ask_manager",
+    job_description: "Ask your manager for help regarding something you aren't sure, a missing tool, or anything you need more information on",
+} as AgentTool
+
+abstract class AutonomousWorker extends AutonomousAgent {
+    manager?: AgentIdentifier
+
+    protected constructor(options: AutonomousAgentOptions) {
+        super(options);
+    }
+
+    async initialize(): Promise<void> {
+        await super.initialize();
+        if (this.manager) {
+            this.availableHelpers[ask_manager_tool.title] = localAgentCall({...ask_manager_tool, input_schema: this.manager.input_schema}, this.askManager.bind(this))
+        }
+    }
+
+    async askManager(conversationId: string, requestId: string, content: EventContent) {
+        const remoteTitle: string = this.manager!.title
+        await this.memory.recordEpisodicEvent({
+            actor: "worker",
+            type: "help",
+            conversation_id: conversationId,
+            timestamp: DateTime.now().toISO()!,
+            content: {
+                tool_name: remoteTitle,
+                arguments: content
+            }
+        })
+        this.logger.info(`Asking help from ${remoteTitle}`, {conversation_id: conversationId})
+        // noinspection ES6MissingAwait
+        this.environment.askForHelp(this.title, this.identifier, conversationId, remoteTitle, requestId, content)
+        return Promise.resolve()
+    }
+}
+
+export class AutonomousSkilledWorker extends AutonomousWorker implements SkilledWorker {
     manager: AgentIdentifier
     qaManager: AgentIdentifier
 
@@ -64,7 +111,7 @@ export class AutonomousSkilledWorker extends AutonomousAgent implements SkilledW
     }
 }
 
-export class AutonomousWorkerManager extends AutonomousAgent implements WorkerManager {
+export class AutonomousWorkerManager extends AutonomousWorker implements WorkerManager {
     manager?: AgentIdentifier
 
     constructor(options: WorkerManagerOptions) {
@@ -77,7 +124,7 @@ export class AutonomousWorkerManager extends AutonomousAgent implements WorkerMa
     }
 }
 
-export class AutonomousQAManager extends AutonomousAgent implements QAManager {
+export class AutonomousQAManager extends AutonomousWorker implements QAManager {
     manager: AgentIdentifier
 
     constructor(options: QAManagerOptions) {

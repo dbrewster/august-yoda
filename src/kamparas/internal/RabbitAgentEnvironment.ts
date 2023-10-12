@@ -121,7 +121,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         const message: TitleMessage = {
             helpee_title: helpeeTitle,
             helpee_id: helpeeIdentier,
-            conversation_id: conversationId,
+            helpee_conversation_id: conversationId,
             request_id: requestId,
             input: content
         }

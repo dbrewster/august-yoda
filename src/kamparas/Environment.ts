@@ -22,9 +22,10 @@ export abstract class AgentEnvironment {
 }
 
 export interface NewTaskInstruction {
+    // The following three fields are here so that the title, id, and conversation_id of the caller can be passed back on the call back
     helpee_title: string,
     helpee_id: string,
-    conversation_id: string,
+    helpee_conversation_id: string,
     request_id: string,
     input: EventContent
 }
