@@ -19,7 +19,7 @@ export class RootQuestion extends Agent {
         })
     }
 
-    async initialize() {
+    async start() {
         this.environment.setLogger(this.logger.child({subType: "environment"}))
         await this.environment.registerHandler(this)
     }

@@ -7,7 +7,9 @@ export interface BuiltinWorkerDescriptor extends BaseWorkerDescriptor {
 }
 
 export interface AutonomousWorkerDescriptor extends BaseWorkerDescriptor {
+    overwrite_plan: boolean,
     initial_plan: string,
+    overwrite_plan_instructions: boolean
     initial_instructions: string,
     llm: LLMType
     model: ModelType
@@ -27,20 +29,18 @@ export  interface QAManagerDescriptor extends AutonomousWorkerDescriptor {
     manager: string
 }
 
+export type DescriptorType = ("BuiltinFunction" | "SkilledWorker" | "Manager" | "QAManager")
+
+export type DescriptorStatus = ("started" | "stopped")
+
 export interface BaseWorkerDescriptor {
+    kind: DescriptorType
     title: string,
+    status: DescriptorStatus,
     identifier: string,
     job_description: string,
     input_schema: Record<string, any>
     output_schema: Record<string, any>
     num_to_start: number
     available_tools: string[]
-}
-
-export interface Deployment {
-    name: string,
-    builtin_workers: BuiltinWorkerDescriptor[]
-    skilled_workers: SkilledWorkerDescriptor[]
-    managers: ManagerDescriptor[]
-    qa_managers: QAManagerDescriptor[]
 }

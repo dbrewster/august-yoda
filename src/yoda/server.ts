@@ -143,8 +143,6 @@ wss.on('connection', function (ws, _request) {
   })
 })
 
-if (!process.env.IS_RUNNING_TESTS) {
-  server.listen(port, () => {
-    console.log(`Server is Fire at http://localhost:${port}`);
-  });
-}
+server.listen(port, () => {
+  console.log(`Server is Fire at http://localhost:${port}`);
+});

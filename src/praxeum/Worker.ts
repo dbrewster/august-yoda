@@ -36,7 +36,7 @@ export interface SkilledWorker extends Worker {
     qaManager?: AgentIdentifier
 }
 
-export class BuiltinSkilledWorker extends BuiltinAgent {
+export class BuiltinSkilledWorker extends BuiltinAgent implements Worker {
     getLogType(): string {
         return "builtinWorker"
     }
@@ -49,8 +49,8 @@ abstract class AutonomousWorker extends AutonomousAgent {
         super(options);
     }
 
-    async initialize(): Promise<void> {
-        await super.initialize();
+    async start(): Promise<void> {
+        await super.start();
         if (this.manager) {
             this.availableHelpers[this.manager.title] = remoteAgentCall(this.manager)
         }

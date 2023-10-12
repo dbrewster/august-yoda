@@ -7,7 +7,7 @@ import {
     HelpResponse,
     NewTaskInstruction
 } from "@/kamparas/Environment";
-import {HelperCall, LLM, LLMResult, ModelType} from "@/kamparas/LLM";
+import {HelperCall, LLM, LLMResult} from "@/kamparas/LLM";
 import {DateTime} from "luxon";
 import {ValidateFunction} from "ajv";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
@@ -39,15 +39,20 @@ export interface AutonomousAgentOptions extends AgentOptions {
     memory: AgentMemory
     llm: LLM
     maxConcurrentThoughts: number,
-    model: ModelType,
-    temperature?: number
+    initial_plan: string,
+    overwrite_plan: boolean,
+    initial_plan_instructions: string,
+    overwrite_plan_instructions: boolean
     availableTools: AgentIdentifier[]
 }
+
+export type AgentStatus = ("stopped" | "started")
 
 export abstract class Agent implements EnvironmentHandler {
     environment: AgentEnvironment;
     agent_identifier: AgentIdentifier
     logger: Logger;
+    status: AgentStatus = "stopped"
 
     protected constructor(options: AgentOptions) {
         this.title = options.title
@@ -71,13 +76,17 @@ export abstract class Agent implements EnvironmentHandler {
         return "agent"
     }
 
-    async initialize() {
+    async start() {
         this.environment.setLogger(this.logger.child({subType: "environment"}))
         await this.environment.registerHandler(this)
+        this.status = "started"
+        this.logger.info(`Started ${this.title}:${this.identifier}`)
     }
 
     async shutdown() {
         await this.environment.shutdown()
+        this.status = "stopped"
+        this.logger.info(`Stopped ${this.title}:${this.identifier}`)
     }
 
     abstract processDirectMessage(response: DirectMessage): Promise<void>
@@ -189,8 +198,10 @@ export class AutonomousAgent extends Agent {
     memory: AgentMemory;
     llm: LLM
     maxConcurrentThoughts: number
-    model: ModelType
-    temperature?: number
+    initial_plan: string
+    overwrite_plan: boolean
+    initial_plan_instructions: string
+    overwrite_plan_instructions: boolean
 
     constructor(options: AutonomousAgentOptions) {
         super(options);
@@ -204,16 +215,24 @@ export class AutonomousAgent extends Agent {
         this.memory = options.memory;
         this.llm = options.llm
         this.maxConcurrentThoughts = options.maxConcurrentThoughts
-        this.model = options.model
-        this.temperature = options.temperature
         this.memory.setLogger(rootLogger)
         this.llm.setLogger(rootLogger)
+        this.initial_plan = options.initial_plan
+        this.overwrite_plan = options.overwrite_plan
+        this.initial_plan_instructions = options.initial_plan_instructions
+        this.overwrite_plan_instructions = options.overwrite_plan_instructions
     }
 
-    async initialize(): Promise<void> {
-        await super.initialize();
+    async start(): Promise<void> {
+        await super.start();
         this.llm.setLogger(this.logger.child({subType: "llm"}))
         this.memory.setLogger(this.logger.child({subType: "memory"}))
+        if (!(await this.memory.planExists()) || this.overwrite_plan) {
+            await this.memory.recordPlan(this.initial_plan)
+        }
+        if (!(await this.memory.planInstructionsExists()) || this.overwrite_plan) {
+        await this.memory.recordPlanInstructions(this.initial_plan_instructions)
+        }
     }
 
     async doAnswer(conversationId: string, requestId: string, content: EventContent) {
@@ -321,7 +340,7 @@ export class AutonomousAgent extends Agent {
             while (numConcurrentThoughts < this.maxConcurrentThoughts) {
                 const events = await this.memory.readEpisodicEventsForTask(conversationId)
                 this.logger.info(`Thinking with ${events.length} events: (Thought #${numConcurrentThoughts})`, {conversation_id: conversationId})
-                const result = await this.llm.execute({model: this.model, temperature: this.temperature}, conversationId, events).catch(async e => {
+                const result = await this.llm.execute({}, conversationId, events).catch(async e => {
                     // open ai api errors indicate a request issue the caller should know about
                     if (e instanceof APIError) {
                         e.name = "OpenAi APIError"

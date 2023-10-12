@@ -11,9 +11,9 @@ import {makeLLM} from "@/kamparas/internal/LLMRegistry";
 
 describe("builtin agent", () => {
     beforeAll(async () => {
-        await rootQuestion.initialize()
-        adder.initialize()
-        multiplier.initialize()
+        await rootQuestion.start()
+        adder.start()
+        multiplier.start()
     })
 
     afterAll(async () => {
@@ -38,7 +38,7 @@ describe("builtin agent", () => {
     })
     describe("two base + 1 autonomous agent communication", ()=> {
         beforeAll(() => {
-            maths.initialize()
+            maths.start()
         })
 
         afterAll(async () => {
@@ -102,7 +102,7 @@ const makeAutonomousAgent = async (title: string, job_description: string, input
         answer_schema: getOrCreateSchemaManager().compileZod(outputSchema),
     } as AgentIdentifier
     const environment = new RabbitAgentEnvironment()
-    const llm = makeLLM("openai.textFunctions")
+    const llm = makeLLM("openai.textFunctions",  "gpt-3.5-turbo", 0.2)
     const memory = new MongoMemory(agentIdentifier)
     const options = {
         ...agentIdentifier,
@@ -110,12 +110,12 @@ const makeAutonomousAgent = async (title: string, job_description: string, input
         environment: environment,
         llm,
         memory,
+        initial_plan: plan,
+        overwrite_plan: true,
+        initial_plan_instructions: planInstructions,
+        overwrite_plan_instructions: true,
         maxConcurrentThoughts: 5,
-        model: "gpt-3.5-turbo",
-        temperature: 0.2
     } as AutonomousAgentOptions
-    await memory.recordPlan(plan)
-    await memory.recordPlanInstructions(planInstructions)
     return new AutonomousAgent(options)
 }
 

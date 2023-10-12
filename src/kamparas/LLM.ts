@@ -21,8 +21,6 @@ export interface LLMResult {
 export type ModelType = ('gpt-4' | 'gpt-4-32k' | 'gpt-3.5-turbo' | 'gpt-3.5-turbo-16k')
 
 export interface LLMExecuteOptions {
-    model: ModelType,
-    temperature?: number,
 }
 
 export abstract class LLM {

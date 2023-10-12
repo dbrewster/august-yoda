@@ -58,6 +58,8 @@ export abstract class AgentMemory {
     abstract recordPlan(template: string): Promise<void>
     abstract recordPlanInstructions(template: string): Promise<void>
 
+    abstract planExists(): Promise<boolean>
     abstract readPlan(input: Record<string, any>, planId?: string): Promise<string>
+    abstract planInstructionsExists(): Promise<boolean>
     abstract readPlanInstructions(input: Record<string, any>, planId?: string): Promise<string>
 }

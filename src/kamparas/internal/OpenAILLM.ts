@@ -1,4 +1,4 @@
-import {LLM, LLMExecuteOptions, LLMResult} from "@/kamparas/LLM";
+import {LLM, LLMExecuteOptions, LLMResult, ModelType} from "@/kamparas/LLM";
 import {EpisodicEvent} from "@/kamparas/Memory";
 import {AgentTool, final_answer_tool} from "@/kamparas/Agent";
 import OpenAI from "openai";
@@ -10,9 +10,13 @@ import {z} from "zod";
 
 abstract class BaseOpenAILLM extends LLM {
     protected openai: OpenAI;
+    private readonly model: ModelType;
+    private readonly temperature: number;
 
-    constructor() {
+    constructor(model: ModelType, temperature: number) {
         super();
+        this.model = model;
+        this.temperature = temperature;
         this.openai = new OpenAI({})
     }
 
@@ -21,10 +25,13 @@ abstract class BaseOpenAILLM extends LLM {
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(`calling llm with messages ${JSON.stringify(messages, null, 2)}`, {conversation_id: conversationId})
         }
-        const response = await this.openai.chat.completions.create({
+        const inOptions = {
             messages: messages,
-            ...options
-        })
+            ...options,
+            model: this.model,
+            temperature: this.temperature
+        }
+        const response = await this.openai.chat.completions.create(inOptions)
 
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(`Got response from llm ${JSON.stringify(response, null, 2)}`, {conversation_id: conversationId})

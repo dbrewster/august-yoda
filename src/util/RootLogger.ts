@@ -1,6 +1,6 @@
 import winston, {format, Logger} from "winston"
 
-const {combine, timestamp, printf} = format
+const {printf} = format
 
 const formatAgent = (type: string, title: string, identifier: string, conversation_id: string, maxChars: number = 60) => {
     let thisTitle = title
@@ -81,5 +81,4 @@ if (process.env.NODE_ENV === 'production') {
 
 export function setRootLoggerLevel(level: string) {
     consoleTransport.level = level.trim()
-    console.log("setting log level to ", consoleTransport.level.trim())
 }

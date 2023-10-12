@@ -1,7 +1,7 @@
 import {
     BaseWorkerDescriptor,
     BuiltinWorkerDescriptor,
-    Deployment,
+    DescriptorStatus,
     ManagerDescriptor,
     QAManagerDescriptor,
     SkilledWorkerDescriptor
@@ -13,138 +13,260 @@ import {
     BuiltinSkilledWorker
 } from "@/praxeum/Worker";
 import {MongoMemory} from "@/kamparas/internal/MongoMemory";
-import {AgentIdentifier} from "@/kamparas/Agent";
+import {Agent, AgentIdentifier, AgentStatus} from "@/kamparas/Agent";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
-import _ from "underscore";
 import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
 import yaml from "yaml"
-import fs from "node:fs";
 import {rootLogger} from "@/util/RootLogger";
 import {builtinFunctions} from "@/praxeum/BuiltinFunctions";
 import {makeLLM} from "@/kamparas/internal/LLMRegistry";
+import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
+import {shutdownMongo} from "@/util/util";
+import fs from "fs";
 
-interface DescriptorAndIdentifier<T extends BaseWorkerDescriptor> {
+interface WorkerInstance {
     identifier: AgentIdentifier
-    descriptor: T
+    descriptor: BaseWorkerDescriptor
+    worker?: Agent
 }
 
-function descriptorToIdentifier<T extends BaseWorkerDescriptor>(workerDescriptor: T) {
-    return {
-        identifier: {
+class SingleNodeDeployment {
+    private readonly dataDir: string;
+
+    constructor(dataDir: string) {
+        this.dataDir = dataDir
+    }
+
+    async initialize() {
+        const filesToRead = fs.readdirSync(this.dataDir).filter(f => f.endsWith(".yaml"))
+        let fileContents = ""
+        for (const f of filesToRead) {
+            const contents = fs.readFileSync(`${this.dataDir}/${f}`)
+            fileContents += contents.toString("utf-8") + "\n---\n"
+        }
+        console.log(await this.apply(fileContents))
+    }
+
+    descriptorToIdentifier<T extends BaseWorkerDescriptor>(workerDescriptor: T) {
+        return {
             identifier: workerDescriptor.identifier,
             title: workerDescriptor.title,
             job_description: workerDescriptor.job_description,
             input_schema: getOrCreateSchemaManager().compile(JSON.stringify(workerDescriptor.input_schema)),
             answer_schema: getOrCreateSchemaManager().compile(JSON.stringify(workerDescriptor.output_schema)),
-        } as AgentIdentifier,
-        descriptor: workerDescriptor
-    } as DescriptorAndIdentifier<T>
+        } as AgentIdentifier
+    }
+
+    allInstances: Record<string, WorkerInstance> = {}
+
+    apply = async (data: string) => {
+        const allDocs = yaml.parseAllDocuments(data)
+        const descriptors = allDocs.map(doc => {
+            // todo -- validate descriptor
+            return doc?.toJSON() as BaseWorkerDescriptor
+        }).filter(x => x != null).map(x => x!)
+
+        for (const descriptor of descriptors) {
+            if (this.allInstances[descriptor.title] && this.allInstances[descriptor.title].worker) {
+                rootLogger.info(`Stopping worker ${descriptor.title}`)
+                await this.allInstances[descriptor.title].worker!.shutdown()
+            }
+        }
+
+        // apply descriptors
+        descriptors.forEach(descriptor => {
+            if (descriptor) {
+                this.allInstances[descriptor.title] = {
+                    identifier: this.descriptorToIdentifier(descriptor),
+                    descriptor: descriptor
+                } as WorkerInstance
+            }
+        })
+
+
+        Object.values(this.allInstances).forEach(workerInstance => {
+            rootLogger.info(`processing ${workerInstance.identifier.title}`)
+            switch (workerInstance.descriptor.kind) {
+                case "BuiltinFunction": {
+                    const descriptor = workerInstance.descriptor as BuiltinWorkerDescriptor
+                    const identifier = workerInstance.identifier
+                    const environment = new RabbitAgentEnvironment()
+                    const fn = builtinFunctions[descriptor.function_name]
+                    workerInstance.worker = new BuiltinSkilledWorker({
+                        ...identifier,
+                        environment: environment,
+                    }, fn)
+                    break
+                }
+                case "SkilledWorker": {
+                    const descriptor = workerInstance.descriptor as SkilledWorkerDescriptor
+                    const identifier = workerInstance.identifier
+                    const llm = makeLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2)
+                    const memory = new MongoMemory(identifier)
+                    const environment = new RabbitAgentEnvironment()
+                    workerInstance.worker = new AutonomousSkilledWorker({
+                        ...identifier,
+                        llm: llm,
+                        memory: memory,
+                        environment: environment,
+                        initial_plan: descriptor.initial_plan,
+                        overwrite_plan: descriptor.overwrite_plan || false,
+                        initial_plan_instructions: descriptor.initial_instructions,
+                        overwrite_plan_instructions: descriptor.overwrite_plan_instructions || false,
+                        maxConcurrentThoughts: 5,
+                        availableTools: descriptor.available_tools.map(t => this.allInstances[t].identifier),
+                        manager: this.allInstances[descriptor.manager].identifier,
+                        qaManager: this.allInstances[descriptor.qaManager].identifier,
+                    })
+                    break
+                }
+                case "Manager": {
+                    const descriptor = workerInstance.descriptor as ManagerDescriptor
+                    const identifier = workerInstance.identifier
+                    const llm = makeLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2)
+                    const memory = new MongoMemory(identifier)
+                    const environment = new RabbitAgentEnvironment()
+                    workerInstance.worker = new AutonomousWorkerManager({
+                        ...identifier,
+                        llm: llm,
+                        memory: memory,
+                        environment: environment,
+                        initial_plan: descriptor.initial_plan,
+                        overwrite_plan: descriptor.overwrite_plan || false,
+                        initial_plan_instructions: descriptor.initial_instructions,
+                        overwrite_plan_instructions: descriptor.overwrite_plan_instructions || false,
+                        maxConcurrentThoughts: 5,
+                        availableTools: descriptor.available_tools.map(t => this.allInstances[t].identifier),
+                        manager: descriptor.manager ? this.allInstances[descriptor.manager].identifier : undefined
+                    })
+                    break
+                }
+
+                case "QAManager": {
+                    const descriptor = workerInstance.descriptor as QAManagerDescriptor
+                    const identifier = workerInstance.identifier
+                    const llm = makeLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2)
+                    const memory = new MongoMemory(identifier)
+                    const environment = new RabbitAgentEnvironment()
+                    workerInstance.worker = new AutonomousQAManager({
+                        ...identifier,
+                        llm: llm,
+                        memory: memory,
+                        environment: environment,
+                        initial_plan: descriptor.initial_plan,
+                        overwrite_plan: descriptor.overwrite_plan || false,
+                        initial_plan_instructions: descriptor.initial_instructions,
+                        overwrite_plan_instructions: descriptor.overwrite_plan_instructions || false,
+                        maxConcurrentThoughts: 5,
+                        availableTools: descriptor.available_tools.map(t => this.allInstances[t].identifier),
+                        manager: this.allInstances[descriptor.manager].identifier,
+                    })
+                    break
+                }
+            }
+
+            this.writeDescriptor(workerInstance.descriptor)
+        })
+
+        // now start them up
+        let numStarted = 0
+        for (const workerInstance of Object.values(this.allInstances)) {
+            if (workerInstance.descriptor.status === "started") {
+                await workerInstance.worker!.start()
+                ++numStarted
+            }
+        }
+        let message = `${numStarted} workers started\n${Object.values(this.allInstances).length - numStarted} awaiting start`;
+        rootLogger.info(message, {type: "server"})
+
+        return message
+    }
+
+    private writeDescriptor(descriptor: BaseWorkerDescriptor) {
+        fs.writeFileSync(`${this.dataDir}/${descriptor.title}.yaml`, JSON.stringify(descriptor, null, 2))
+    }
+
+    private readDescriptor(title: string): BaseWorkerDescriptor {
+        const contentsStr = fs.readFileSync(`${this.dataDir}/${title}.yaml`).toString("utf-8")
+        return JSON.parse(contentsStr) as BaseWorkerDescriptor
+    }
+
+    private toggleWorkerStatusOnDisk(title: string, newState: DescriptorStatus) {
+        const descriptor = this.readDescriptor(title)
+        if (descriptor.status != newState) {
+            descriptor.status = newState
+            this.writeDescriptor(descriptor)
+        }
+    }
+
+    async start(agent_identifiers: string[] | undefined) {
+        const jobs = {
+            toStart: [] as string[],
+            started: [] as string[],
+            doesNotExist: [] as string[]
+        }
+        if (agent_identifiers) {
+            for (const agent of agent_identifiers) {
+                if (!this.allInstances[agent]) {
+                    jobs.doesNotExist.push()
+                } else if (this.allInstances[agent].worker!.status == "started") {
+                    jobs.started.push(this.allInstances[agent].worker!.title)
+                } else {
+                    await this.allInstances[agent].worker!.start()
+                    this.toggleWorkerStatusOnDisk(this.allInstances[agent].identifier.title, "started")
+                    jobs.toStart.push(this.allInstances[agent].worker!.title)
+                }
+            }
+        } else {
+            for (const agent of Object.values(this.allInstances)) {
+                if (agent.worker!.status === "started") {
+                    jobs.started.push(agent.worker!.title)
+                } else {
+                    await agent.worker!.start()
+                    this.toggleWorkerStatusOnDisk(agent.identifier.title, "started")
+                    jobs.toStart.push(agent.worker!.title)
+                }
+            }
+        }
+        return jobs
+    }
+
+    async stop() {
+        for (const workerInstance of Object.values(this.allInstances)) {
+            await workerInstance.worker!.shutdown()
+            this.toggleWorkerStatusOnDisk(workerInstance.identifier.title, "stopped")
+        }
+        await shutdownRabbit()
+        await shutdownMongo()
+
+        return `${Object.values(this.allInstances).length} workers stopped`
+    }
+
+    status(): WorkerStatus[] {
+        return Object.values(this.allInstances).map(w => {
+            const status = !w.worker ? "stopped" : w.worker.status
+            return {
+                identifier: w.identifier,
+                status: status
+            }
+        })
+    }
 }
 
-export let allToolIdentifiers: Record<string, DescriptorAndIdentifier<any>> = {}
+let singleNodeDeployment:SingleNodeDeployment
 
-export const startServer = async (yamlFileLocation: string) => {
-    const file = fs.readFileSync(yamlFileLocation, "utf-8")
-    const deployment = yaml.parse(file) as Deployment
-
-    const builtinWorkerIdentifiers: Record<string, DescriptorAndIdentifier<BuiltinWorkerDescriptor>> = _(deployment.builtin_workers.map(descriptorToIdentifier)).indexBy((x) => x.identifier.title)
-    const skilledWorkerIdentifiers: Record<string, DescriptorAndIdentifier<SkilledWorkerDescriptor>> = _(deployment.skilled_workers.map(descriptorToIdentifier)).indexBy((x) => x.identifier.title)
-    const managerIdentifiers: Record<string, DescriptorAndIdentifier<ManagerDescriptor>> = _(deployment.managers.map(descriptorToIdentifier)).indexBy((x) => x.identifier.title)
-    const qaIdentifiers: Record<string, DescriptorAndIdentifier<QAManagerDescriptor>> = _(deployment.qa_managers.map(descriptorToIdentifier)).indexBy((x) => x.identifier.title)
-
-    allToolIdentifiers = {...builtinWorkerIdentifiers, ...skilledWorkerIdentifiers}
-
-    const builtinWorkers = Object.values(builtinWorkerIdentifiers).map(workerId => {
-        const environment = new RabbitAgentEnvironment()
-        const fn = builtinFunctions[workerId.descriptor.function_name]
-        return new BuiltinSkilledWorker({
-            ...workerId.identifier,
-            environment: environment,
-        }, fn)
-    })
-
-    const skilledWorkers: AutonomousSkilledWorker[] = []
-    for (const workerId of Object.values(skilledWorkerIdentifiers)) {
-        const llm = makeLLM(workerId.descriptor.llm)
-        const memory = new MongoMemory(workerId.identifier)
-        const environment = new RabbitAgentEnvironment()
-
-        console.log(Object.keys(managerIdentifiers))
-        const manager = managerIdentifiers[workerId.descriptor.manager]
-        const qaManager = qaIdentifiers[workerId.descriptor.qaManager]
-        await memory.recordPlan(workerId.descriptor.initial_plan)
-        await memory.recordPlanInstructions(workerId.descriptor.initial_instructions)
-        skilledWorkers.push(new AutonomousSkilledWorker({
-            ...workerId.identifier,
-            llm: llm,
-            memory: memory,
-            environment: environment,
-            model: workerId.descriptor.model,
-            temperature: workerId.descriptor.temperature || 0.2,
-            manager: manager.identifier,
-            qaManager: qaManager.identifier,
-            maxConcurrentThoughts: 5,
-            availableTools: workerId.descriptor.available_tools.map(t => allToolIdentifiers[t].identifier)
-        }))
+export function startSingleNodeServer(dataDir: string): SingleNodeDeployment {
+    if (!singleNodeDeployment) {
+        singleNodeDeployment = new SingleNodeDeployment(dataDir)
     }
+    return singleNodeDeployment
+}
 
-    const qaManagers: AutonomousQAManager[] = []
-    for (const workerId of Object.values(qaIdentifiers)) {
-        const llm = makeLLM(workerId.descriptor.llm)
-        const memory = new MongoMemory(workerId.identifier)
-        const environment = new RabbitAgentEnvironment()
+export function getSingleNodeDeployment() {
+    return singleNodeDeployment
+}
 
-        await memory.recordPlan(workerId.descriptor.initial_plan)
-        await memory.recordPlanInstructions(workerId.descriptor.initial_instructions)
-        const manager = managerIdentifiers[workerId.descriptor.manager]
-        qaManagers.push(new AutonomousQAManager({
-            ...workerId.identifier,
-            llm: llm,
-            memory: memory,
-            environment: environment,
-            model: workerId.descriptor.model,
-            temperature: workerId.descriptor.temperature || 0.2,
-            manager: manager.identifier,
-            maxConcurrentThoughts: 5,
-            availableTools: workerId.descriptor.available_tools.map(t => allToolIdentifiers[t].identifier)
-        }))
-    }
-
-    const managers: AutonomousWorkerManager[] = []
-    for (const workerId of Object.values(managerIdentifiers)) {
-        const llm = makeLLM(workerId.descriptor.llm)
-        const memory = new MongoMemory(workerId.identifier)
-        const environment = new RabbitAgentEnvironment()
-        await memory.recordPlan(workerId.descriptor.initial_plan)
-        await memory.recordPlanInstructions(workerId.descriptor.initial_instructions)
-
-        managers.push(new AutonomousWorkerManager({
-            ...workerId.identifier,
-            llm: llm,
-            memory: memory,
-            environment: environment,
-            model: workerId.descriptor.model,
-            temperature: workerId.descriptor.temperature || 0.2,
-            manager: workerId.descriptor.manager ? managerIdentifiers[workerId.descriptor.manager].identifier : undefined,
-            maxConcurrentThoughts: 5,
-            availableTools: workerId.descriptor.available_tools.map(t => allToolIdentifiers[t].identifier)
-        }))
-    }
-
-    for (const worker of builtinWorkers) {
-        await worker.initialize()
-    }
-
-    for (const worker of skilledWorkers) {
-        await worker.initialize()
-    }
-
-    for (const worker of qaManagers) {
-        await worker.initialize()
-    }
-
-    for (const worker of managers) {
-        await worker.initialize()
-    }
-    rootLogger.info("Server started", {type: "server"})
+export interface WorkerStatus {
+    identifier: AgentIdentifier
+    status: AgentStatus
 }

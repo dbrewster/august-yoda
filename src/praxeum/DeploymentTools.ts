@@ -1,5 +1,5 @@
 import {AgentIdentifier} from "@/kamparas/Agent";
-import {allToolIdentifiers} from "@/praxeum/SingleNodeDeployment";
+import {getSingleNodeDeployment} from "@/praxeum/SingleNodeDeployment";
 
 export module DeploymentTools {
     export interface FindRelevantToolsIn {
@@ -7,7 +7,7 @@ export module DeploymentTools {
     }
     export const findRelevantTools = (question: FindRelevantToolsIn): Record<"tools", AgentIdentifier[]> => {
         return {
-            tools: Object.values(allToolIdentifiers).map(x => x.identifier)
+            tools: Object.values(getSingleNodeDeployment().allInstances).map(x => x.identifier)
         }
     }
 }

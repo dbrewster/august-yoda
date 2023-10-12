@@ -69,6 +69,16 @@ export class MongoMemory extends AgentMemory {
         }, {upsert: true}).then()
     }
 
+    async planExists(): Promise<boolean> {
+        const find: Record<string, any> = {
+            type: "plan",
+            agent_title: this.agentIdentifier.title,
+            agent_id: this.agentIdentifier.identifier
+        }
+        const collection = await mongoCollection("plans")
+        return collection.findOne(find).then(d => d?.template).then(d => d)
+    }
+
     async readPlan(input: Record<string, any>, planId?: string): Promise<string> {
         const find: Record<string, any> = {
             type: "plan",
@@ -85,6 +95,16 @@ export class MongoMemory extends AgentMemory {
         }
 
         return PromptTemplate.fromTemplate(template).format(input);
+    }
+
+    async planInstructionsExists(): Promise<boolean> {
+        const find: Record<string, any> = {
+            type: "instructions",
+            agent_title: this.agentIdentifier.title,
+            agent_id: this.agentIdentifier.identifier
+        }
+        const collection = await mongoCollection("plans")
+        return collection.findOne(find).then(d => d?.template).then(d => d)
     }
 
     async readPlanInstructions(input: Record<string, any>, planId?: string): Promise<string> {
