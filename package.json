@@ -11,7 +11,8 @@
     "praxeum": "node --loader ./loader.js src/praxeum/praxeum.ts",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "basic_deployment": "node --loader ./loader.js src/praxeum/praxeum.ts start src/praxeum/concept/basic_deployment.yaml",
-    "basic_deployment_debug": "node --loader ./loader.js src/praxeum/praxeum.ts start src/praxeum/concept/basic_deployment.yaml --loglevel=debug"
+    "basic_deployment_debug": "node --loader ./loader.js src/praxeum/praxeum.ts start src/praxeum/concept/basic_deployment.yaml --loglevel=debug",
+    "sample_deployment": "node --loader ./loader.js src/praxeum/praxeum.ts start src/praxeum/sample/sample.yaml --loglevel=debug"
   },
   "keywords": [],
   "author": "",

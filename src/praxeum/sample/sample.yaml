@@ -24,6 +24,42 @@ builtin_workers:
             type: "string"
       required: ["tools"]
     num_to_start: 1
+  - title: "Tester"
+    job_description: "maybe raises"
+    identifier: "1"
+    function_name: "SampleFunctions.test"
+    available_tools: []
+    input_schema:
+      type: "object"
+      properties:
+        instructions:
+          type: "string"
+      required: ["instructions"]
+    output_schema:
+      type: "object"
+      properties:
+        response:
+          type: "string"
+      required: ["response"]
+    num_to_start: 1
+  - title: "AsyncTester"
+    job_description: "maybe raises, but asyncly"
+    identifier: "1"
+    function_name: "SampleFunctions.asyncTest"
+    available_tools: []
+    input_schema:
+      type: "object"
+      properties:
+        instructions:
+          type: "string"
+      required: ["instructions"]
+    output_schema:
+      type: "object"
+      properties:
+        response:
+          type: "string"
+      required: ["response"]
+    num_to_start: 1
   - title: "Adder"
     job_description: "Adds two numbers"
     identifier: "1"

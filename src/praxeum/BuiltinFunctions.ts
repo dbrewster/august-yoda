@@ -9,6 +9,8 @@ export const builtinFunctions: Record<string, (v:any) => any> = {
 // these are for tests
     "SampleFunctions.add": SampleFunctions.add,
     "SampleFunctions.multiply": SampleFunctions.multiply,
+    "SampleFunctions.test": SampleFunctions.test,
+    "SampleFunctions.asyncTest": SampleFunctions.asyncTest,
 
     "ConceptFunctions.list": ConceptFunctions.listAll,
     "ConceptFunctions.getDetails": ConceptFunctions.getDetails,
