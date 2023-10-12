@@ -11,7 +11,7 @@ export module ConceptFunctions {
     const logger = rootLogger
 
     interface ListAllArgs {
-        readTables: boolean
+        read_tables: boolean
     }
     export async function listAll(args: ListAllArgs) {
         const existing_concepts = await printConceptClasses({
@@ -19,18 +19,18 @@ export module ConceptFunctions {
             IncludeProperties: false,
             IncludePropertyDescriptions: false,
             IncludeReferences: false
-        }, undefined, args.readTables)
+        }, undefined, args.read_tables)
 
         return {concepts: existing_concepts}
     }
 
     // todo, we should handle errors in a uniform manner. Raising some exception so that the error is reported back to llm
     interface GetDetailsArgs {
-        conceptIdentifiers: string[], readTables: boolean
+        concept_identifiers: string[], readTables: boolean
     }
     export async function getDetails(args: GetDetailsArgs) {
         const allClasses = await getOrBuildConceptClasses(args.readTables ? "table" : "concepts")
-        const bdIds = args.conceptIdentifiers.map(id => {
+        const bdIds = args.concept_identifiers.map(id => {
             if (!allClasses[id]) {
                 logger.warn("Invalid identifier", id)
                 return id
@@ -46,20 +46,20 @@ export module ConceptFunctions {
             IncludeProperties: true,
             IncludePropertyDescriptions: false,
             IncludeReferences: true
-        }, args.conceptIdentifiers, args.readTables)
+        }, args.concept_identifiers, args.readTables)
 
         return {concept: existing_concepts}
     }
 
     interface GetDetailWithSampleArgs {
-        conceptIdentifier: string, readTables: boolean
+        concept_identifier: string, readTables: boolean
     }
     export async function getDetailWithSample(args: GetDetailWithSampleArgs) {
-        const details = await getDetails({conceptIdentifiers: [args.conceptIdentifier], readTables: args.readTables});
+        const details = await getDetails({concept_identifiers: [args.concept_identifier], readTables: args.readTables});
         if (details.error) {
             return details
         } else {
-            const rows = await getSampleRows(args.readTables ? "table" : "concepts", args.conceptIdentifier, 5)
+            const rows = await getSampleRows(args.readTables ? "table" : "concepts", args.concept_identifier, 5)
             let rowsAsStr = "<no data>"
             if (rows?.length) {
                 rowsAsStr = Object.keys(rows[0]).join(",") + "\n"
