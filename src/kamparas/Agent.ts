@@ -15,6 +15,7 @@ import {z} from "zod";
 import {Logger} from "winston"
 import {rootLogger} from "@/util/RootLogger"
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
+import {APIError} from "openai";
 
 export interface AgentTool {
     title: string
@@ -321,6 +322,11 @@ export class AutonomousAgent extends Agent {
                 const events = await this.memory.readEpisodicEventsForTask(conversationId)
                 this.logger.info(`Thinking with ${events.length} events: (Thought #${numConcurrentThoughts})`, {conversation_id: conversationId})
                 const result = await this.llm.execute({model: this.model, temperature: this.temperature}, conversationId, events).catch(async e => {
+                    // open ai api errors indicate a request issue the caller should know about
+                    if (e instanceof APIError) {
+                        e.name = "OpenAi APIError"
+                        throw e
+                    }
                     this.logger.warn(e, {conversation_id: conversationId})
                     // add an error to the episodic memory, increment the thought counter, and continue
                     await this.memory.recordEpisodicEvent({
