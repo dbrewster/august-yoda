@@ -21,6 +21,7 @@ const handleError = (res: Response, err: any = {}) => {
     rootLogger.warn(`http response: ${err.status}`)
   } else {
     rootLogger.error("http response: 500", err)
+    console.log(err.stack)
   }
   return res.status(err.status || 500).send({error: err.message});
 }
