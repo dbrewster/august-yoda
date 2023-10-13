@@ -24,6 +24,7 @@ import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 import {shutdownMongo} from "@/util/util";
 import fs from "fs";
 import {captureRejectionSymbol} from "ws";
+import YAML from "yaml";
 
 interface WorkerInstance {
     identifier: AgentIdentifier
@@ -208,12 +209,12 @@ class SingleNodeDeployment {
     }
 
     private writeDescriptor(descriptor: BaseWorkerDescriptor) {
-        fs.writeFileSync(`${this.dataDir}/${descriptor.title}.yaml`, JSON.stringify(descriptor, null, 2))
+        fs.writeFileSync(`${this.dataDir}/${descriptor.title}.yaml`, YAML.stringify(descriptor))
     }
 
     private readDescriptor(title: string): BaseWorkerDescriptor {
         const contentsStr = fs.readFileSync(`${this.dataDir}/${title}.yaml`).toString("utf-8")
-        return JSON.parse(contentsStr) as BaseWorkerDescriptor
+        return YAML.parse(contentsStr) as BaseWorkerDescriptor
     }
 
     private toggleWorkerStatusOnDisk(title: string, newState: DescriptorStatus) {
