@@ -1,0 +1,13 @@
+kind: QAManager
+title: concept_qa
+identifier: concept_qa_alpha
+job_description: You tell workers to write more tests
+initial_plan: plan
+initial_instructions: inst
+input_schema: {}
+output_schema: {}
+available_tools: []
+num_to_start: 1
+manager: qa_head_manager
+model: gpt-4
+llm: openai.function

@@ -1,0 +1,104 @@
+kind: SkilledWorker
+title: define_new_concept
+identifier: define_new_concept_alpha
+available_tools:
+  - find_base_concept
+  - find_concept_properties_and_constraints
+job_description: Defines the necessary components of a new concept.
+initial_plan: You are a helpful agent answering questions about the creation of
+  a new concept which is represented by an interface in our system. Use the set
+  of given tools to completely answer the users question in detail.
+initial_instructions: >
+  You are an agent finding information about concepts in a {system},
+  specifically for the {process} process.
+
+  Given the brand new concept {concept_name}
+
+
+  You need to find the following to define the new concept:
+    1. You need to create a very detailed definition definition of the concept. The definition should contain the details for a concept, how it is used, and how it relates to the key concepts in a {system} system for the {process} process.
+    2. You need to find the base concept this concept will derive from. 
+    3. You need to find the constraint clause and the properties on the new concept. Be absolutely certain you use the base concept found from step 2.
+
+  Define the new concept. Create a very detailed definition definition of the concept based on your knowledge as the very first thing
+input_schema:
+  type: object
+  properties:
+    system:
+      type: string
+      description: The type of system the concept exists in. Eg, CRM
+    process:
+      type: string
+      description: The system the concept exists in. Eg, revenue operations
+    concept_name:
+      type: string
+      description: The name of the concept to define. Eg, Opportunity
+  required:
+    - system
+    - process
+    - concept_name
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    concept:
+      type: object
+      properties:
+        concept_identifier:
+          type: string
+          description: A legal javascript identifier for the new concept
+        friendly_name:
+          type: string
+          description: A human readable name for the new concept
+        definition:
+          type: string
+          description: "The definition of the new concept "
+        base_concept:
+          type: string
+          description: The base concept identifier
+        constraint_query:
+          type: string
+          description: A query that constrains and maps this concept to the base concept.
+        properties:
+          type: array
+          items:
+            type: object
+            properties:
+              property_name:
+                type: string
+                description: The name of the property. The name must be a legal javascript
+                  identifier starting with a lower case character
+              friendly_name:
+                type: string
+                description: A human readable name of the property
+              description:
+                type: string
+                description: A detailed description of the property
+              type:
+                type: string
+                description: The type of the property.
+            required:
+              - property_name
+              - friendly_name
+              - description
+              - type
+            additionalProperties: false
+      required:
+        - concept_identifier
+        - friendly_name
+        - definition
+        - base_concept
+        - constraint_query
+        - properties
+      additionalProperties: false
+  required:
+    - concept
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+temperature: 0.2
+num_to_start: 1
+manager: concept_manager
+qaManager: concept_qa
+model: gpt-4
+llm: openai.function

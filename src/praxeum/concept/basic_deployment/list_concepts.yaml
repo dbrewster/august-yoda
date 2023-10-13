@@ -1,0 +1,23 @@
+kind: BuiltinFunction
+title: list_concepts
+identifier: list_concepts_alpha
+function_name: ConceptFunctions.list
+job_description: Returns all concepts used in the system. This returns the
+  interface and a description of the interface.
+input_schema:
+  type: object
+  properties: {}
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    concepts:
+      type: string
+      description: A comma separated list of concept names
+  required:
+    - concepts
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+num_to_start: 1
+available_tools: []

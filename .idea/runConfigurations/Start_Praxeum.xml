@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Start Praxeum" type="NodeJSConfigurationType" node-parameters="--loader ./loader.js src/praxeum/server.ts start " working-dir="$PROJECT_DIR$">
+    <envs>
+      <env name="PRAXEUM_DATA_DIR" value="./data" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

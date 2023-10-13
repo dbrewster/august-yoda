@@ -1,0 +1,113 @@
+kind: SkilledWorker
+title: find_concept_properties_and_constraints
+identifier: find_concept_properties_and_constraints_alpha
+available_tools:
+  - concept_details_and_sample
+  - concept_query_interfaces
+job_description: Finds the optimal set of properties for the the concept given
+  information about the new concept and a base concept and finds a query that
+  maps the new concept to the base concept
+initial_plan: You are a helpful agent answering questions about generating
+  information about creating or modifying interfaces in a concept graph. Use the
+  set of given tools to completely answer the users question in detail.
+initial_instructions: >
+  You are an agent finding information about concepts in a {system},
+  specifically for the {process} process.
+
+  Given the brand new concept {concept_name} and it's description:
+
+  {concept_description}
+
+
+  And a base concept of {base_concept}
+
+
+  You are finding the optimal set of properties that should exist on this new concept. You will do this by:
+    1. Use the provided tool to load the definition of the query interfaces
+    2. Get a detailed description of the base concept, {base_concept}
+    3. Analyze the properties to determine which properties you can drop off of the new concept. You can drop properties that will only appear in a where clause to create this concept, or properties that are no longer relevant to the new concept. You can also combine properties into higher order properties, if that is necessary.
+    4. Generate a Query that maps the base object to this object. You will be filling in the the "where" and "return" parts of the query. The query will start with "Query({base_concept}).
+    5. Filter the properties to the necessary list. Explain why you filtered a property
+    6. Finally return the new properties and the mapping query
+
+    
+  Define the properties and constraint query for the new concept
+
+
+  Think about how each interface is used in a {system} process and write your intermediate results
+input_schema:
+  type: object
+  properties:
+    system:
+      type: string
+      description: The type system we are defining concepts for
+    process:
+      type: string
+      description: The specific process in the system we are defining for
+    concept_name:
+      type: string
+      description: The name of the concept
+    concept_description:
+      type: string
+      description: A detailed description of the concept we are finding the base concept for
+    base_concept:
+      type: string
+      description: The identifier of the base concept to derive the properties from
+  required:
+    - system
+    - process
+    - concept_name
+    - concept_description
+    - base_concept
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    constraint_query:
+      type: string
+      description: The constraint query that maps this concept to the base concept
+    properties:
+      type: array
+      items:
+        type: object
+        properties:
+          property_name:
+            type: string
+            description: The name of the property. The name must be a legal javascript
+              identifier starting with a lower case character
+          friendly_name:
+            type: string
+            description: A human readable name of the property
+          description:
+            type: string
+            description: A detailed description of the property
+          type:
+            type: string
+            description: The type of the property.
+          reason:
+            type: string
+            description: The reason why this property is on the property and why it should
+              be kept
+          should_drop:
+            type: boolean
+            description: Should this property be dropped or kept on the concept
+        required:
+          - property_name
+          - friendly_name
+          - description
+          - type
+          - reason
+          - should_drop
+        additionalProperties: false
+  required:
+    - constraint_query
+    - properties
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+temperature: 0.2
+num_to_start: 1
+manager: concept_manager
+qaManager: concept_qa
+model: gpt-4
+llm: openai.function

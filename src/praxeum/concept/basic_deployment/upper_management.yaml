@@ -1,0 +1,20 @@
+kind: Manager
+title: upper_management
+identifier: upper_management_alpha
+job_description: job description
+initial_plan: plan
+initial_instructions: inst
+input_schema:
+  type: object
+  properties: {}
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties: {}
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+available_tools: []
+num_to_start: 1
+model: gpt-4
+llm: openai.function

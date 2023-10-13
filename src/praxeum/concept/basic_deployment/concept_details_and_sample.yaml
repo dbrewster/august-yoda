@@ -1,0 +1,29 @@
+kind: BuiltinFunction
+title: concept_details_and_sample
+identifier: concept_details_and_sample_alpha
+function_name: ConceptFunctions.getDetailsWithSample
+job_description: Returns the description and properties of an object. It also
+  returns 5 sample rows of data.
+input_schema:
+  type: object
+  properties:
+    concept_identifier:
+      type: string
+      description: The instance name of the concept to get the detail of. Must be a
+        valid javascript identifier
+  required:
+    - concept_identifier
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    concept:
+      type: string
+      description: A string describing details for the requested concept with sample rows
+  required:
+    - concept
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+num_to_start: 1
+available_tools: []

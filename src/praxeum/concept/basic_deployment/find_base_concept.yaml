@@ -1,0 +1,68 @@
+kind: SkilledWorker
+title: find_base_concept
+identifier: find_base_concept_alpha
+available_tools:
+  - list_concepts
+  - concept_details
+job_description: Finds the base concept for a new concept.
+initial_plan: You are a helpful agent answering questions about generating
+  information about creating or modifying interfaces in a concept graph. Use the
+  set of given tools to completely answer the users question in detail.
+initial_instructions: >
+  You are an agent finding information about concepts in a {system},
+  specifically for the {process} process.
+
+  Given the brand new concept {concept_name} and it's definition:
+
+  {concept_definition}
+
+
+  You are finding the correct base concept to derive this concept from. You can think of the base concept as a delegate concept for this new type. The base concept must be at the same grain, or level, as the new concept.
+
+
+  Find the list of base concepts that might be a match. Return the concept name, a reason why it was chosen, and a probability, between 0 and 1, that it is a good candidate.
+
+
+  Once you have the list, order the list by best probability (closest to 1), limit the check to 3-5 items, and then check the result by getting the details of the top few candidates. Use the details to make your final decision.
+
+
+  Think about how each interface is used in a {system} process and write your intermediate results
+input_schema:
+  type: object
+  properties:
+    system:
+      type: string
+      description: The type system we are defining concepts for
+    process:
+      type: string
+      description: The specific process in the system we are defining for
+    concept_name:
+      type: string
+      description: The name of the concept
+    concept_definition:
+      type: string
+      description: A very detailed definition of the concept we are finding the base
+        concept for
+  required:
+    - system
+    - process
+    - concept_name
+    - concept_definition
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    base_concept:
+      type: string
+      description: "The identifier of the base concept "
+  required:
+    - base_concept
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+temperature: 0.2
+num_to_start: 1
+manager: concept_manager
+qaManager: concept_qa
+model: gpt-4
+llm: openai.function
