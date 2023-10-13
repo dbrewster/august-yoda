@@ -6,7 +6,6 @@ identifier: "1"
 function_name: "DeploymentTools.findRelevantTools"
 available_tools: []
 input_schema:
-  $id: "http://yourdomain.com/schemas/findRelevantTools_in.json"
   type: "object"
   properties:
     tool_description:
@@ -14,7 +13,6 @@ input_schema:
       description: "A detailed description of the tool you are looking for"
   required: ["tool_description"]
 output_schema:
-  $id: "http://yourdomain.com/schemas/findRelevantTools_out.json"
   type: "object"
   properties:
     tools:
@@ -35,7 +33,6 @@ initial_plan: "You are a helpful agent designed find tools in the system. Break 
 initial_instructions: '{tool_description}
   Let''s think step by step.'
 input_schema:
-  $id: "http://yourdomain.com/schemas/frt_in.json"
   type: "object"
   properties:
     tool_description:
@@ -43,7 +40,6 @@ input_schema:
       description: "A detailed description of the tool you are looking for"
   required: ["tool_description"]
 output_schema:
-  $id: "http://yourdomain.com/schemas/frt_out.json"
   type: "object"
   properties:
     tools:
@@ -81,7 +77,6 @@ initial_plan: |
 initial_instructions: '{problem}
   Let''s think step by step.'
 input_schema:
-  $id: "http://yourdomain.com/schemas/dt_manager_in.json"
   type: "object"
   properties:
     problem:
@@ -89,7 +84,6 @@ input_schema:
       description: "The problem to solve"
   required: [ "problem" ]
 output_schema:
-  $id: "http://yourdomain.com/schemas/dt_manager_out.json"
   type: "object"
   properties:
     result:

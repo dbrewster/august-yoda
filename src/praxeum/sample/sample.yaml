@@ -50,7 +50,6 @@ identifier: "1"
 function_name: "SampleFunctions.add"
 available_tools: []
 input_schema:
-  $id: "http://yourdomain.com/schemas/adder_in.json"
   type: "object"
   properties:
     a:
@@ -61,7 +60,6 @@ input_schema:
       description: "The RHS value"
   required: ["a", "b"]
 output_schema:
-  $id: "http://yourdomain.com/schemas/adder_out.json"
   type: "object"
   properties:
     x:
@@ -78,7 +76,6 @@ job_description: "Multiplies two numbers"
 available_tools: []
 function_name: "SampleFunctions.multiply"
 input_schema:
-  $id: "http://yourdomain.com/schemas/mult_in.json"
   type: "object"
   properties:
     a:
@@ -89,7 +86,6 @@ input_schema:
       description: "The RHS value"
   required: ["a", "b"]
 output_schema:
-  $id: "http://yourdomain.com/schemas/mult_out.json"
   type: "object"
   properties:
     x:
@@ -113,7 +109,6 @@ initial_plan: |
 initial_instructions: '{problem}
   Let''s think step by step.'
 input_schema:
-  $id: "http://yourdomain.com/schemas/maths_in.json"
   type: "object"
   properties:
     problem:
@@ -121,7 +116,6 @@ input_schema:
       description: "The math question"
   required: ["problem"]
 output_schema:
-  $id: "http://yourdomain.com/schemas/maths_out.json"
   type: "object"
   properties:
     x:
@@ -151,7 +145,6 @@ initial_plan: |
 initial_instructions: '{problem}
   Let''s think step by step.'
 input_schema:
-  $id: "http://yourdomain.com/schemas/math_manager_in.json"
   type: "object"
   properties:
     problem:
@@ -159,7 +152,6 @@ input_schema:
       description: "The problem to solve"
   required: [ "problem" ]
 output_schema:
-  $id: "http://yourdomain.com/schemas/math_manager_out.json"
   type: "object"
   properties:
     result:
@@ -182,7 +174,6 @@ available_tools: []
 initial_plan: "You are a helpful agent designed do qa for other agents. Break the problem down into steps and use the tool available when needed. Return the answer when you know it"
 initial_instructions: "{problem}"
 input_schema:
-  $id: "http://yourdomain.com/schemas/math_qa_in.json"
   type: "object"
   properties:
     problem:
@@ -190,7 +181,6 @@ input_schema:
       description: "The problem to solve"
   required: [ "problem" ]
 output_schema:
-  $id: "http://yourdomain.com/schemas/math_qa_out.json"
   type: "object"
   properties:
     result:
