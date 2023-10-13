@@ -6,7 +6,7 @@ import {createServer} from "http";
 import {ErrorRequestHandler} from "express-serve-static-core";
 import {promiseMiddleware} from "@/yoda/api/promise-middleware";
 import {Command, Option} from "commander";
-import {setRootLoggerLevel} from "@/util/RootLogger";
+import {rootLogger, setRootLoggerLevel} from "@/util/RootLogger";
 import process from "process";
 import fs, {MakeDirectoryOptions} from "fs";
 import {getSingleNodeDeployment, startSingleNodeServer} from "@/praxeum/SingleNodeDeployment";
@@ -17,7 +17,7 @@ dotenv.config();
 const dataDir = `${process.env.PRAXEUM_DATA_DIR}`
 
 const handler: ErrorRequestHandler = (err, req, res, next) => {
-    console.trace("Error in handling request", err)
+    rootLogger.error("Error in handling request", err)
     res.status(500)
     res.send(err)
 }

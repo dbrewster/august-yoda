@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import http from "http";
 import {stat} from "fs";
+import {rootLogger} from "@/util/RootLogger";
 
 declare module "express-serve-static-core" {
   interface Response<
@@ -11,8 +12,18 @@ declare module "express-serve-static-core" {
     promise: (p: (Promise<any> | any)) => any
   }
 }
-const handleResponse = (res: Response, data: any) => res.status(200).send(data);
-const handleError = (res: Response, err: any = {}) => res.status(err.status || 500).send({error: err.message});
+const handleResponse = (res: Response, data: any) => {
+  rootLogger.info("http response:  200")
+  return res.status(200).send(data);
+}
+const handleError = (res: Response, err: any = {}) => {
+  if (err.status && err.status < 500) {
+    rootLogger.warn(`http response: ${err.status}`)
+  } else {
+    rootLogger.error("http response: 500", err)
+  }
+  return res.status(err.status || 500).send({error: err.message});
+}
 
 export function promiseMiddleware() {
   return (req: Request, res: Response, next: any) => {

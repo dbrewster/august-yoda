@@ -38,7 +38,16 @@ class SingleNodeDeployment {
     }
 
     async initialize() {
-        const filesToRead = fs.readdirSync(this.dataDir).filter(f => f.endsWith(".yaml"))
+        let allFiles
+        try {
+            allFiles = fs.readdirSync(this.dataDir);
+        } catch {
+            console.log("making data dir " + this.dataDir)
+            fs.mkdirSync(this.dataDir)
+            allFiles = fs.readdirSync(this.dataDir);
+        }
+
+        const filesToRead = allFiles.filter(f => f.endsWith(".yaml"))
         let fileContents = ""
         for (const f of filesToRead) {
             const contents = fs.readFileSync(`${this.dataDir}/${f}`)
@@ -82,6 +91,21 @@ class SingleNodeDeployment {
                 } as WorkerInstance
             }
         })
+
+        const missing = Object.values(this.allInstances).flatMap(wi => {
+            let deps = wi.descriptor.available_tools;
+            if ('manager' in wi.descriptor && wi.descriptor.manager) {
+                deps.push(wi.descriptor.manager as string)
+            }
+            if ('qaManager' in wi.descriptor && wi.descriptor.qaManager) {
+                deps.push(wi.descriptor.qaManager as string)
+            }
+            return deps
+        }).filter(i => !(i in this.allInstances))
+        if (missing.length > 0) {
+            rootLogger.error(`Missing referenced objects ${missing}`)
+            throw Error(`Missing referenced objects ${missing}`)
+        }
 
 
         Object.values(this.allInstances).forEach(workerInstance => {

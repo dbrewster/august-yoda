@@ -23,7 +23,7 @@ program.name("praxeum")
     .version("0.0.1")
 
 program.command("apply")
-    .description("Starts the server")
+    .description("updates yamls for server")
     .argument("<path...>", "the path to the descriptor file(s)")
     .action(async (path) => {
         setRootLoggerLevel("info")
@@ -36,7 +36,7 @@ program.command("apply")
         axios.post(`${praxeumURL}/server/apply`, data, textOptions).then(r => {
             rootLogger.info(`Applied with status ${r.status}: ${r.data}`)
         }).catch(e => {
-            rootLogger.error(`Error starting server:`, e)
+            rootLogger.error(`Error applying:`, e)
         })
     })
 program.command("stop")
