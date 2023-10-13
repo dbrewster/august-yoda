@@ -23,6 +23,7 @@ import {makeLLM} from "@/kamparas/internal/LLMRegistry";
 import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 import {shutdownMongo} from "@/util/util";
 import fs from "fs";
+import {captureRejectionSymbol} from "ws";
 
 interface WorkerInstance {
     identifier: AgentIdentifier
@@ -134,9 +135,9 @@ class SingleNodeDeployment {
                         memory: memory,
                         environment: environment,
                         initial_plan: descriptor.initial_plan,
-                        overwrite_plan: descriptor.overwrite_plan || false,
+                        overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                         initial_plan_instructions: descriptor.initial_instructions,
-                        overwrite_plan_instructions: descriptor.overwrite_plan_instructions || false,
+                        overwrite_plan_instructions: descriptor.overwrite_plan_instructions || process.env.OVERWRITE_PLAN_INSTRUCTIONS === "true",
                         maxConcurrentThoughts: 5,
                         availableTools: descriptor.available_tools.map(t => this.allInstances[t].identifier),
                         manager: this.allInstances[descriptor.manager].identifier,

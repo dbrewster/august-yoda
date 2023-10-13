@@ -56,7 +56,7 @@ program.command("start")
         axios.post(`${praxeumURL}/server/start`, "", textOptions).then(r => {
             rootLogger.info(`Server started with status ${r.status}: ${r.data}`)
         }).catch(e => {
-            rootLogger.error(`Error stopping server:`, e)
+            rootLogger.error(`Error starting server:`, e)
         })
     })
 
