@@ -4,8 +4,6 @@ identifier: define_new_concept_alpha
 available_tools:
   - find_base_concept
   - find_concept_properties_and_constraints
-  - basic_manager
-  - concept_qa
 job_description: Defines the necessary components of a new concept.
 initial_plan: You are a helpful agent answering questions about the creation of
   a new concept which is represented by an interface in our system. Use the set
@@ -104,4 +102,3 @@ manager: basic_manager
 qaManager: concept_qa
 model: gpt-3.5-turbo-16k
 llm: openai.function
-status: started

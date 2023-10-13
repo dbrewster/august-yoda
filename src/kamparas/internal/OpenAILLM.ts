@@ -167,7 +167,10 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
                 parameters: helper.input_schema.schema as Record<string, any>
             }
         })
-        return `Try using one of these tools [${availableHelpers.map(t => t.title).join(",")}] to find the answer or return an appropriate negative response, an empty response or "I don't know" if you still can not answer the question.`
+        return `You have the following tools available to you:
+        [${availableHelpers.map(t => t.title).join(",")}]
+        
+        Return an appropriate negative response (an empty object or "I don't know") if you cannot answer the question or are not making progress`
     }
 
     formatMessage(event: EpisodicEvent): ChatCompletionMessageParam {

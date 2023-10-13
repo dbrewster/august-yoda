@@ -4,8 +4,6 @@ identifier: find_base_concept_alpha
 available_tools:
   - list_concepts
   - concept_details
-  - basic_manager
-  - concept_qa
 job_description: Finds the base concept for a new concept.
 initial_plan: You are a helpful agent answering questions about generating
   information about creating or modifying interfaces in a concept graph. Use the
@@ -68,4 +66,3 @@ manager: basic_manager
 qaManager: concept_qa
 model: gpt-3.5-turbo-16k
 llm: openai.function
-status: started

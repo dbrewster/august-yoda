@@ -24,4 +24,3 @@ output_schema:
   $schema: http://json-schema.org/draft-07/schema#
 num_to_start: 1
 available_tools: []
-status: started

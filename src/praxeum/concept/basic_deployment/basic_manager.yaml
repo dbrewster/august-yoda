@@ -30,19 +30,9 @@ input_schema:
       type: string
       description: issue at hand
     available_tools:
-      type: array
-      items:
-        type: object
-        properties:
-          tool_name:
-            type: string
-          tool_description:
-            type: string
-        required:
-          - tool_name
-          - tool_description
-        additionalProperties: false
-      description: A list of external resources I have available
+      type: string
+      description: A list of external resources I have available and short a short
+        description of each.
     context:
       type: string
       description: information relevant to the question
@@ -65,4 +55,3 @@ available_tools: []
 num_to_start: 1
 model: gpt-4
 llm: openai.function
-status: started
