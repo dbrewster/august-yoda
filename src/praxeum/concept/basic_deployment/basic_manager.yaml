@@ -26,7 +26,7 @@ initial_instructions: >
 input_schema:
   type: object
   properties:
-    question:
+    problem:
       type: string
       description: issue at hand
     available_tools:
@@ -47,7 +47,7 @@ input_schema:
       type: string
       description: information relevant to the question
   required:
-    - question
+    - problem
     - available_tools
     - context
   additionalProperties: false

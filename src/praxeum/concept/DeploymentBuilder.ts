@@ -78,7 +78,7 @@ Here is some context for the problem:
 {context}
 `,
         input_schema: zodToJsonSchema(z.object({
-            question: z.string().describe("issue at hand"),
+            problem: z.string().describe("issue at hand"),
             available_tools: z.array(z.object({tool_name: z.string(), tool_description: z.string()})).describe("A list of external resources I have available"),
             context: z.string().describe("information relevant to the question"),
         })),
@@ -105,7 +105,7 @@ let qaManager: QAManagerDescriptor = {
 {solution}`,
     input_schema: zodToJsonSchema(z.object({
         question: z.string().describe("The question which needs validating"),
-        answer: z.string().describe("The proposed solution to that question")
+        solution: z.string().describe("The proposed solution to that question")
     })),
     output_schema: zodToJsonSchema(z.object({
         rational: z.string().describe("Rational for "),
