@@ -1,0 +1,39 @@
+kind: SystemWorker
+title: memory_importance_rater
+identifier: memory_importance_rater_1
+available_tools: []
+job_description: Reflects on memories to decide their importance
+initial_plan: You are a helpful agent which rates the importance of memories. 
+  Consider the following memory and context and give it an importance rating between 0 and 10.
+  10 represents a paradigm shift that will be extremely useful when answering future questions.
+  0 represents a trivial event which the agent should forget. Think step by
+  step
+initial_instructions: "{memory}"
+input_schema:
+  type: object
+  properties:
+    memory:
+      type: string
+  required:
+    - memory
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    reason:
+      type: string
+      description: The reason for determining the importance of a memory
+    importance:
+      type: number
+      description: The importance rating of a memory between 0 and 10
+  required:
+    - reason
+    - importance
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+temperature: 0.8
+num_to_start: 1
+model: gpt-4
+llm: openai.function
+max_thoughts: 20

@@ -87,16 +87,16 @@ export class SemanticMemoryService extends ServiceAgent {
         const _agentId = instruction.input.agent_id
         const _conversationId = instruction.input.conversation_id
 
-        const sm = await new SemanticMemoryClient(_agentId).initialize() //todo, this is wrong
+        const sm = await new SemanticMemoryClient(_agentId, false, this.logger).initialize() //todo, this is wrong
         const mm = new MongoMemory({title: _agentType, identifier: _agentId} as AgentIdentifier)
         let events = await mm.readEpisodicEventsForTask(_conversationId);
-        const eventsStr = events.map((e, index) => {
+        const eventsStr: string = YAML.stringify(events.map((e, index) => {
             return {
                 event_id: index,
                 role: typeRoleMap[e.type],
                 content: e.content,
             }
-        }).map(o => YAML.stringify(o))
+        }))
 
         const found = await this.askForHelp(conversationId, 'semantic_memory_creator', {
             number_of_insights: 2,

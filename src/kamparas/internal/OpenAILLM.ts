@@ -262,7 +262,7 @@ At each step consider if you know the final answer. You MUST use the ${final_ans
 
 export const typeRoleMap: Record<string, 'system' | 'user' | 'assistant' | 'function'> = {
     plan: "system",
-    instructions: "user",
+    instruction: "user",
     hallucination: "user",
     help: "assistant",
     llm_error: "user",

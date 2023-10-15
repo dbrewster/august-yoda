@@ -96,7 +96,7 @@ export abstract class Agent implements EnvironmentHandler {
 
     processInstructionError(instruction: NewTaskInstruction, error: any): void {
         if (error instanceof Error) {
-            this.logger.error("Error processing Instruction", error)
+            this.logger.error(error)
         } else {
             this.logger.error("Error processing Instruction\n" + YAML.stringify(error))
         }

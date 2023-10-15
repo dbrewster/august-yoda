@@ -17,7 +17,7 @@ export interface EpisodicEvent {
     timestamp: string,
 }
 
-export type SemanticEventType = ("insight")
+export type SemanticEventType = ("thought" | "observation"| "helpAndResponse" | "insight")
 
 export interface SemanticMemory {
     type: SemanticEventType,
