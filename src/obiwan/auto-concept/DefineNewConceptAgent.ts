@@ -14,7 +14,9 @@ export class DefineNewConceptAgent extends Agent {
                 name: "define_new_concept",
                 description: "Defines the necessary components of a new concept.",
                 humanMessage: `You are an agent finding information about concepts in a {system}, specifically for the {process} process.
-Given the brand new concept {concept_name}
+  Given the brand new concept {concept_name} and it's definition:
+
+  {concept_definition}
 
 You need to find the following to define the new concept:
   1. You need to create a very detailed definition definition of the concept. The definition should contain the details for a concept, how it is used, and how it relates to the key concepts in a {system} system for the {process} process.
@@ -31,6 +33,7 @@ Define the new concept. Create a very detailed definition definition of the conc
                 outputSchema: z.object({
                     concept: z.object({
                         concept_identifier: z.string().describe("A legal javascript identifier for the new concept"),
+                        concept_definition: z.string().describe("The definition of the concept to use"),
                         friendly_name: z.string().describe("A human readable name for the new concept"),
                         definition: z.string().describe("The definition of the new concept "),
                         base_concept: z.string().describe("The base concept identifier"),

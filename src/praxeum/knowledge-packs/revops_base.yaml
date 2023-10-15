@@ -1,8 +1,13 @@
 apiVersion: ad/v1
-kind: KnowledgePack
+kind: MetaConcept
+title: revops_opportunity
+knowledge_pack: revops
+system: CRM
+process: revenue operations
 name: opportunity
+type: RootConcept
 friendlyName: Opportunity
-definition: |
+concept_definition: |
   Opportunity in a Customer Relationship Management (CRM) system is an essential feature that tracks potential sales or deals with an existing or new customer. Primarily, it is used to manage and analyze customer interactions and data throughout the customer life cycle, aiding in customer retention and driving sales growth. 
   In the context of revenue operations, opportunity tracking becomes crucial. Here, an opportunity might refer to a significant sale, upsell, cross-sell, or any other revenue-generating event that is not guaranteed but has the potential to fortify financial growth if successfully executed. 
   This feature allows the revenue operations team to effectively gauge the company’s potential income during a specific period, assisting them in forecasting, pipeline management, and strategic decision-making based on the probability of concluding these opportunities.
@@ -14,10 +19,15 @@ definition: |
   
 ---
 apiVersion: ad/v1
-kind: KnowledgePack
+kind: MetaConcept
+knowledge_pack: revops
+system: CRM
+process: revenue operations
+title: revops_account
 name: account
+type: RootConcept
 friendlyName: Account
-definition: |
+concept_definition: |
   An Account in a Customer Relationship Management (CRM) system, specifically for revenue operations functions, serves as a centralized database containing structured, categorized, and comprehensive information about each client or customer. It establishes a holistic view, tracking all customer interactions, sales, and transactions for accurate financial data management.
   In the context of revenue operations, an Account entails an overview of the revenue generated from a specific customer and the potential revenue, thus assisting in future forecasting and strategic planning. The information may include customer's name, contact details, communication history, transactions, invoices, and contracts along with financial key performance indicators, such as Average Revenue Per User (ARPU), Customer Lifetime Value (CLV), and customer acquisition costs.
   It tracks the payment history of the client which includes data on paid and outstanding invoices, types and modes of payment, and transaction timelines. It also monitors and tracks the buying behaviors, upselling and cross-selling opportunities, product preferences, service histories, and customer loyalty metrics.
@@ -31,10 +41,15 @@ definition: |
 
 ---
 apiVersion: ad/v1
-kind: KnowledgePack
+kind: MetaConcept
+title: revops_campaign
+knowledge_pack: revops
+system: CRM
+process: revenue operations
 name: campaign
+type: RootConcept
 friendlyName: Campaign
-definition: |
+concept_definition: |
   In a CRM system, a Campaign is a targeted and structured plan geared towards achieving business goals. Specifically for revenue operations functions, a Campaign represents actions and strategies for sales; designed to capture leads, convert them into customers, ensure customer retention, and increase business revenue. These strategies could include email marketing, social media promotions, direct mail, content marketing, SEO, webinars, or any combination thereof.
   The Campaign functionality in a CRM system allows revenue operations teams to plan, create, manage, execute, and track multichannel marketing campaigns from within the system, and across different touch points. It helps the team to identify which strategies are successful and which need improvement by thoroughly tracking engagements, interactions, conversions, and revenue associated with each campaign.
   Also, the Campaign in a CRM system can capture all the costs associated with the campaign. This can include the operational costs, technology costs, marketing costs, and every other cost incurred during the campaign. This information is leveraged not only to calculate the overall ROI of the campaign, but it also provides valuable insights into areas where costs can be reduced, or budget allocation can be optimized for future campaigns.
@@ -44,9 +59,14 @@ definition: |
 ---
 apiVersion: ad/v1
 kind: KnowledgePack
+title: revops_opportunity_history
+knowledge_pack: revops
+system: CRM
+process: revenue operations
 name: opportunity_history
+type: RootConcept
 friendlyName: Opportunity History
-definition: |
+concept_definition: |
   Opportunity History in a CRM (Customer Relationship Management) system primarily refers to the complete tracked record of all interactions, changes, and progression that occurred with a particular sales opportunity from its inception to closure. Within revenue operations functions, Opportunity History specifically involves the meticulous overview, evaluation, and analysis of sales processes with each client or customer, and highlights performance in terms of sales generation and revenue.
   The Opportunity History provides crucial details such as date created, date closed, stages of progression, status changes, amounts, correspondence or dialogue with the customer, reasons for losing or winning the opportunity, and the involved sales representative's name. This data-driven timeline provides insights into the sales cycle duration, the effectiveness of sales tactics, and client's behavior patterns. 
   For revenue operations, the Opportunity History serves as a vital analytical tool. It provides deep insights into customers’ previous experiences, helping the team to design better strategies for future interactions. It enables accurate sales forecasting, performance assessment, identification of bottlenecks or improvements in sales processes, thereby enhancing the efficiency of revenue operations.
@@ -54,10 +74,15 @@ definition: |
 
 ---
 apiVersion: ad/v1
-kind: KnowledgePack
+kind: MetaConcept
+title: revops_opportunity_line_item
+knowledge_pack: revops
+system: CRM
+process: revenue operations
 name: opportunity_line_item
+type: RootConcept
 friendlyName: Opportunity Line Item
-definition: |
+concept_definition: |
   Opportunity Line Item in a Customer Relationship Management (CRM) system, specifically for the revenue operations function, refers to the specific product or service associated with a sales opportunity within the software. Every opportunity contains one or more line items that amount to the total opportunity value. 
   Essentially, it is a detailed record or breakdown of each product or service that is being considered by a potential customer or client in a particular opportunity. This detailed record would include pertinent information such as quantity, price, discount, date of delivery, product code, and any other product-specific details. The line item, therefore, gives a more granular view of the revenue expected from each product or service, as part of the business deal.
   In terms of revenue operations, the Opportunity Line Item plays a critical role in forecasting, planning, revenue recognition, and sales analysis. It aids in understanding the products or services that are more likely to close, more profitable, or more popular among customers. This granularity helps the revenue operation teams to map and optimize the revenue cycle more accurately and effectively, by strategizing and aligning their marketing, sales, and customer success efforts towards greater revenue growth. 
@@ -65,10 +90,15 @@ definition: |
 
 ---
 apiVersion: ad/v1
-kind: KnowledgePack
+kind: MetaConcept
+title: revops_pricebook
+knowledge_pack: revops
+system: CRM
+process: revenue operations
 name: pricebook
+type: RootConcept
 friendlyName: Pricebook
-definition: |
+concept_definition: |
   In the context of a Customer Relationship Management (CRM) system, a Pricebook is a critical feature related specifically to the revenue operations functions. This feature is essentially a database or catalog that houses information about all available products or services that a business provides, together with their respective prices.
   In Sales or Revenue Operations, a Pricebook plays a crucial role in streamlining, standardizing, and managing the sales process. Each Pricebook might consist of multiple Pricebook entries, each representing a unique combination of a product and the corresponding price. 
   The overall goal of a Pricebook is to ensure evaluation, comparison, and selection of products or services are more efficient and profitable. 
@@ -78,10 +108,15 @@ definition: |
 
 ---
 apiVersion: ad/v1
-kind: KnowledgePack
-name: pricebook
-friendlyName: Pricebook
-definition: |
+kind: MetaConcept
+title: revops_pricebook_entry
+knowledge_pack: revops
+system: CRM
+process: revenue operations
+name: pricebook_entry
+type: RootConcept
+friendlyName: Pricebook Entry
+concept_definition: |
   A Pricebook Entry in CRM (Customer Relationship Management) system, specifically pertaining to the revenue operations functions, is a detailed record or list of all the products or services a company offers to its customers, along with their corresponding prices. It serves as the point of reference and the basis for quotes, contracts, and sales orders.
   Each Pricebook Entry, in the broader context of Revenue Operations (RevOps), is a composite of data fields that hold certain properties of a product or service, such as SKU, name, description, unit price, and possibly, the currency of the amount (if the company operates in multi-currency context). The price may be based on specific parameters like volume, region, or customer type which helps with the application of discounts, if applicable.
   Furthermore, CRM can have multiple Pricebooks, each one taking into account unique variables like territory, demand, negotiations, and competitive context. Each item in the Pricebook contains metadata that consists of: a unique ID, creation date, name of the creator, last modified date, and name of the user who last edited it, among other things.
@@ -89,10 +124,15 @@ definition: |
 
 ---
 apiVersion: ad/v1
-kind: KnowledgePack
+kind: MetaConcept
+title: revops_product
+knowledge_pack: revops
+system: CRM
+process: revenue operations
 name: product
+type: RootConcept
 friendlyName: Product
-definition: |
+concept_definition: |
   In a Customer Relationship Management (CRM) system, a product refers to either a tangible item, a service, or an intangible offering that a company sells. For the revenue operations functions, a product is considered as a central unit that often serves as a primary source of the company’s income generation.
   In this context, a product's details typically include its name, product ID, price, quantity available, description, vendor, and other relevant information that directly influence sales activities. Products can also be classified into different categories and be part of various price books depending on regional, market, or customer segment pricing strategies.
   The product feature in a CRM system allows revenue operations to efficiently manage their entire product portfolio. Product information provides critical data to generate quotes, create sales orders, and complete sales. 
@@ -102,10 +142,15 @@ definition: |
 
 ---
 apiVersion: ad/v1
-kind: KnowledgePack
+kind: MetaConcept
+title: revops_user
+knowledge_pack: revops
+system: CRM
+process: revenue operations
 name: user
+type: RootConcept
 friendlyName: User
-definition: |
+concept_definition: |
   A User in a Customer Relationship Management (CRM) system, specifically for the revenue operations functions, represents an individual who uses the CRM system to organize, track, analyze and optimize the revenue generation process within a business. This person has specific permissions and roles within the software that allow them to access, manipulate, and interpret revenue-related data.
   These users are generally team members in the sales, marketing, and customer service departments, who deal directly with customer data and revenue-related processes. They could also be executives, managers, or anyone who needs to understand the company's revenue trends and performance on a holistic level to make strategic business decisions.
   Users have the ability to track leads, opportunities, deals, and customers, follow up with the sales process, monitor customer interactions, and generate reports that provide insights related to revenue. This helps them to identify trends, forecast sales, measure performance against sales quotas, and identify areas of improvement to enhance the revenue-generating potential of the business. 

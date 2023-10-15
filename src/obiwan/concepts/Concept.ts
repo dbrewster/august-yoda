@@ -6,7 +6,8 @@ export type ConceptPropertyType = SchemaColumnType
 
 export interface Concept {
   name: string,
-  tableName?: string,
+  base_concept: string,
+  constraint_query: string
   type: ConceptType,
   friendlyName: string,
   description: string

@@ -1,12 +1,13 @@
 import {LLM, LLMExecuteOptions, LLMResult, ModelType} from "@/kamparas/LLM";
 import {EpisodicEvent} from "@/kamparas/Memory";
-import {AgentTool, final_answer_tool} from "@/kamparas/Agent";
+import {AgentTool} from "@/kamparas/Agent";
 import OpenAI from "openai";
 import {ChatCompletionMessageParam} from "openai/resources/chat";
 import JSON5 from "json5";
 import {HelpResponse} from "@/kamparas/Environment";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
 import {z} from "zod";
+import {final_answer_tool} from "@/kamparas/AutonomousAgent";
 
 abstract class BaseOpenAILLM extends LLM {
     protected openai: OpenAI;
@@ -113,7 +114,7 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
     private functions?: any
     thought_and_observation_tool = {
         title: "thought_or_observation",
-        job_description: "Records a very detailed thought or observation you might have.",
+        job_description: "Records a thought or observation you might have.",
         input_schema: getOrCreateSchemaManager().compileZod(z.object({
             observation: z.string().describe("A very detailed observation. This should include detailed observations on the action or thought that just occured"),
             thought: z.string().describe("A very detailed thought. This should include your detailed thoughts on what you should do next."),
@@ -122,6 +123,9 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
 
     async execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[]): Promise<LLMResult> {
         const optionsWithFunctions = {...options, functions: this.functions}
+        if (this.logger.isDebugEnabled()) {
+            this.logger.debug(`Calling LLM with tools ${JSON.stringify(this.functions, null, 2)}`)
+        }
         const response = await this.sendRequest(events, conversationId, optionsWithFunctions);
         let choice = response.choices[0];
         const message = choice.message.content || ""
@@ -160,7 +164,8 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
     }
 
     formatHelpers(availableHelpers: AgentTool[]): string | undefined {
-        this.functions = availableHelpers.concat(this.thought_and_observation_tool).map(helper => {
+        let agentTools = availableHelpers.concat(this.thought_and_observation_tool);
+        this.functions = agentTools.map(helper => {
             return {
                 name: helper.title,
                 description: helper.job_description,
@@ -168,8 +173,9 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
             }
         })
         return `You have the following tools available to you:
-        [${availableHelpers.map(t => t.title).join(",")}]
+        [${agentTools.map(t => t.title).join(",")}]
         
+        In particular, use the tool "${this.thought_and_observation_tool.title}" to thing through each intermediate step.\`
         Return an appropriate negative response (an empty object or "I don't know") if you cannot answer the question or are not making progress`
     }
 

@@ -1,9 +1,11 @@
 import {SampleFunctions} from "@/praxeum/sample/SampleFunctions";
 import {ConceptFunctions} from "@/praxeum/concept/ConceptFunctions";
 import {DeploymentTools} from "@/praxeum/DeploymentTools";
+import {KnowledgePackFunctions} from "@/praxeum/knowledge-packs/KnowledgePackFunctions";
+import {BuiltinAgent} from "@/kamparas/Agent";
 
 // todo, builtin Functions should not need interfaces for each function, calls should instead explode the args
-export const builtinFunctions: Record<string, (v:any) => any> = {
+export const builtinFunctions: Record<string, (v:any, agent: BuiltinAgent) => any> = {
     "DeploymentTools.findRelevantTools": DeploymentTools.findRelevantTools,
 
 // these are for tests
@@ -18,5 +20,5 @@ export const builtinFunctions: Record<string, (v:any) => any> = {
     "ConceptFunctions.getDetailsWithSample": ConceptFunctions.getDetailWithSample,
     "ConceptFunctions.getInterfaces": ConceptFunctions.getInterfaces,
 
-
+    "KnowledgePackFunctions.iterateKnowledgePackConceptsAndCreate": KnowledgePackFunctions.iterateKnowledgePackConceptsAndCreate,
 }

@@ -1,4 +1,6 @@
-kind: BuiltinFunction
+apiVersion: ad/v1
+kind: Deployment
+deployment_type: BuiltinFunction
 title: concept_query_interfaces
 identifier: concept_query_interfaces_alpha
 function_name: ConceptFunctions.getInterfaces

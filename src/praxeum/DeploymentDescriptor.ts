@@ -3,7 +3,7 @@ import {LLMType, ModelType} from "@/kamparas/LLM";
 
 // todo, builtin worker does not use concepts of other tools or num to start. Should probably be own interface
 export interface BuiltinWorkerDescriptor extends BaseWorkerDescriptor {
-    kind: 'BuiltinFunction'
+    deployment_type: 'BuiltinFunction'
     function_name: string
 }
 
@@ -19,28 +19,34 @@ export interface AutonomousWorkerDescriptor extends BaseWorkerDescriptor {
 }
 
 export  interface SkilledWorkerDescriptor extends AutonomousWorkerDescriptor {
-    kind: "SkilledWorker"
+    deployment_type: "SkilledWorker"
     manager: string
     qaManager: string
 }
 
 export  interface ManagerDescriptor extends AutonomousWorkerDescriptor {
-    kind: "Manager"
+    deployment_type: "Manager"
     manager?: string
 }
 
 export  interface QAManagerDescriptor extends AutonomousWorkerDescriptor {
-    kind: "QAManager"
+    deployment_type: "QAManager"
     manager: string
 }
 
-export type DescriptorType = ("Service" | "BuiltinFunction" | "SystemWorker" | "SkilledWorker" | "Manager" | "QAManager")
+export type ResourceType = ("MetaConcept" | "Deployment")
+
+export interface Resource {
+    kind: ResourceType
+    title: string,
+}
+
+export type DeploymentType = ("BuiltinFunction" | "SkilledWorker" | "Manager" | "QAManager")
 
 export type DescriptorStatus = ("started" | "stopped")
 
-export interface BaseWorkerDescriptor {
-    kind: DescriptorType
-    title: string,
+export interface BaseWorkerDescriptor extends Resource {
+    deployment_type: DeploymentType
     status?: DescriptorStatus,
     identifier: string,
     job_description: string,

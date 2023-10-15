@@ -144,6 +144,6 @@ export class MongoMemory extends AgentMemory {
     }
 
     private makeCollectionName(memoryType: ("episodic" | "semantic" | "procedure")) {
-        return memoryType + "_" + this.agentIdentifier.title
+        return memoryType
     }
 }

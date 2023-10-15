@@ -1,0 +1,2 @@
+#!/bin/zsh
+node --loader ./loader.js src/praxeum/server.ts start "$@"

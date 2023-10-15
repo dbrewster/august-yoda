@@ -38,43 +38,45 @@ const formatAgent = (type: string, title: string, identifier: string, conversati
     return `${agentChar} - ${thisTitle}:${identifier}:${thisTaskId}${" ".repeat(numPadding)}`
 }
 
-const myFormat = printf(({ level, message, timestamp, type, subType, title, identifier, conversation_id, stack}) => {
-    let module = type as string
-    switch (type) {
-        case "agent":
-        case "skilledWorker":
-        case "builtinWorker":
-        case "manager":
-        case "qaManager":
-            module = formatAgent(type, title, identifier, conversation_id)
-    }
-    let outMessage = message
-    if (subType) {
-        outMessage = `(${subType}) ${message}`
-    }
-    if (stack) {
-        outMessage = outMessage + "\n" + stack
-    }
-  return `${timestamp} [${module}] ${level}: ${outMessage}`;
+const myFormat = printf(({stack, level, message, timestamp, type, subType, title, identifier, conversation_id}) => {
+  let module = type as string
+  switch (type) {
+    case "agent":
+    case "skilledWorker":
+    case "builtinWorker":
+    case "manager":
+    case "qaManager":
+      module = formatAgent(type, title, identifier, conversation_id)
+  }
+  let outMessage = message
+  if (subType) {
+    outMessage = `(${subType}) ${message}`
+  }
+  let out = `${timestamp} [${module}] ${level}: ${outMessage}`
+  if (stack) {
+    out += `\n${stack}`
+  }
+  return out;
 });
 
 const consoleTransport = new winston.transports.Console({
-    level: 'info',
-    format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple(),
-        winston.format.timestamp(),
-        myFormat
-    )
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.errors({stack: true}), // <-- use errors format
+    winston.format.colorize(),
+    winston.format.simple(),
+    winston.format.timestamp(),
+    myFormat
+  )
 })
 
 export const rootLogger: Logger = winston.createLogger({
-    // levels: winston.config.syslog.levels,
-    level: 'info',
-    format: winston.format.json(),
-    transports: [
-        consoleTransport
-    ]
+  // levels: winston.config.syslog.levels,
+  level: 'info',
+  format: winston.format.json(),
+  transports: [
+    consoleTransport
+  ]
 })
 
 if (process.env.NODE_ENV === 'production') {
