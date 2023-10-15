@@ -1,0 +1,41 @@
+apiVersion: ad/v1
+kind: BuiltinFunction
+title: MemoryBuilder
+job_description: Builds memories from a conversation
+identifier: "1"
+function_name: SemanticMemoryService.buildMemory
+available_tools: []
+input_schema:
+  type: object
+  properties:
+    agent_type:
+      type: string
+    agent_id:
+      type: string
+    conversation_id:
+      type: string
+  required:
+    - agent_type
+    - agent_id
+    - conversation_id
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    thoughts:
+      type: number
+    observations:
+      type: number
+    help_and_response:
+      type: number
+    reflections:
+      type: number
+  required:
+    - thoughts
+    - observations
+    - help_and_response
+    - reflections
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+num_to_start: 1

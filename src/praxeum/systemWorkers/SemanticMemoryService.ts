@@ -35,7 +35,7 @@ export module SemanticMemoryService {
 
         found.insights.forEach((insight: any) => {
             sm.recordSemanticMemory({
-                type: "insight",
+                type: "reflection",
                 agent_title: args.agent_type,
                 agent_id: args.agent_id,
                 conversation_id: args.conversation_id,
