@@ -22,64 +22,6 @@ export interface DirectMessage {
 export interface TitleMessage extends NewTaskInstruction {
 }
 
-/*
-export const askQuestion = async (title: string, message: Record<string, any>): Promise<Record<string, any> | undefined> => {
-    const connection = await getOrCreateMQConnection()
-    const channel = await connection.channel();
-    try {
-        let result: (DirectMessage | undefined)
-        const sema = new AsyncSemaphore(0)
-        const requestId = nanoid()
-        console.log(`Asking Question to ${title}: ${requestId}`)
-        const ourTitle = "ask_question"
-        const ourId = nanoid()
-
-        let queueName = ourTitle + "_" + ourId;
-        await channel.queueDeclare(queueName, {durable: false})
-        await channel.exchangeDeclare(queueName, "direct", {durable: false})
-        await channel.queueBind(queueName, queueName, queueName)
-        await channel.basicConsume(queueName, {noAck: false, exclusive: true}, (message) => {
-            try {
-                const body = message.bodyToString()
-                if (body) {
-                    result = JSON.parse(body) as DirectMessage
-                    console.log("res", result)
-                    // ack after we process so a worker is working on one think at a time????
-                    message.ack()
-                    console.log("signal")
-                    sema.signal()
-                    return
-                }
-            } catch (error) {
-                // todo error handler...
-                console.error("Error receiving message on ", error)
-            }
-            message.nack()
-        }).catch(error => console.error("err", error))
-
-        const helpMessage: TitleMessage = {
-            helpee_title: ourTitle,
-            helpee_id: ourId,
-            conversation_id: requestId,
-            request_id: requestId,
-            input: message
-        }
-
-        console.log("publishing on queue", title)
-        // await channel.exchangeDeclare(title, "direct", {durable:false})
-        await channel.basicPublish(title, title, JSON.stringify(helpMessage)).catch(reason => console.error(reason))
-
-        console.log("wait")
-        await sema.wait()
-        console.log("here", result)
-        await channel.queueDelete(queueName)
-        return result?.response
-    } finally {
-        await channel.close()
-    }
-}
-*/
-
 export class RabbitAgentEnvironment extends AgentEnvironment {
     private handler?: EnvironmentHandler;
 
@@ -88,11 +30,28 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         dotenv.config()
     }
 
-    private channel?: AMQPChannel
+    private publishDirectChannel?: AMQPChannel
+    private publishHelpChannel?: AMQPChannel
+    private listenDirectChannel?: AMQPChannel
+    private listenTitleChannel?: AMQPChannel
 
     async shutdown() {
-        await this.channel?.close()
-        this.channel = undefined
+        if (this.publishDirectChannel) {
+            await this.publishDirectChannel.close()
+            this.publishDirectChannel = undefined
+        }
+        if (this.publishHelpChannel) {
+            await this.publishHelpChannel.close()
+            this.publishHelpChannel = undefined
+        }
+        if (this.listenDirectChannel) {
+            await this.listenDirectChannel.close()
+            this.listenDirectChannel = undefined
+        }
+        if (this.listenTitleChannel) {
+            await this.listenTitleChannel.close()
+            this.listenTitleChannel = undefined
+        }
         return Promise.resolve()
     }
 
@@ -105,7 +64,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         let responseStr = JSON.stringify(response);
         this.logger.debug(`publishing answer to queue ${queueName} ${responseStr.length} chars`, {conversation_id: conversationId})
         this.logger.debug(`Message data: ${responseStr}`, {conversation_id: conversationId})
-        await this.channel!.basicPublish(queueName, queueName, responseStr).catch(reason => this.logger.error(reason))
+        await this.publishDirectChannel!.basicPublish(queueName, queueName, responseStr).catch(reason => this.logger.error(reason))
     }
 
     async askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void> {
@@ -119,28 +78,33 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         let messageStr = JSON.stringify(message);
         this.logger.debug(`Asking for help from ${agentTitle} ${messageStr.length} chars`, {conversation_id: conversationId})
         this.logger.debug(`Message data: ${messageStr}`, {conversation_id: conversationId})
-        await this.channel!.basicPublish(agentTitle, agentTitle, messageStr).catch(reason => console.error(reason))
+        await this.publishHelpChannel!.basicPublish(agentTitle, agentTitle, messageStr).catch(reason => console.error(reason))
     }
 
     async registerHandler(handler: EnvironmentHandler): Promise<void> {
         this.handler = handler
         const connection = await getOrCreateMQConnection()
-        this.channel = await connection.channel();
+        this.publishDirectChannel = await connection.channel();
+        this.publishHelpChannel = await connection.channel();
+        this.listenDirectChannel = await connection.channel();
+        this.listenTitleChannel = await connection.channel();
+
+        this.listenDirectChannel = await connection.channel();
         const queueName = handler.title
-        await this.channel.queueDeclare(queueName, {durable: true})
-        await this.channel.exchangeDeclare(queueName, "direct", {durable: false})
-        await this.channel.queueBind(queueName, queueName, queueName)
+        await this.listenTitleChannel.queueDeclare(queueName, {durable: true})
+        await this.listenTitleChannel.exchangeDeclare(queueName, "direct", {durable: false})
+        await this.listenTitleChannel.queueBind(queueName, queueName, queueName)
 
         const thisQueueName = this.makeIdentifierQueueName(handler.title, handler.identifier)
-        await this.channel.queueDeclare(thisQueueName, {durable: true})
-        await this.channel.exchangeDeclare(thisQueueName, "direct", {durable: false})
-        await this.channel.queueBind(thisQueueName, thisQueueName, thisQueueName)
+        await this.listenDirectChannel.queueDeclare(thisQueueName, {durable: true})
+        await this.listenDirectChannel.exchangeDeclare(thisQueueName, "direct", {durable: false})
+        await this.listenDirectChannel.queueBind(thisQueueName, thisQueueName, thisQueueName)
 
         this.logger.info(`listening on worker title queue ${queueName}`)
-        await this.channel.basicConsume(queueName, {noAck: false, exclusive: true}, async (msg) => this.processNewInstruction(msg)).catch(error => console.log(error))
+        await this.listenTitleChannel.basicConsume(queueName, {noAck: false}, async (msg) => this.processNewInstruction(msg)).catch(error => console.log(error))
 
         this.logger.info(`listening on worker identifier queue ${thisQueueName}`)
-        await this.channel.basicConsume(thisQueueName, {noAck: false, exclusive: true}, (msg) => this.processDirectMessage(msg))
+        await this.listenDirectChannel.basicConsume(thisQueueName, {noAck: false}, (msg) => this.processDirectMessage(msg))
     }
 
     private async processDirectMessage(message: AMQPMessage) {

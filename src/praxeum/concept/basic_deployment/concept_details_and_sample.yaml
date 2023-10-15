@@ -1,4 +1,6 @@
-kind: BuiltinFunction
+apiVersion: ad/v1
+kind: Deployment
+deployment_type: BuiltinFunction
 title: concept_details_and_sample
 identifier: concept_details_and_sample_alpha
 function_name: ConceptFunctions.getDetailsWithSample
@@ -11,8 +13,14 @@ input_schema:
       type: string
       description: The instance name of the concept to get the detail of. Must be a
         valid javascript identifier
+    concept_type:
+      type: string
+      description: The type of the new concept we are building.  Must be one of
+        RootConcept or DerivedConcept based on the concept type that is being
+        created or edited
   required:
     - concept_identifier
+    - concept_type
   additionalProperties: false
   $schema: http://json-schema.org/draft-07/schema#
 output_schema:

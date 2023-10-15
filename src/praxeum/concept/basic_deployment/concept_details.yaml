@@ -1,4 +1,6 @@
-kind: BuiltinFunction
+apiVersion: ad/v1
+kind: Deployment
+deployment_type: BuiltinFunction
 title: concept_details
 identifier: concept_details_alpha
 function_name: ConceptFunctions.getDetails
@@ -6,6 +8,11 @@ job_description: Returns the description and properties of one or more concepts.
 input_schema:
   type: object
   properties:
+    concept_type:
+      type: string
+      description: The type of the new concept we are building.  Must be one of
+        RootConcept or DerivedConcept based on the concept type that is being
+        created or edited
     concept_identifiers:
       type: array
       items:
@@ -13,6 +20,7 @@ input_schema:
         description: The instance name of the base concept to get the detail of. Must be
           a valid javascript identifier
   required:
+    - concept_type
     - concept_identifiers
   additionalProperties: false
   $schema: http://json-schema.org/draft-07/schema#

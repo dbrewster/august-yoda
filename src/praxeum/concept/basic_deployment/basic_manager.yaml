@@ -1,7 +1,9 @@
-kind: Manager
+apiVersion: ad/v1
+kind: Deployment
+deployment_type: Manager
 title: basic_manager
 identifier: basic_manager_alpha
-job_description: Creates plans to unblock workers
+job_description: Provides help to blocked workers
 initial_plan: >-
   You are a manager of workers. You are responsible for providing a plan for how
   they should proceed. Consider the problem the problems the worker is facing

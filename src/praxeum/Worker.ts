@@ -1,10 +1,8 @@
 import {
     AgentIdentifier,
-    AutonomousAgent,
-    AutonomousAgentOptions,
     BuiltinAgent,
-    remoteAgentCall
 } from "@/kamparas/Agent";
+import {AutonomousAgent, AutonomousAgentOptions, remoteAgentCall} from "@/kamparas/AutonomousAgent";
 
 export interface WorkerOptions extends AutonomousAgentOptions {
 }

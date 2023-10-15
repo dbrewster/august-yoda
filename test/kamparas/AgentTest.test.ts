@@ -1,4 +1,4 @@
-import {AgentIdentifier, AgentOptions, AutonomousAgent, AutonomousAgentOptions, BuiltinAgent} from "@/kamparas/Agent";
+import {AgentIdentifier, AgentOptions, BuiltinAgent} from "@/kamparas/Agent";
 import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {nanoid} from "nanoid";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
@@ -8,6 +8,7 @@ import {RootQuestion} from "@/kamparas/RootQuestion";
 import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 import {shutdownMongo} from "@/util/util";
 import {makeLLM} from "@/kamparas/internal/LLMRegistry";
+import {AutonomousAgent, AutonomousAgentOptions} from "@/kamparas/AutonomousAgent";
 
 describe("builtin agent", () => {
     beforeAll(async () => {

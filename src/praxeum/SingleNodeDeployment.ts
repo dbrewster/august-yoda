@@ -4,6 +4,7 @@ import {
     DescriptorStatus,
     ManagerDescriptor,
     QAManagerDescriptor,
+    Resource,
     SkilledWorkerDescriptor
 } from "@/praxeum/DeploymentDescriptor";
 import {
@@ -17,14 +18,13 @@ import {Agent, AgentIdentifier, AgentStatus} from "@/kamparas/Agent";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
 import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
 import yaml from "yaml"
+import YAML from "yaml"
 import {rootLogger} from "@/util/RootLogger";
 import {builtinFunctions} from "@/praxeum/BuiltinFunctions";
 import {makeLLM} from "@/kamparas/internal/LLMRegistry";
 import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 import {shutdownMongo} from "@/util/util";
 import fs from "fs";
-import {captureRejectionSymbol} from "ws";
-import YAML from "yaml";
 
 interface WorkerInstance {
     identifier: AgentIdentifier
@@ -34,6 +34,7 @@ interface WorkerInstance {
 
 class SingleNodeDeployment {
     private readonly dataDir: string;
+    private logger = rootLogger.child({type: "server"})
 
     constructor(dataDir: string) {
         this.dataDir = dataDir
@@ -73,13 +74,20 @@ class SingleNodeDeployment {
     apply = async (data: string) => {
         const allDocs = yaml.parseAllDocuments(data)
         const descriptors = allDocs.map(doc => {
-            // todo -- validate descriptor
-            return doc?.toJSON() as BaseWorkerDescriptor
+            const resource = doc?.toJSON() as Resource
+            if (resource != null) {
+                this.writeResource(resource)
+                if (resource?.kind === "Deployment") {
+                    // todo -- validate descriptor
+                    return resource as BaseWorkerDescriptor
+                }
+            }
+            return undefined
         }).filter(x => x != null).map(x => x!)
 
         for (const descriptor of descriptors) {
             if (this.allInstances[descriptor.title] && this.allInstances[descriptor.title].worker) {
-                rootLogger.info(`Stopping worker ${descriptor.title}`)
+                this.logger.info(`Stopping worker ${descriptor.title}`)
                 await this.allInstances[descriptor.title].worker!.shutdown()
             }
         }
@@ -105,14 +113,14 @@ class SingleNodeDeployment {
             return deps
         }).filter(i => !(i in this.allInstances))
         if (missing.length > 0) {
-            rootLogger.error(`Missing referenced objects ${missing}`)
+            this.logger.error(`Missing referenced objects ${missing}`)
             throw Error(`Missing referenced objects ${missing}`)
         }
 
 
         Object.values(this.allInstances).forEach(workerInstance => {
-            rootLogger.info(`processing ${workerInstance.identifier.title}`)
-            switch (workerInstance.descriptor.kind) {
+            this.logger.info(`processing ${workerInstance.identifier.title}`)
+            switch (workerInstance.descriptor.deployment_type) {
                 case "BuiltinFunction": {
                     const descriptor = workerInstance.descriptor as BuiltinWorkerDescriptor
                     const identifier = workerInstance.identifier
@@ -139,7 +147,7 @@ class SingleNodeDeployment {
                         overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                         initial_plan_instructions: descriptor.initial_instructions,
                         overwrite_plan_instructions: descriptor.overwrite_plan_instructions || process.env.OVERWRITE_PLAN_INSTRUCTIONS === "true",
-                        maxConcurrentThoughts: 5,
+                        maxConcurrentThoughts: 10,
                         availableTools: descriptor.available_tools.map(t => this.allInstances[t].identifier),
                         manager: this.allInstances[descriptor.manager].identifier,
                         qaManager: this.allInstances[descriptor.qaManager].identifier,
@@ -191,7 +199,7 @@ class SingleNodeDeployment {
                 }
             }
 
-            this.writeDescriptor(workerInstance.descriptor)
+            this.writeResource(workerInstance.descriptor)
         })
 
         // now start them up
@@ -203,13 +211,17 @@ class SingleNodeDeployment {
             }
         }
         let message = `${numStarted} workers started\n${Object.values(this.allInstances).length - numStarted} awaiting start`;
-        rootLogger.info(message, {type: "server"})
+        this.logger.info(message, {type: "server"})
 
         return message
     }
 
-    private writeDescriptor(descriptor: BaseWorkerDescriptor) {
-        fs.writeFileSync(`${this.dataDir}/${descriptor.title}.yaml`, YAML.stringify(descriptor))
+    private writeResource(descriptor: Resource) {
+        if (!descriptor?.title) {
+            this.logger.error(`Cannot write resource ${JSON.stringify(descriptor)}`)
+        } else {
+            fs.writeFileSync(`${this.dataDir}/${descriptor.title}.yaml`, YAML.stringify(descriptor))
+        }
     }
 
     private readDescriptor(title: string): BaseWorkerDescriptor {
@@ -221,7 +233,7 @@ class SingleNodeDeployment {
         const descriptor = this.readDescriptor(title)
         if (descriptor.status != newState) {
             descriptor.status = newState
-            this.writeDescriptor(descriptor)
+            this.writeResource(descriptor)
         }
     }
 
@@ -279,7 +291,7 @@ class SingleNodeDeployment {
     }
 }
 
-let singleNodeDeployment:SingleNodeDeployment
+let singleNodeDeployment: SingleNodeDeployment
 
 export function startSingleNodeServer(dataDir: string): SingleNodeDeployment {
     if (!singleNodeDeployment) {

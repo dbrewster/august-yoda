@@ -1,9 +1,8 @@
-kind: SkilledWorker
+apiVersion: ad/v1
+kind: Deployment
+deployment_type: SkilledWorker
 title: define_new_concept
-identifier: define_new_concept_alpha
-available_tools:
-  - find_base_concept
-  - find_concept_properties_and_constraints
+identifier: alpha
 job_description: Defines the necessary components of a new concept.
 initial_plan: You are a helpful agent answering questions about the creation of
   a new concept which is represented by an interface in our system. Use the set
@@ -11,16 +10,20 @@ initial_plan: You are a helpful agent answering questions about the creation of
 initial_instructions: >
   You are an agent finding information about concepts in a {system},
   specifically for the {process} process.
+    Given the brand new concept {concept_name} and it's definition:
+    {concept_definition}
 
-  Given the brand new concept {concept_name}
-
+    And the concept type of {concept_type}
 
   You need to find the following to define the new concept:
-    1. You need to create a very detailed definition definition of the concept. The definition should contain the details for a concept, how it is used, and how it relates to the key concepts in a {system} system for the {process} process.
-    2. You need to find the base concept this concept will derive from. 
-    3. You need to find the constraint clause and the properties on the new concept. Be absolutely certain you use the base concept found from step 2.
+    1. You need to find the base concept this concept will derive from using the provided description. 
+    2. You need to find the constraint clause and the properties on the new concept. Be absolutely certain you use the base concept found from step 1.
+    3. You need to create a very detailed definition definition of the concept. The definition should contain the details for a concept, how it is used, and how it relates to the key concepts in a {system} system for the {process} process.
 
-  Define the new concept. Create a very detailed definition definition of the concept based on your knowledge as the very first thing
+  Define the new concept.
+
+
+  Let's think aloud step by step
 input_schema:
   type: object
   properties:
@@ -33,10 +36,18 @@ input_schema:
     concept_name:
       type: string
       description: The name of the concept to define. Eg, Opportunity
+    concept_definition:
+      type: string
+      description: The definition of the concept to define.
+    concept_type:
+      type: string
+      description: The type of the new concept
   required:
     - system
     - process
     - concept_name
+    - concept_definition
+    - concept_type
   additionalProperties: false
   $schema: http://json-schema.org/draft-07/schema#
 output_schema:
@@ -48,12 +59,12 @@ output_schema:
         concept_identifier:
           type: string
           description: A legal javascript identifier for the new concept
+        concept_definition:
+          type: string
+          description: The definition of the concept to use
         friendly_name:
           type: string
           description: A human readable name for the new concept
-        definition:
-          type: string
-          description: "The definition of the new concept "
         base_concept:
           type: string
           description: The base concept identifier
@@ -86,16 +97,23 @@ output_schema:
             additionalProperties: false
       required:
         - concept_identifier
+        - concept_definition
         - friendly_name
-        - definition
         - base_concept
         - constraint_query
         - properties
       additionalProperties: false
+      description: The concept to return. Return as much of the definition as you can
+        based on how much you processed
   required:
     - concept
   additionalProperties: false
   $schema: http://json-schema.org/draft-07/schema#
+available_tools:
+  - find_base_concept
+  - find_concept_properties_and_constraints
+  - basic_manager
+  - concept_qa
 temperature: 0.2
 num_to_start: 1
 manager: basic_manager

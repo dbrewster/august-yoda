@@ -1,0 +1,14 @@
+#!/bin/zsh
+
+set -o allexport
+source .env set
+set +o allexport
+
+mongosh -eval "db.getCollection('plans').drop();db.getCollection('episodic').drop();" "${MONGO_CONNECTION_STR}/${MONGO_DATABASE}"
+
+./praxeum stop
+
+rm -rf ${PRAXEUM_DATA_DIR}/*.yaml
+
+./praxeum apply src/praxeum/concept/basic_deployment/*.yaml src/praxeum/knowledge-packs/*.yaml
+./praxeum start
