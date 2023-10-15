@@ -39,8 +39,10 @@ abstract class ServiceAgent extends Agent {
             let found = this.ongoingRequests.get(contents.request_id);
             if (!found) {
                 this.logger.error(`Received unknown requestId: ${contents.request_id}`, response)
+            } else if (contents.status === "success") {
+                found(contents.response)
             } else {
-                found(contents)
+                throw Error(`Error received from ${contents.helper_title}`)
             }
         }
     }

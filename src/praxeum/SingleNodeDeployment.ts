@@ -73,20 +73,6 @@ class SingleNodeDeployment {
     allInstances: Record<string, WorkerInstance> = {}
 
     apply = async (data: string) => {
-        // set up services
-        const sms = new SemanticMemoryService("SemanticMemoryService_1", new RabbitAgentEnvironment())
-        this.allInstances[sms.title] = {identifier: sms.agent_identifier, worker: sms, descriptor: {
-            kind: "BuiltinFunction",
-            title: sms.title,
-            identifier: sms.identifier,
-            job_description: sms.job_description,
-            input_schema: zodToJsonSchema(SemanticMemoryService.inputZod),
-            output_schema: zodToJsonSchema(SemanticMemoryService.outputZod),
-            num_to_start: 1,
-            available_tools: ["semantic_memory_creator"]
-        }}
-
-
         const allDocs = yaml.parseAllDocuments(data)
         const descriptors = allDocs.map(doc => {
             // todo -- validate descriptor
@@ -225,6 +211,20 @@ class SingleNodeDeployment {
 
             this.writeDescriptor(workerInstance.descriptor)
         })
+
+        // add some non-yaml services
+        const sms = new SemanticMemoryService("SemanticMemoryService_1", new RabbitAgentEnvironment())
+        this.allInstances[sms.title] = {identifier: sms.agent_identifier, worker: sms, descriptor: {
+            kind: "Service",
+            title: sms.title,
+            identifier: sms.identifier,
+            job_description: sms.job_description,
+            input_schema: zodToJsonSchema(SemanticMemoryService.inputZod),
+            output_schema: zodToJsonSchema(SemanticMemoryService.outputZod),
+            num_to_start: 1,
+            available_tools: ["semantic_memory_creator"],
+            status: "started",
+        }}
 
         // now start them up
         let numStarted = 0

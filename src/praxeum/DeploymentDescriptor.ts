@@ -34,7 +34,7 @@ export  interface QAManagerDescriptor extends AutonomousWorkerDescriptor {
     manager: string
 }
 
-export type DescriptorType = ("BuiltinFunction" | "SystemWorker" | "SkilledWorker" | "Manager" | "QAManager")
+export type DescriptorType = ("Service" | "BuiltinFunction" | "SystemWorker" | "SkilledWorker" | "Manager" | "QAManager")
 
 export type DescriptorStatus = ("started" | "stopped")
 

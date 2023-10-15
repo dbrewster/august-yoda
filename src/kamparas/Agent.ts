@@ -16,6 +16,7 @@ import {Logger} from "winston"
 import {rootLogger} from "@/util/RootLogger"
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {APIError} from "openai";
+import YAML from "yaml";
 
 export interface AgentTool {
     title: string
@@ -94,7 +95,11 @@ export abstract class Agent implements EnvironmentHandler {
     abstract processInstruction(instruction: NewTaskInstruction): Promise<void>
 
     processInstructionError(instruction: NewTaskInstruction, error: any): void {
-        this.logger.error("Error processing Instruction", error)
+        if (error instanceof Error) {
+            this.logger.error("Error processing Instruction", error)
+        } else {
+            this.logger.error("Error processing Instruction\n" + YAML.stringify(error))
+        }
         const helpResponse: HelpResponse = {
             conversation_id: instruction.helpee_conversation_id,
             request_id: instruction.request_id,
@@ -107,11 +112,11 @@ export abstract class Agent implements EnvironmentHandler {
     }
 
     processDecodeError(type: "direct" | "instruction", message: string): void {
-        console.error(`Error decoding ${type} message: ${message}`)
+        this.logger.error(`Error decoding ${type} message: ${message}`)
     }
 
     processDirectMessageError(directMessage: DirectMessage, error: any): void {
-        console.error(`Error executing direct message ${JSON.stringify(directMessage)} -- error: ${error}`)
+        this.logger.error(`Error executing direct message ${JSON.stringify(directMessage)}`, error)
     }
 
     id_string() {
