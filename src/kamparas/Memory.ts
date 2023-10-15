@@ -24,7 +24,8 @@ export interface SemanticMemory {
     agent_title: string,
     agent_id: string,
     conversation_id: string,
-    content: string
+    content: string,
+    importance: number,
     timestamp: string,
 }
 
