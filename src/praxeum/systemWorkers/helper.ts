@@ -4,7 +4,7 @@ import YAML from "yaml";
 import {zodToJsonSchema} from "zod-to-json-schema";
 import {z} from "zod";
 
-let smcPath = "src/praxeum/systemWorkers/semantic_memory_creator.yaml";
+let smcPath = "src/praxeum/systemWorkers/memory_reflector.yaml";
 let smcStart = fs.readFileSync(smcPath, 'utf8');
 const smc = YAML.parse(smcStart)
 smc.input_schema = zodToJsonSchema(z.object({

@@ -3,6 +3,7 @@ import {ConceptFunctions} from "@/praxeum/concept/ConceptFunctions";
 import {DeploymentTools} from "@/praxeum/DeploymentTools";
 import {KnowledgePackFunctions} from "@/praxeum/knowledge-packs/KnowledgePackFunctions";
 import {BuiltinAgent} from "@/kamparas/Agent";
+import {SemanticMemoryService} from "@/praxeum/systemWorkers/SemanticMemoryService";
 
 // todo, builtin Functions should not need interfaces for each function, calls should instead explode the args
 export const builtinFunctions: Record<string, (v:any, agent: BuiltinAgent) => any> = {
@@ -21,4 +22,5 @@ export const builtinFunctions: Record<string, (v:any, agent: BuiltinAgent) => an
     "ConceptFunctions.getInterfaces": ConceptFunctions.getInterfaces,
 
     "KnowledgePackFunctions.iterateKnowledgePackConceptsAndCreate": KnowledgePackFunctions.iterateKnowledgePackConceptsAndCreate,
+    "SemanticMemoryService.buildMemory": SemanticMemoryService.buildMemory,
 }

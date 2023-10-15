@@ -11,6 +11,7 @@ import {rootLogger} from "@/util/RootLogger"
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import YAML from "yaml";
 import {Deferred, getDeferred} from "@/util/util";
+import {nanoid} from "nanoid";
 
 export interface AgentTool {
   title: string
@@ -119,7 +120,8 @@ export class BuiltinAgent extends Agent {
     this.func = func;
   }
 
-  askForHelp<T>(conversationId: string, agentTitle: string, requestId: string, content: EventContent): Deferred<T> {
+  askForHelp<T>(conversationId: string, agentTitle: string, content: EventContent): Deferred<T> {
+    const requestId = nanoid()
     this.helperRequests[requestId] = getDeferred()
     this.logger.info(`Asking help from ${agentTitle}`, {conversation_id: conversationId})
     this.environment.askForHelp(this.title, this.identifier, conversationId, agentTitle, requestId, content)

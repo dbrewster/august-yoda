@@ -1,8 +1,8 @@
 kind: SystemWorker
-title: semantic_memory_creator
+title: memory_reflector
 identifier: semantic_memory_creator_alpha
 available_tools: []
-job_description: Reflects on episodic memories to create semantic memories
+job_description: Reflects on memories to create semantic memories
 initial_plan: You are a helpful agent which derives insights by reviewing a
   conversation where an assistant attempts to answer a user's question.
   Carefully consider the interaction before deriving insights. Think step by

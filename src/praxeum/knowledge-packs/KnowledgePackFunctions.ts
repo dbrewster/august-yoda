@@ -47,7 +47,7 @@ export module KnowledgePackFunctions {
         agent.logger.info(`Building concepts [${meta_concepts.map(mc => mc.name).join(", ")}]`)
         for (const mc of meta_concepts) {
             agent.logger.info(`Building concept ${mc.name}`)
-            const retConcept: any = ((await agent.askForHelp(conversationId, defineNewConceptTitle, nanoid(), {
+            const retConcept: any = ((await agent.askForHelp(conversationId, defineNewConceptTitle, {
                 system: mc.system,
                 process: mc.process,
                 concept_name: mc.name,
