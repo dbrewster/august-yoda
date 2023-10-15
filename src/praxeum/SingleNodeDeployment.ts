@@ -13,18 +13,17 @@ import {
     BuiltinSkilledWorker
 } from "@/praxeum/Worker";
 import {MongoMemory} from "@/kamparas/internal/MongoMemory";
-import {Agent, AgentIdentifier, AgentStatus} from "@/kamparas/Agent";
+import {Agent, AgentIdentifier, AgentStatus, AutonomousAgent} from "@/kamparas/Agent";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
 import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
 import yaml from "yaml"
+import YAML from "yaml"
 import {rootLogger} from "@/util/RootLogger";
 import {builtinFunctions} from "@/praxeum/BuiltinFunctions";
 import {makeLLM} from "@/kamparas/internal/LLMRegistry";
 import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 import {shutdownMongo} from "@/util/util";
 import fs from "fs";
-import {captureRejectionSymbol} from "ws";
-import YAML from "yaml";
 
 interface WorkerInstance {
     identifier: AgentIdentifier
@@ -113,6 +112,21 @@ class SingleNodeDeployment {
         Object.values(this.allInstances).forEach(workerInstance => {
             rootLogger.info(`processing ${workerInstance.identifier.title}`)
             switch (workerInstance.descriptor.kind) {
+                case "SystemWorker": {
+                    const descriptor = workerInstance.descriptor as SkilledWorkerDescriptor
+                    workerInstance.worker = new AutonomousAgent({
+                        ...(workerInstance.identifier),
+                        llm: makeLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2),
+                        memory: new MongoMemory(workerInstance.identifier),
+                        environment: new RabbitAgentEnvironment(),
+                        initial_plan: descriptor.initial_plan,
+                        overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
+                        initial_plan_instructions: descriptor.initial_instructions,
+                        overwrite_plan_instructions: descriptor.overwrite_plan_instructions || process.env.OVERWRITE_PLAN_INSTRUCTIONS === "true",
+                        maxConcurrentThoughts: 5,
+                        availableTools: descriptor.available_tools.map(t => this.allInstances[t].identifier),
+                    })
+                }
                 case "BuiltinFunction": {
                     const descriptor = workerInstance.descriptor as BuiltinWorkerDescriptor
                     const identifier = workerInstance.identifier

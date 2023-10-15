@@ -1,0 +1,58 @@
+kind: SystemWorker
+title: semantic_memory_creator
+identifier: semantic_memory_creator_alpha
+available_tools: []
+job_description: Reflects on episodic memories to create semantic memories
+initial_plan: You are a helpful agent which derives insights by reviewing a conversation where an assistant attempts to 
+  answer a user's question. Carefully consider the interaction before deriving insights. Think step by step
+initial_instructions: >
+  ### CONVERSATION START ###
+  
+  {events}
+  
+  ### CONVERSATION END ###
+  
+  What {number_of_insights} high-level insights can you infer from
+  the above events? Which Events contribute to each insight?
+input_schema:
+  type: object
+  properties:
+    events:
+      type: string
+      description: A list of events (with identifiers)
+    number_of_insights:
+      type: number
+      description: The number of insights to generate
+  required:
+    - events
+    - number_of_insights
+output_schema:
+  type: object
+  properties:
+    insights:
+      type: array
+      items:
+        type: object
+        properties:
+          description:
+            type: string
+            description: A description of the insight
+          importance:
+            type: number
+            description: The importance, from 0 to 1, of the insight
+          events:
+            type: array
+            items:
+              type: string
+            description: A list of the identifiers of the events used to derive the insight
+          required:
+            - description
+            - importance
+            - events
+  required:
+    - insights
+  additionalProperties: false
+temperature: 0.8
+num_to_start: 1
+model: gpt-4
+llm: openai.function
