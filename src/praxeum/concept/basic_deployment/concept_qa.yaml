@@ -43,7 +43,8 @@ output_schema:
     - correctness
   additionalProperties: false
   $schema: http://json-schema.org/draft-07/schema#
-available_tools: []
+available_tools:
+  - basic_manager
 num_to_start: 1
 manager: basic_manager
 model: gpt-4
