@@ -3,17 +3,18 @@ title: semantic_memory_creator
 identifier: semantic_memory_creator_alpha
 available_tools: []
 job_description: Reflects on episodic memories to create semantic memories
-initial_plan: You are a helpful agent which derives insights by reviewing a conversation where an assistant attempts to 
-  answer a user's question. Carefully consider the interaction before deriving insights. Think step by step
+initial_plan: You are a helpful agent which derives insights by reviewing a
+  conversation where an assistant attempts to answer a user's question.
+  Carefully consider the interaction before deriving insights. Think step by
+  step
 initial_instructions: >
   ### CONVERSATION START ###
-  
+
   {events}
-  
+
   ### CONVERSATION END ###
-  
-  What {number_of_insights} high-level insights can you infer from
-  the above events? Which Events contribute to each insight?
+
+  What {number_of_insights} high-level insights can you infer from the above events? Which Events contribute to each insight?
 input_schema:
   type: object
   properties:
@@ -26,6 +27,8 @@ input_schema:
   required:
     - events
     - number_of_insights
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
 output_schema:
   type: object
   properties:
@@ -44,14 +47,17 @@ output_schema:
             type: array
             items:
               type: string
-            description: A list of the identifiers of the events used to derive the insight
-          required:
-            - description
-            - importance
-            - events
+              description: The id of an event
+            description: A list of events relevant to the insight
+        required:
+          - description
+          - importance
+          - events
+        additionalProperties: false
   required:
     - insights
   additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
 temperature: 0.8
 num_to_start: 1
 model: gpt-4
