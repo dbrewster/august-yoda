@@ -15,6 +15,7 @@ export interface AutonomousWorkerDescriptor extends BaseWorkerDescriptor {
     llm: LLMType
     model: ModelType
     temperature?: number
+    max_thoughts?: number
 }
 
 export  interface SkilledWorkerDescriptor extends AutonomousWorkerDescriptor {

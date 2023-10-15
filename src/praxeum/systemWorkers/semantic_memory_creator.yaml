@@ -62,3 +62,4 @@ temperature: 0.8
 num_to_start: 1
 model: gpt-4
 llm: openai.function
+max_thoughts: 20

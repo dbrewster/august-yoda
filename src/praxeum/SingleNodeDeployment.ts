@@ -1,4 +1,5 @@
 import {
+    AutonomousWorkerDescriptor,
     BaseWorkerDescriptor,
     BuiltinWorkerDescriptor,
     DescriptorStatus,
@@ -113,7 +114,7 @@ class SingleNodeDeployment {
             rootLogger.info(`processing ${workerInstance.identifier.title}`)
             switch (workerInstance.descriptor.kind) {
                 case "SystemWorker": {
-                    const descriptor = workerInstance.descriptor as SkilledWorkerDescriptor
+                    const descriptor = workerInstance.descriptor as AutonomousWorkerDescriptor
                     workerInstance.worker = new AutonomousAgent({
                         ...(workerInstance.identifier),
                         llm: makeLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2),
@@ -123,9 +124,10 @@ class SingleNodeDeployment {
                         overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                         initial_plan_instructions: descriptor.initial_instructions,
                         overwrite_plan_instructions: descriptor.overwrite_plan_instructions || process.env.OVERWRITE_PLAN_INSTRUCTIONS === "true",
-                        maxConcurrentThoughts: 5,
+                        maxConcurrentThoughts: descriptor.max_thoughts || 5,
                         availableTools: descriptor.available_tools.map(t => this.allInstances[t].identifier),
                     })
+                    break
                 }
                 case "BuiltinFunction": {
                     const descriptor = workerInstance.descriptor as BuiltinWorkerDescriptor
@@ -153,7 +155,7 @@ class SingleNodeDeployment {
                         overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                         initial_plan_instructions: descriptor.initial_instructions,
                         overwrite_plan_instructions: descriptor.overwrite_plan_instructions || process.env.OVERWRITE_PLAN_INSTRUCTIONS === "true",
-                        maxConcurrentThoughts: 5,
+                        maxConcurrentThoughts: descriptor.max_thoughts || 5,
                         availableTools: descriptor.available_tools.map(t => this.allInstances[t].identifier),
                         manager: this.allInstances[descriptor.manager].identifier,
                         qaManager: this.allInstances[descriptor.qaManager].identifier,
@@ -175,7 +177,7 @@ class SingleNodeDeployment {
                         overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                         initial_plan_instructions: descriptor.initial_instructions,
                         overwrite_plan_instructions: descriptor.overwrite_plan_instructions || process.env.OVERWRITE_PLAN_INSTRUCTIONS === "true",
-                        maxConcurrentThoughts: 5,
+                        maxConcurrentThoughts: descriptor.max_thoughts || 5,
                         availableTools: descriptor.available_tools.map(t => this.allInstances[t].identifier),
                         manager: descriptor.manager ? this.allInstances[descriptor.manager].identifier : undefined
                     })
@@ -197,7 +199,7 @@ class SingleNodeDeployment {
                         overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                         initial_plan_instructions: descriptor.initial_instructions,
                         overwrite_plan_instructions: descriptor.overwrite_plan_instructions || process.env.OVERWRITE_PLAN_INSTRUCTIONS === "true",
-                        maxConcurrentThoughts: 5,
+                        maxConcurrentThoughts: descriptor.max_thoughts || 5,
                         availableTools: descriptor.available_tools.map(t => this.allInstances[t].identifier),
                         manager: this.allInstances[descriptor.manager].identifier,
                     })
