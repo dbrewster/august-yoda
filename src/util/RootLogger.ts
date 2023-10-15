@@ -38,7 +38,7 @@ const formatAgent = (type: string, title: string, identifier: string, conversati
     return `${agentChar} - ${thisTitle}:${identifier}:${thisTaskId}${" ".repeat(numPadding)}`
 }
 
-const myFormat = printf(({ level, message, timestamp, type, subType, title, identifier, conversation_id}) => {
+const myFormat = printf(({ level, message, timestamp, type, subType, title, identifier, conversation_id, stack}) => {
     let module = type as string
     switch (type) {
         case "agent":
@@ -51,6 +51,9 @@ const myFormat = printf(({ level, message, timestamp, type, subType, title, iden
     let outMessage = message
     if (subType) {
         outMessage = `(${subType}) ${message}`
+    }
+    if (stack) {
+        outMessage = outMessage + "\n" + stack
     }
   return `${timestamp} [${module}] ${level}: ${outMessage}`;
 });
