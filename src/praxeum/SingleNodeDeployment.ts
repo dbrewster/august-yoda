@@ -25,6 +25,8 @@ import {makeLLM} from "@/kamparas/internal/LLMRegistry";
 import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 import {shutdownMongo} from "@/util/util";
 import fs from "fs";
+import {SemanticMemoryService} from "@/praxeum/systemWorkers/SemanticMemoryService";
+import {zodToJsonSchema} from "zod-to-json-schema";
 
 interface WorkerInstance {
     identifier: AgentIdentifier
@@ -71,6 +73,20 @@ class SingleNodeDeployment {
     allInstances: Record<string, WorkerInstance> = {}
 
     apply = async (data: string) => {
+        // set up services
+        const sms = new SemanticMemoryService("SemanticMemoryService_1", new RabbitAgentEnvironment())
+        this.allInstances[sms.title] = {identifier: sms.agent_identifier, worker: sms, descriptor: {
+            kind: "BuiltinFunction",
+            title: sms.title,
+            identifier: sms.identifier,
+            job_description: sms.job_description,
+            input_schema: zodToJsonSchema(SemanticMemoryService.inputZod),
+            output_schema: zodToJsonSchema(SemanticMemoryService.outputZod),
+            num_to_start: 1,
+            available_tools: ["semantic_memory_creator"]
+        }}
+
+
         const allDocs = yaml.parseAllDocuments(data)
         const descriptors = allDocs.map(doc => {
             // todo -- validate descriptor

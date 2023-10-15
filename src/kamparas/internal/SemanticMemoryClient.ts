@@ -5,6 +5,7 @@ import {nanoid} from "nanoid";
 import process from "process";
 import {SemanticMemory} from "@/kamparas/Memory";
 import {ResponseError} from "@elastic/transport/lib/errors";
+import {DateTime} from "luxon";
 
 
 export class SemanticMemoryClient {
@@ -33,13 +34,14 @@ export class SemanticMemoryClient {
                 throw err
             }
         })
+        return this
     }
 
-    async recordSemanticMemory(memory: SemanticMemory) {
+    async recordSemanticMemory(memory: Omit<SemanticMemory, "timestamp">) {
         await this.client.create({
             id: nanoid(),
             index: this.index,
-            document: memory,
+            document: {...memory, timestamp: DateTime.now().toISO()!},
             refresh: this.autoRefresh
         })
     }

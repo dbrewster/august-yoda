@@ -47,11 +47,12 @@ describe("MongoMemory", () => {
 
 function semantic(content: string): SemanticMemory {
     return {
-        type: "thought",
+        type: "insight",
         agent_title: "common_title",
         agent_id: "agent_id",
         conversation_id: nanoid(),
-        content: content,
+        summary: content,
+        events: [],
         importance: .4,
         timestamp: "july4",
     };

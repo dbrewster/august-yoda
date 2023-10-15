@@ -17,14 +17,15 @@ export interface EpisodicEvent {
     timestamp: string,
 }
 
-export type SemanticEventType = ("thought" | "observation")
+export type SemanticEventType = ("insight")
 
 export interface SemanticMemory {
     type: SemanticEventType,
     agent_title: string,
     agent_id: string,
     conversation_id: string,
-    content: string,
+    summary: string,
+    events: EpisodicEvent[]
     importance: number,
     timestamp: string,
 }

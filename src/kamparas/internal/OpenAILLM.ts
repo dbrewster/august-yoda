@@ -55,51 +55,51 @@ abstract class BaseOpenAILLM extends LLM {
         switch (event.type) {
             case "plan":
                 response = {
-                    role: "system",
+                    role: typeRoleMap[event.type],
                     content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
                 }
                 break
             case "instruction":
                 response = {
-                    role: "user",
+                    role: typeRoleMap[event.type],
                     content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
                 }
                 break
             case "hallucination":
                 response = {
-                    role: "user",
+                    role: typeRoleMap[event.type],
                     content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
                 }
                 break
             case "help":
                 response = {
-                    role: "assistant",
+                    role: typeRoleMap[event.type],
                     content: FUNCTION_START + JSON.stringify(event.content) + FUNCTION_END,
                 }
                 break
             case "llm_error":
                 response = {
-                    role: "user",
+                    role: typeRoleMap[event.type],
                     content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
                 }
                 break
 
             case "thought":
                 response = {
-                    role: "assistant",
+                    role: typeRoleMap[event.type],
                     content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
                 }
                 break
             case "observation":
                 response = {
-                    role: "assistant",
+                    role: typeRoleMap[event.type],
                     content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
                 }
                 break
             default:
                 const msg = event.content as any as HelpResponse
                 response = {
-                    role: "function",
+                    role: typeRoleMap.DEFAULT,
                     name: msg.helper_title,
                     content: JSON.stringify(msg.response)
                 }
@@ -177,7 +177,7 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
         if (event.type === "help") {
             const helperCall = event.content as Record<string, any>
             return {
-                role: "assistant",
+                role: typeRoleMap[event.type],
                 content: "",
                 function_call: {
                     name: helperCall.tool_name,
@@ -258,5 +258,16 @@ At each step consider if you know the final answer. You MUST use the ${final_ans
 `
     }
 
+}
+
+export const typeRoleMap: Record<string, 'system' | 'user' | 'assistant' | 'function'> = {
+    plan: "system",
+    instructions: "user",
+    hallucination: "user",
+    help: "assistant",
+    llm_error: "user",
+    thought: "assistant",
+    observation: "assistant",
+    DEFAULT: "function",
 }
 

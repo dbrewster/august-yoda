@@ -121,10 +121,12 @@ export abstract class Agent implements EnvironmentHandler {
 
 export class BuiltinAgent extends Agent {
     func: (args: any) => any
+    directFunc: (args: any) => any
 
-    constructor(options: AgentOptions, func: (args: any) => any) {
+    constructor(options: AgentOptions, func: (args: any) => any, directFunc: (args: any) => any = () => {}) {
         super(options);
         this.func = func;
+        this.directFunc = directFunc;
     }
 
     processDirectMessage(response: DirectMessage): Promise<void> {
