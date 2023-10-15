@@ -131,7 +131,7 @@ And a base concept of {base_concept}
 You are finding the optimal set of properties that should exist on this new concept. You will do this by:
   1. Use the provided tool to load the definition of the query interfaces
   2. Get a detailed description of the base concept, {base_concept}
-  3. Analyze the properties to determine which properties you can drop off of the new concept. You can drop properties that will only appear in a where clause to create this concept, or properties that are no longer relevant to the new concept. You can also combine properties into higher order properties, if that is necessary.
+  3. Analyze the properties to determine which properties you can drop off of the new concept. You can drop properties that will only appear in a where clause to create this concept, or properties that are no longer relevant to the new concept. You can also combine properties into higher order properties, if that is necessary. When thinking about this step, list out your thoughts IN ONE step.
   4. Generate a Query that maps the base object to this object. You will be filling in the the "where" and "return" parts of the query. The query will start with "Query({base_concept}).
   5. Filter the properties to the necessary list. Explain why you filtered a property
   6. Finally return the new properties and the mapping query
