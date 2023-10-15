@@ -16,33 +16,45 @@ abstract class ServiceAgent extends Agent {
 
     constructor(options: AgentOptions) {
         super(options)
-        this.ongoingRequests = new Map<string, (value: any) => void>();
+        this.ongoingRequests = new Map<string, [(value: any) => void, (value: any) => void]>();
     }
 
     async askForHelp(conversationId: string, title: string, content: EventContent){
         let requestId = nanoid();
-        const p = new Promise<any>((resolve) => {
-            this.ongoingRequests.set(requestId, resolve)
+        let a: any
+        let e: any
+        const p = new Promise<any>((resolve, reject) => {
+            this.ongoingRequests.set(requestId, [resolve, reject])
+        }).then(answer => {
+            a = answer
+        }).catch(err => {
+            e = err
+        }).finally(() => {
+            this.ongoingRequests.delete(requestId)
         });
         await this.environment.askForHelp(this.title, this.identifier, conversationId, title, requestId, content)
-        p.finally(() => {
-            this.ongoingRequests.delete(requestId)
-        })
-        return p
+        await p
+        if (e) {
+            throw e
+        } else {
+            return a
+        }
     }
 
     async processDirectMessage(response: DirectMessage): Promise<void> {
         if (response.type == "manager_call") {
             this.logger.warn("Service received unexpected manager call. Ignoring")
         } else {
-            let contents = response.contents as HelpResponse;
-            let found = this.ongoingRequests.get(contents.request_id);
+            const contents = response.contents as HelpResponse;
+            const found = this.ongoingRequests.get(contents.request_id);
             if (!found) {
                 this.logger.error(`Received unknown requestId: ${contents.request_id}`, response)
             } else if (contents.status === "success") {
-                found(contents.response)
+                const accept = found[0]
+                accept(contents.response)
             } else {
-                throw Error(`Error received from ${contents.helper_title}`)
+                const reject = found[1]
+                reject(new Error(`Error received from ${contents.helper_title}`))
             }
         }
     }

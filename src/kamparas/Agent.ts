@@ -108,7 +108,9 @@ export abstract class Agent implements EnvironmentHandler {
             status: 'failure',
             response: {error: error instanceof Error ? error.toString() : error},
         }
-        this.environment.answer(instruction.helpee_title, instruction.helpee_id, helpResponse, instruction.helpee_conversation_id)
+        this.environment.answer(instruction.helpee_title, instruction.helpee_id, helpResponse, instruction.helpee_conversation_id).catch(err => {
+            this.logger.error("Unable to answer", err)
+        })
     }
 
     processDecodeError(type: "direct" | "instruction", message: string): void {
