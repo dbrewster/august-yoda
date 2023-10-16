@@ -4,11 +4,14 @@ import {RootQuestion} from "@/kamparas/RootQuestion";
 import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
 import JSON5 from "json5";
 import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
-import {shutdownMongo} from "@/util/util";
+import {mongoCollection, shutdownMongo} from "@/util/util";
 import {rootLogger, setRootLoggerLevel} from "@/util/RootLogger";
 import process from "process";
 import fs from "node:fs";
 import axios from "axios";
+import {EpisodicEvent} from "@/kamparas/Memory";
+import clc from "cli-color";
+import YAML from "yaml";
 
 dotenv.config()
 
@@ -83,6 +86,52 @@ program.command("command")
         console.log(JSON.stringify(response, null, 2))
         await q.shutdown()
         await shutdownRabbit()
+        await shutdownMongo()
+    })
+
+// todo, this needs to follow conversations, but to do so we will need a x-request-id concept
+// todo, follow would also be good, but we will need to use replica set for mongo for .watch
+program.command("review")
+    .description("Reviews a worker's conversation")
+    .argument("<conversation_id>", "the id of the conversation to review")
+    .option('-p, --projection <projection>')
+    .option('-m, --max_size <max_size>', "max event size before trimming", "500")
+    .action(async (conversation_id, options) => {
+        // console.group();
+        // console.log("blah")
+        // console.log(clc.red("some text"))
+        // console.groupEnd();
+        // console.log('Back to non-tabbed');
+        options.max_size = options.max_size === "false"? undefined : +options.max_size
+        options.projection = options.projection? JSON.parse(options.projection) : {
+            agent_title: 1, timestamp: 1, type: 1, content: 1
+        }
+
+        let collection = await mongoCollection("episodic");
+        const found = await collection.find<EpisodicEvent>({
+            conversation_id: conversation_id
+        }).sort({timestamp: 1}).project(options.projection).toArray()
+
+        // todo, field ordering would be nice
+        for (var event of found.map(doc => {
+            if (options.projection._id != 1) {
+                delete doc._id
+            }
+            return doc
+        })) {
+            let eventStr = YAML.stringify(event);
+            if (options.max_size && eventStr.length > options.max_size) {
+                const lines = eventStr.split("\n")
+                eventStr = lines.shift()!
+                for (let i = eventStr.length + lines[0].length; i < options.max_size; i+= lines[0].length) {
+                    eventStr += "\n" + lines.shift()
+                }
+                eventStr += "\n...\n"
+            }
+            console.log("---\n" + eventStr)
+        }
+
+        const colorWheel = [ clc.blue, clc.green, clc.black, clc.red, clc.yellow, clc.magenta, clc.cyan ]
         await shutdownMongo()
     })
 
