@@ -102,7 +102,7 @@ export abstract class Agent implements EnvironmentHandler {
     }
 
     processDirectMessageError(directMessage: DirectMessage, error: any): void {
-        this.logger.error(`Error executing direct message ${JSON.stringify(directMessage)}`, error)
+        this.logger.error(`Error processing direct message ${JSON.stringify(directMessage)}`, error)
     }
 
   id_string() {
@@ -111,7 +111,7 @@ export abstract class Agent implements EnvironmentHandler {
 }
 
 export class BuiltinAgent extends Agent {
-  private helperRequests: Record<string, Deferred<any>> = {}
+  private helperRequests: Map<string, Deferred<any>> = new Map()
 
   func: (args: any, agent: BuiltinAgent) => any
 
@@ -120,26 +120,29 @@ export class BuiltinAgent extends Agent {
     this.func = func;
   }
 
-  askForHelp<T>(conversationId: string, agentTitle: string, content: EventContent): Deferred<T> {
+  async askForHelp<T>(conversationId: string, agentTitle: string, content: EventContent): Promise<T> {
     const requestId = nanoid()
-    this.helperRequests[requestId] = getDeferred()
+    this.helperRequests.set(requestId, getDeferred())
     this.logger.info(`Asking help from ${agentTitle}`, {conversation_id: conversationId})
-    this.environment.askForHelp(this.title, this.identifier, conversationId, agentTitle, requestId, content)
-    return this.helperRequests[requestId]
+    await this.environment.askForHelp(this.title, this.identifier, conversationId, agentTitle, requestId, content)
+    return await this.helperRequests.get(requestId)!.promise
   }
 
   async processDirectMessage(message: DirectMessage): Promise<void> {
     switch (message.type) {
       case "help_response":
         const response = message.contents as HelpResponse
-        if (response.status === 'success') {
+        let matchingRequest = this.helperRequests.get(response.request_id);
+        if (!matchingRequest) {
+          this.logger.error(`Received direct message for unknown request ${response.request_id}`)
+        } else if (response.status === 'success') {
           this.logger.info(`Received help response from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
-          this.helperRequests[response.request_id].resolve(response.response)
+          matchingRequest.resolve(response.response)
         } else {
           this.logger.warn(`Received ERROR response from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
-          this.helperRequests[response.request_id].reject(response.response)
+          matchingRequest.reject(response.response)
         }
-        delete this.helperRequests[response.request_id]
+        this.helperRequests.delete(response.request_id)
     }
   }
 

@@ -17,15 +17,21 @@ export interface EpisodicEvent {
     timestamp: string,
 }
 
-export type SemanticEventType = ("thought" | "observation"| "help_and_response" | "reflection")
+export type SemanticEventType = ("event" | "reflection")
+
+
+export interface Reflection {
+    summary: string
+    events: EpisodicEvent[]
+}
 
 export interface SemanticMemory {
     type: SemanticEventType,
     agent_title: string,
     agent_id: string,
     conversation_id: string,
-    summary: string,
-    events: EpisodicEvent[]
+    data: Record<string, any>,  // free form keys to search off
+    memory: EpisodicEvent | Reflection,
     importance: number,
     timestamp: string,
 }

@@ -46,6 +46,22 @@ export class SemanticMemoryClient {
         })
     }
 
+    async recordSemanticMemories(memories: Omit<SemanticMemory, "timestamp">[]) {
+        await this.client.bulk({
+            index: this.index,
+            operations: memories.map(memory => {
+                return {
+                    create: {
+                        id: nanoid(),
+                        document: {...memory, timestamp: DateTime.now().toISO()!},
+                        refresh: this.autoRefresh,
+                    }
+                }
+            })
+        })
+    }
+
+
     async searchSemanticMemory(query: string, min_score=.01, size=1000) {
         // todo, how we search semantic memory should be massively refined when we have a way to define performance
         return (await this.client.search({

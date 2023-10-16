@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import {SemanticMemory} from "@/kamparas/Memory";
+import {Reflection, SemanticMemory} from "@/kamparas/Memory";
 import {nanoid} from "nanoid";
 import {SemanticMemoryClient} from "@/kamparas/internal/SemanticMemoryClient";
 
@@ -37,6 +37,20 @@ describe("MongoMemory", () => {
         })
     })
 
+    describe("recordSemanticMemories", () => {
+        test("creates multiple records", async () => {
+            await em.recordSemanticMemories([
+                semantic("event related to luke"),
+                semantic("event related to luke again"),
+                semantic("event related to dave"),
+            ])
+            const found = await em.searchSemanticMemory('luke')
+
+            // @ts-ignore
+            expect(found.total.value).toEqual(2)
+        })
+    })
+
     describe("initialize", () => {
         test("gracefully handles existing indices", async () => {
             await em.initialize()
@@ -47,12 +61,12 @@ describe("MongoMemory", () => {
 
 function semantic(content: string): SemanticMemory {
     return {
-        type: "insight",
+        type: "reflection",
         agent_title: "common_title",
         agent_id: "agent_id",
         conversation_id: nanoid(),
-        summary: content,
-        events: [],
+        data: {},
+        memory: { summary: content, events: [] },
         importance: .4,
         timestamp: "july4",
     };

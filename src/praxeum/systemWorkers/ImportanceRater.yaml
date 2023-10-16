@@ -9,9 +9,16 @@ job_description: Reflects on memories to decide their importance
 initial_plan: You are a helpful agent which rates the importance of memories. 
   Consider the following memory and context and give it an importance rating between 0 and 10.
   10 represents a paradigm shift that will be extremely useful when answering future questions.
-  0 represents a trivial event which the agent should forget. Think step by
-  step
-initial_instructions: "{memory}"
+  0 represents a trivial event which the agent should forget.
+initial_instructions: >
+  How important is the following memory?
+  
+  
+  #### MEMORY START ####
+  
+  {memory}
+  
+  #### MEMORY END ####
 input_schema:
   type: object
   properties:

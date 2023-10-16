@@ -116,9 +116,7 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
                     const directMessage = JSON.parse(body) as DirectMessage
                     this.logger.debug(`calling direct handler`)
                     // let this run in the background
-                    this.handler!.processDirectMessage(directMessage).catch(error => this.handler!.processDirectMessageError(directMessage, error)).catch(error => {
-                        this.logger.error("Unable to process direct message", {body: body, error: error})
-                    })
+                    this.handler!.processDirectMessage(directMessage).catch(error => this.handler!.processDirectMessageError(directMessage, error))
                     await message.ack()
                     return
                 } catch (error) {

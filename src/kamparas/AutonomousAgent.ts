@@ -200,7 +200,7 @@ export class AutonomousAgent extends Agent {
     }
 
     private async handleError(conversationId: string, error: any) {
-        this.logger.error(`Error while thinking`, error)
+        this.logger.error(`Error while thinking (conversationId: ${conversationId})`, error)
         const taskStart = (await this.memory.readEpisodicEventsForTask(conversationId)).find(e => e.type == "task_start")!.content as NewTaskInstruction
         await this.environment.answer(taskStart.helpee_title, taskStart.helpee_id, {
             conversation_id: taskStart.helpee_conversation_id,

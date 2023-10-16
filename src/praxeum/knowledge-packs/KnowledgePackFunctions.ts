@@ -53,7 +53,7 @@ export module KnowledgePackFunctions {
                 concept_name: mc.name,
                 concept_definition: mc.concept_definition,
                 concept_type: mc.type
-            }).promise) as any).concept
+            })) as any).concept
             if (!retConcept) {
                 agent.logger.error("Could not build concept ", mc.name)
             } else {
