@@ -1,5 +1,5 @@
 apiVersion: ad/v1
-kind: Deployment
+kind: AutonomousWorker
 # should not be manager, but does not need qa/manager as first class concept
 deployment_type: Manager
 title: MemoryReflector

@@ -20,8 +20,7 @@ export abstract class CodeAgent extends Agent {
 
     abstract exec(instruction: NewTaskInstruction, conversationId: string): Promise<void>
 
-    async askForHelp(conversationId: string, agentTitle: string, content: EventContent, callContext: any): Promise<void> {
-        const requestId = nanoid()
+    async askForHelp(conversationId: string, agentTitle: string, content: EventContent, callContext: any, requestId = nanoid()): Promise<void> {
         // todo - record a memory event that holds the call to the child + the call context.
         await this.memory.recordEpisodicEvent({
             actor: "worker",
