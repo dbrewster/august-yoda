@@ -10,7 +10,7 @@ import {Logger} from "winston"
 import {rootLogger} from "@/util/RootLogger"
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import YAML from "yaml";
-import {AgentMemory, EpisodicEvent, NoOpMemory} from "@/kamparas/Memory";
+import {AgentMemory, EpisodicEvent, NoOpMemory, StructuredEpisodicEvent} from "@/kamparas/Memory";
 import {DateTime} from "luxon";
 
 export interface AgentTool {
@@ -119,7 +119,10 @@ export abstract class Agent implements EnvironmentHandler {
             type: "answer",
             conversation_id: conversationId,
             timestamp: DateTime.now().toISO(),
-            content: content
+            content: {
+                request_id: taskStart.request_id,
+                response: content,
+            } as StructuredEpisodicEvent
         } as EpisodicEvent)
         // We are not waiting on purpose
         // noinspection ES6MissingAwait

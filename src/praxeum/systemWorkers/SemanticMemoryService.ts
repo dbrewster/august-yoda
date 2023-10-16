@@ -33,7 +33,7 @@ export class BuildMemoryAgent extends CodeAgent {
                 agent_type: z.string().describe(""),
                 agent_id: z.string().describe(""),
                 conversation_id: z.string().describe(""),
-                dry_run: z.string().describe(""),
+                dry_run: z.boolean().describe(""),
             })),
             answer_schema: getOrCreateSchemaManager().compileZod(z.object({
                 type: z.string().describe(""),
@@ -51,7 +51,7 @@ export class BuildMemoryAgent extends CodeAgent {
         const requestId: string = nanoid()
         this.requestIdToDeferred[requestId] = getDeferred()
         // noinspection JSIgnoredPromiseFromCall
-        super.askForHelp(conversationId, agentTitle, content, undefined)
+        super.askForHelp(conversationId, agentTitle, content, undefined, requestId)
 
         return this.requestIdToDeferred[requestId].promise
     }
@@ -66,7 +66,7 @@ export class BuildMemoryAgent extends CodeAgent {
     async processHelpResponse(response: HelpResponse, callContext: any): Promise<void> {
         const deferred = this.requestIdToDeferred[response.request_id]
         if (!deferred) {
-            this.logger.error("Could not find request id in response!")
+            this.logger.error(`Could not find request_id (${response.request_id}) in response!`)
         } else {
             if (response.status === "failure") {
                 deferred.reject(response.response)

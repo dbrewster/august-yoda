@@ -30,12 +30,16 @@ export const remoteAgentCall = (toolName: string): AgentToolCall => {
                 type: "help",
                 conversation_id: conversationId,
                 timestamp: DateTime.now().toISO()!,
+                callData: {
+                    requestId: requestId,
+                    context: undefined,
+                },
                 content: {
                     tool_name: help.title,
                     arguments: help.content
                 }
             })
-            agent.logger.info(`Asking help from ${help.title}`, {conversation_id: conversationId})
+            agent.logger.info(`Asking help from ${help.title} (request_id ${requestId})`, {conversation_id: conversationId})
             // noinspection ES6MissingAwait
             agent.environment.askForHelp(agent.title, agent.identifier, conversationId, help.title, requestId, help.content)
             return Promise.resolve()
@@ -111,7 +115,7 @@ export class AutonomousAgent extends Agent {
 
     async processInstruction(instruction: NewTaskInstruction): Promise<void> {
         const conversationId = nanoid()
-        this.logger.info(`Received new request from ${instruction.helpee_title}:${instruction.helpee_id}`, {conversation_id: conversationId})
+        this.logger.info(`Received new request (${instruction.request_id}) from ${instruction.helpee_title}:${instruction.helpee_id}`, {request_id: instruction.request_id, conversation_id: conversationId})
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "task_start",
@@ -164,9 +168,9 @@ export class AutonomousAgent extends Agent {
             case "help_response":
                 const response = message.contents as HelpResponse
                 if (response.status === 'success') {
-                    this.logger.info(`Received help response from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
+                    this.logger.info(`Received help response (rid ${response.request_id}) from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
                 } else {
-                    this.logger.warn(`Received ERROR response from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
+                    this.logger.warn(`Received ERROR response (rid ${response.request_id}) from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
                 }
                 await this.memory.recordEpisodicEvent({
                     actor: "worker",
@@ -257,6 +261,10 @@ export class AutonomousAgent extends Agent {
                             type: "help",
                             conversation_id: conversationId,
                             timestamp: DateTime.now().toISO()!,
+                            callData: {
+                                requestId: requestId,
+                                context: undefined
+                            },
                             content: {
                                 tool_name: result.helperCall.title,
                                 arguments: result.helperCall.content

@@ -1,5 +1,5 @@
 import {LLM, LLMExecuteOptions, LLMResult, ModelType} from "@/kamparas/LLM";
-import {EpisodicEvent} from "@/kamparas/Memory";
+import {EpisodicEvent, StructuredEpisodicEvent} from "@/kamparas/Memory";
 import {AgentTool} from "@/kamparas/Agent";
 import OpenAI from "openai";
 import {ChatCompletionMessageParam} from "openai/resources/chat";
@@ -87,9 +87,11 @@ abstract class BaseOpenAILLM extends LLM {
                 }
                 break
             case "help":
+                const relevantContent = {...(event.content as StructuredEpisodicEvent)}
+                delete relevantContent.request_id
                 response = {
                     role: typeRoleMap[event.type],
-                    content: FUNCTION_START + JSON.stringify(event.content) + FUNCTION_END,
+                    content: FUNCTION_START + JSON.stringify(relevantContent) + FUNCTION_END,
                 }
                 break
             case "llm_error":
