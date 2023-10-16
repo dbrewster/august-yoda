@@ -1,6 +1,9 @@
-kind: SystemWorker
-title: memory_importance_rater
-identifier: memory_importance_rater_1
+apiVersion: ad/v1
+kind: Deployment
+# should not be manager, but does not need qa/manager as first class concept
+deployment_type: Manager
+title: ImportanceRater
+identifier: importance_rater_1
 available_tools: []
 job_description: Reflects on memories to decide their importance
 initial_plan: You are a helpful agent which rates the importance of memories. 

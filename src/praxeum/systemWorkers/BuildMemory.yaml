@@ -1,8 +1,8 @@
 apiVersion: ad/v1
-kind: BuiltinFunction
+kind: Deployment
+deployment_type: BuiltinFunction
 title: MemoryBuilder
-job_description: Builds memories from a conversation
-identifier: "1"
+identifier: memory_builder_1
 function_name: SemanticMemoryService.buildMemory
 available_tools: []
 input_schema:

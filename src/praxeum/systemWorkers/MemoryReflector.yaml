@@ -1,6 +1,9 @@
-kind: SystemWorker
-title: memory_reflector
-identifier: semantic_memory_creator_alpha
+apiVersion: ad/v1
+kind: Deployment
+# should not be manager, but does not need qa/manager as first class concept
+deployment_type: Manager
+title: MemoryReflector
+identifier: memory_reflector_1
 available_tools: []
 job_description: Reflects on memories to create semantic memories
 initial_plan: You are a helpful agent which derives insights by reviewing a

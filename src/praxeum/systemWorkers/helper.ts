@@ -14,7 +14,7 @@ function regenSchema(_file_loc: string, _inputZod: ZodType, _outputZod: ZodType)
     fs.writeFileSync(smcPath, smcFinish)
 }
 
-regenSchema("memory_reflector.yaml", z.object({
+regenSchema("MemoryReflector.yaml", z.object({
     events: z.string().describe("A list of events (with identifiers)"),
     number_of_insights: z.number().describe("The number of insights to generate")
 }), z.object({
@@ -25,7 +25,7 @@ regenSchema("memory_reflector.yaml", z.object({
     }))
 }))
 
-regenSchema("buildMemory.yaml", z.object({
+regenSchema("BuildMemory.yaml", z.object({
     agent_type: z.string(),
     agent_id: z.string(),
     conversation_id: z.string(),
