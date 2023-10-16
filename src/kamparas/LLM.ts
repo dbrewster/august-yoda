@@ -36,3 +36,13 @@ export abstract class LLM {
 }
 
 export type LLMType = ("openai.textFunctions" | "openai.function")
+
+export class NoOpLLM extends LLM {
+    execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[], functions: AgentTool[]): Promise<LLMResult> {
+        throw "not implemented"
+    }
+
+    formatHelpers(availableHelpers: string[]): string | undefined {
+        throw "not implemented"
+    }
+}

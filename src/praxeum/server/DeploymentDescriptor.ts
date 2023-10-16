@@ -20,7 +20,7 @@ export interface AutonomousWorkerDescriptor extends BaseWorkerDescriptor {
 
 export type ResourceStatus = ("started" | "stopped")
 
-export type ResourceType = ("MetaConcept" | "AutonomousWorker" | "CodeAgent")
+export type ResourceType = ("MetaConcept" | "AutonomousWorker" | "CodeAgent" | "AgentTemplate")
 
 export interface Resource {
     kind: ResourceType

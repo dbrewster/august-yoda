@@ -36,8 +36,7 @@ output_schema:
       description: A description of why the solution was correct or incorrect.
     correctness:
       type: number
-      description: The probability the provided solution correctly answers the
-        provided question
+      description: The probability the provided solution correctly answers the provided question
   required:
     - rational
     - correctness

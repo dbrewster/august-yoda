@@ -6,6 +6,7 @@ import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 import {shutdownMongo} from "@/util/util";
 import fs from "fs";
 import {
+    AgentTemplateOperator,
     AutonomousAgentOperator,
     CodeAgentOperator,
     MetaConceptOperator,
@@ -13,11 +14,13 @@ import {
     OperatorEnvironment,
     ResourceAndStatus
 } from "@/praxeum/server/Operator";
+import {MongoRabbitPlatform} from "@/kamparas/internal/MongoRabbitPlatform"
 
 class SingleNodeDeployment implements OperatorEnvironment {
     private readonly dataDir: string;
     private logger = rootLogger.child({type: "server"})
-    private operators: Operator[] = [new AutonomousAgentOperator(), new MetaConceptOperator(), new CodeAgentOperator()]
+    private envBuilder = new MongoRabbitPlatform()
+    private operators: Operator[] = [new AutonomousAgentOperator(this.envBuilder), new MetaConceptOperator(this.envBuilder), new CodeAgentOperator(this.envBuilder), new AgentTemplateOperator(this.envBuilder)]
 
     constructor(dataDir: string) {
         this.dataDir = dataDir

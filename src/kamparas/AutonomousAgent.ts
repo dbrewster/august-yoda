@@ -1,4 +1,4 @@
-import {HelperCall, LLM, LLMResult} from "@/kamparas/LLM";
+import {HelperCall, LLM, LLMResult, NoOpLLM} from "@/kamparas/LLM";
 import {DateTime} from "luxon";
 import {EventContent, HelpResponse, NewTaskInstruction} from "@/kamparas/Environment";
 import {EpisodicEvent} from "@/kamparas/Memory";
@@ -6,8 +6,9 @@ import {rootLogger} from "@/util/RootLogger";
 import {nanoid} from "nanoid";
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {APIError} from "openai";
-import {Agent, AgentOptions, AgentTool} from "@/kamparas/Agent";
+import {Agent, AgentInitOptions, AgentOptions, AgentTool} from "@/kamparas/Agent";
 import {getIdentifier} from "@/kamparas/AgentRegistry";
+import {Error} from "sequelize"
 
 export const final_answer_tool = {
     title: "final_answer",
@@ -50,7 +51,6 @@ export const localAgentCall = (tool_def: AgentTool, fn: (conversationId: string,
 })
 
 export interface AutonomousAgentOptions extends AgentOptions {
-    llm: LLM
     maxConcurrentThoughts: number,
     initial_plan: string,
     overwrite_plan: boolean,
@@ -59,9 +59,13 @@ export interface AutonomousAgentOptions extends AgentOptions {
     availableTools: string[]
 }
 
+export interface AutonomousAgentInitOptions extends AgentInitOptions {
+    llm: LLM
+}
+
 export class AutonomousAgent extends Agent {
     availableTools: string[]
-    llm: LLM
+    llm: LLM = new NoOpLLM()
     maxConcurrentThoughts: number
     initial_plan: string
     overwrite_plan: boolean
@@ -72,14 +76,17 @@ export class AutonomousAgent extends Agent {
         super(options);
         this.availableTools = options.availableTools
 
-        this.llm = options.llm
         this.maxConcurrentThoughts = options.maxConcurrentThoughts
-        this.memory.setLogger(rootLogger)
-        this.llm.setLogger(rootLogger)
         this.initial_plan = options.initial_plan
         this.overwrite_plan = options.overwrite_plan
         this.initial_plan_instructions = options.initial_plan_instructions
         this.overwrite_plan_instructions = options.overwrite_plan_instructions
+    }
+
+    initialize(options: AutonomousAgentInitOptions): void {
+        super.initialize(options);
+        this.llm = options.llm
+        this.llm.setLogger(rootLogger)
     }
 
     async start(): Promise<void> {
