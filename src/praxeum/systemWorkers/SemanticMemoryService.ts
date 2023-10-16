@@ -11,8 +11,6 @@ import {z} from "zod"
 import {EventContent, HelpResponse, NewTaskInstruction} from "@/kamparas/Environment"
 import {Deferred, getDeferred} from "@/util/util"
 
-// todo: This might be a nicer interface if we decide to implement serves via agents.
-// todo: It can become stateless pretty easily by throwing transient memory in mongo.
 
 interface SemanticMemoryBuilderArgs {
     agent_type: string
@@ -57,7 +55,7 @@ export class BuildMemoryAgent extends CodeAgent {
     }
 
     async exec(instruction: NewTaskInstruction, conversationId: string): Promise<void> {
-        const response = await this.buildMemory(instruction.input as SemanticMemoryBuilderArgs)
+        const response = await this.buildMemory(instruction.input as SemanticMemoryBuilderArgs, conversationId)
         // noinspection ES6MissingAwait
         this.doAnswer(conversationId, instruction.request_id, response)
         return Promise.resolve(undefined)
@@ -76,7 +74,7 @@ export class BuildMemoryAgent extends CodeAgent {
         }
     }
 
-    async buildMemory(args: SemanticMemoryBuilderArgs) {
+    async buildMemory(args: SemanticMemoryBuilderArgs, conversation_id: string) {
         // Memory clients should be accessed via DI
         const sm = await new SemanticMemoryClient(args.agent_id, false, this.logger).initialize()
         const mm = new MongoMemory({title: args.agent_type, identifier: args.agent_id} as AgentIdentifier)
@@ -102,7 +100,7 @@ export class BuildMemoryAgent extends CodeAgent {
         let insights: any[] = []
         for (let chunk in chunkedEvents) {
             let content = {number_of_insights: 2, events: chunk};
-            const resp = await this.promisedBasedHelp(nanoid(), 'MemoryReflector', content) as any;
+            const resp = await this.promisedBasedHelp(conversation_id, 'MemoryReflector', content) as any;
             insights = insights.concat(resp.insights)
         }
 

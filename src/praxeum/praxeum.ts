@@ -15,6 +15,7 @@ import YAML from "yaml";
 import {MongoMemory} from "@/kamparas/internal/MongoMemory"
 import {nanoid} from "nanoid"
 import {Collection} from "mongodb"
+import bare from "cli-color/bare"
 
 dotenv.config()
 
@@ -93,31 +94,24 @@ program.command("command")
         await shutdownMongo()
     })
 
-// todo, this needs to follow conversations, but to do so we will need a x-request-id concept
 // todo, follow would also be good, but we will need to use replica set for mongo for .watch
-program.command("review")
-    .description("Reviews a worker's conversation")
+program.command("eavesdrop")
+    .description("Print out a worker's conversation and downstream heop requests")
     .argument("<request_id>", "the id of the request to review")
-    .option('-p, --projection <projection>')
+    .option('-p, --projection <projection>', "json projection to return.")
     .option('-m, --max_size <max_size>', "max event size before trimming", "500")
     .action(async (request_id, options) => {
-        // console.group();
-        // console.log("blah")
-        // console.log(clc.red("some text"))
-        // console.groupEnd();
-        // console.log('Back to non-tabbed');
         options.max_size = options.max_size === "false"? undefined : +options.max_size
         options.projection = options.projection? JSON.parse(options.projection) : {
             agent_title: 1, timestamp: 1, type: 1, content: 1
         }
 
         let collection = await mongoCollection<EpisodicEvent>("episodic");
-        const colorWheel = [ clc.blue, clc.green, clc.black, clc.red, clc.yellow, clc.magenta, clc.cyan ]
-        await logRequest(request_id, options.projection, options.max_size, collection)
+        await logRequest(request_id, new ColorPicker(), options.projection, options.max_size, collection)
         await shutdownMongo()
     })
 
-async function logRequest(rid: string, projection: any, max_size: number, collection: Collection<EpisodicEvent>) {
+async function logRequest(rid: string, colorPicker: ColorPicker, projection: any, max_size: number, collection: Collection<EpisodicEvent>) {
     let taskStart = await collection.findOne<EpisodicEvent>({
         type: "task_start", "content.request_id": rid
     })
@@ -126,31 +120,20 @@ async function logRequest(rid: string, projection: any, max_size: number, collec
         return
     }
     const cid = taskStart?.conversation_id!
-
-
-
     const found = await collection.find<EpisodicEvent>({
         conversation_id: cid
-    }).sort({timestamp: 1}).project({...projection, type: 1, callData: 1}).toArray()
+    }).sort({timestamp: 1}).project({...projection, type: 1, callData: 1, agent_title: 1}).toArray()
 
     // todo, field ordering would be nice
     for (var event of found) {
-        if (event.type === "help") {
-            console.group();
-            logRequest(event.callData.requestId, projection, max_size,collection)
-            console.groupEnd()
-        }
+        const eventType = event.type
+        const callData = event.callData
+        const title = event.agent_title
 
-        if (projection._id != 1) {
-            delete event._id
-        }
-        if (projection.type != 1) {
-            delete event.type
-        }
-
-        if (projection.callData != 1) {
-            delete event.callData
-        }
+        const props: string[] = ["_id", "type", "callData", "agent_title"]
+        props.filter(prop=> projection[prop] != 1).forEach(prop => {
+            delete event[prop]
+        })
         let eventStr = YAML.stringify(event);
         if (max_size && eventStr.length > max_size) {
             const lines = eventStr.split("\n")
@@ -160,7 +143,26 @@ async function logRequest(rid: string, projection: any, max_size: number, collec
             }
             eventStr += "\n...\n"
         }
-        console.log("---\n" + eventStr)
+        console.log(colorPicker.pick(title)("---\n" + eventStr))
+
+        if (eventType === "help") {
+            console.group();
+            await logRequest(callData.requestId, colorPicker, projection, max_size, collection)
+            console.groupEnd()
+        }
+    }
+}
+
+class ColorPicker {
+    wheel = [ clc.white, clc.cyan, clc.magenta, clc.blue, clc.green, clc.red, clc.yellow ]
+    assignments = new Map<string, bare.Format>()
+    pick(key: string) {
+        if (!this.assignments.has(key)) {
+            const color = this.wheel.shift()!
+            this.wheel.push(color)
+            this.assignments.set(key, color)
+        }
+        return this.assignments.get(key)!
     }
 }
 
