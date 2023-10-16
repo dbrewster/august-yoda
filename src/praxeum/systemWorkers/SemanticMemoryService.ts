@@ -56,7 +56,10 @@ export class BuildMemoryAgent extends CodeAgent {
         return this.requestIdToDeferred[requestId].promise
     }
 
-    exec(instruction: NewTaskInstruction, conversationId: string): Promise<void> {
+    async exec(instruction: NewTaskInstruction, conversationId: string): Promise<void> {
+        const response = await this.buildMemory(instruction.input as SemanticMemoryBuilderArgs)
+        // noinspection ES6MissingAwait
+        this.doAnswer(conversationId, instruction.request_id, response)
         return Promise.resolve(undefined)
     }
 
