@@ -3,7 +3,8 @@ import {
     EnvironmentHandler,
     EventContent,
     HelpResponse,
-    NewTaskInstruction, NoOpEnvironment
+    NewTaskInstruction,
+    NoOpEnvironment
 } from "@/kamparas/Environment";
 import {ValidateFunction} from "ajv";
 import {Logger} from "winston"
@@ -31,6 +32,11 @@ export interface AgentOptions extends AgentIdentifier {
 }
 
 export type AgentStatus = ("stopped" | "started")
+
+export interface AgentInitOptions {
+    environment: AgentEnvironment;
+    memory: AgentMemory;
+}
 
 export abstract class Agent implements EnvironmentHandler {
     environment: AgentEnvironment;
@@ -61,9 +67,10 @@ export abstract class Agent implements EnvironmentHandler {
         return "agent"
     }
 
-    initialize(memory: AgentMemory, environment: AgentEnvironment) {
-        this.memory = memory
-        this.environment = environment
+    initialize(options: AgentInitOptions) {
+        this.memory = options.memory
+        this.memory.setLogger(this.logger)
+        this.environment = options.environment
         this.environment.setLogger(this.logger)
     }
 

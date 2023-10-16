@@ -2,26 +2,26 @@ import {deleteIdentifier, registerIdentifier,} from "@/kamparas/AgentRegistry";
 import {
     AutonomousQAManager,
     AutonomousSkilledWorker,
-    AutonomousWorker,
     AutonomousWorkerManager
 } from "@/praxeum/Worker";
 import _ from "underscore"
 import {
     AutonomousAgentDescriptor,
-    AutonomousWorkerDescriptor, CodeAgentDescriptor,
+    AutonomousWorkerDescriptor,
+    CodeAgentDescriptor,
     ManagerDescriptor,
     QAManagerDescriptor,
     Resource,
-    ResourceStatus, ResourceType,
+    ResourceStatus,
+    ResourceType,
     SkilledWorkerDescriptor
 } from "@/praxeum/server/DeploymentDescriptor";
-import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
-import {makeLLM} from "@/kamparas/internal/LLMRegistry";
-import {MongoMemory} from "@/kamparas/internal/MongoMemory";
 import {rootLogger} from "@/util/RootLogger";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
 import {Agent, AgentIdentifier} from "@/kamparas/Agent";
-import {CodeAgent, CodeAgentOptions} from "@/kamparas/CodeAgent";
+import {CodeAgentOptions} from "@/kamparas/CodeAgent";
+import {PlatformBuilder} from "@/kamparas/PlatformBuilder"
+import {AgentTemplateBuilder} from "@/praxeum/concept/ConceptAgentBuilder"
 
 export interface OperatorEnvironment {
     writeResource(resource: Resource): void
@@ -43,6 +43,13 @@ export interface ResourceAndStatus {
 }
 
 export abstract class Operator {
+    abstract operatorResourceType: ResourceType
+    envBuilder: PlatformBuilder
+    logger = rootLogger.child({type: "agent-operator"})
+    constructor(envBuilder: PlatformBuilder) {
+        this.envBuilder = envBuilder
+    }
+
     changes(object: Record<string, any>, base: Record<string, any>) {
         const keySet = new Set(Object.keys(object).concat(Object.keys(base)))
         Object.keys(object).forEach(k => {
@@ -72,10 +79,8 @@ export abstract class Operator {
 }
 
 abstract class BaseAgentOperator extends Operator {
-    abstract operatorResourceType: ResourceType
 
     existingAgents: Record<string, Agent> = {}
-    logger = rootLogger.child({type: "agent-operator"})
 
     protected abstract makeWorker(resource: Resource): Promise<Agent>
 
@@ -104,10 +109,7 @@ abstract class BaseAgentOperator extends Operator {
                         }
                     } else {
                         await this.existingAgents[resource.title].shutdown()
-                        let agent = await this.makeWorker(resource);
-                        agent.initialize(new MongoMemory(agent.agent_identifier), new RabbitAgentEnvironment())
-
-                        this.existingAgents[resource.title] = agent
+                        this.existingAgents[resource.title] = await this.makeWorker(resource)
                     }
 
                     environment.writeResource(resource)
@@ -116,7 +118,6 @@ abstract class BaseAgentOperator extends Operator {
                 }
             } else {
                 let agent = await this.makeWorker(resource);
-                agent.initialize(new MongoMemory(agent.agent_identifier), new RabbitAgentEnvironment())
 
                 this.existingAgents[resource.title] = agent
                 if (resource.status === "started") {
@@ -200,10 +201,8 @@ export class AutonomousAgentOperator extends BaseAgentOperator {
         switch (agentDescriptor.deployment_type) {
             case "SkilledWorker": {
                 const descriptor = agentDescriptor as SkilledWorkerDescriptor
-                const llm = makeLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2)
-                return new AutonomousSkilledWorker({
+                const agent = new AutonomousSkilledWorker({
                     ...identifier,
-                    llm: llm,
                     initial_plan: descriptor.initial_plan,
                     overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                     initial_plan_instructions: descriptor.initial_instructions,
@@ -213,13 +212,13 @@ export class AutonomousAgentOperator extends BaseAgentOperator {
                     manager: descriptor.manager,
                     qaManager: descriptor.qaManager,
                 })
+                agent.initialize({memory: this.envBuilder.buildMemory(agent.agent_identifier), environment: this.envBuilder.buildEnvironment(), llm: this.envBuilder.buildLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2)})
+                return agent
             }
             case "Manager": {
                 const descriptor = agentDescriptor as ManagerDescriptor
-                const llm = makeLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2)
-                return new AutonomousWorkerManager({
+                const agent = new AutonomousWorkerManager({
                     ...identifier,
-                    llm: llm,
                     initial_plan: descriptor.initial_plan,
                     overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                     initial_plan_instructions: descriptor.initial_instructions,
@@ -228,14 +227,14 @@ export class AutonomousAgentOperator extends BaseAgentOperator {
                     availableTools: descriptor.available_tools,
                     manager: descriptor.manager
                 })
+                agent.initialize({memory: this.envBuilder.buildMemory(agent.agent_identifier), environment: this.envBuilder.buildEnvironment(), llm: this.envBuilder.buildLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2)})
+                return agent
             }
 
             case "QAManager": {
                 const descriptor = agentDescriptor as QAManagerDescriptor
-                const llm = makeLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2)
-                return new AutonomousQAManager({
+                const agent = new AutonomousQAManager({
                     ...identifier,
-                    llm: llm,
                     initial_plan: descriptor.initial_plan,
                     overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                     initial_plan_instructions: descriptor.initial_instructions,
@@ -244,6 +243,8 @@ export class AutonomousAgentOperator extends BaseAgentOperator {
                     availableTools: descriptor.available_tools,
                     manager: descriptor.manager,
                 })
+                agent.initialize({memory: this.envBuilder.buildMemory(agent.agent_identifier), environment: this.envBuilder.buildEnvironment(), llm: this.envBuilder.buildLLM(descriptor.llm, descriptor.model, descriptor.temperature || 0.2)})
+                return agent
             }
 
             default:
@@ -256,6 +257,8 @@ export class AutonomousAgentOperator extends BaseAgentOperator {
 }
 
 export class MetaConceptOperator extends Operator {
+    operatorResourceType: ResourceType = "MetaConcept"
+
     async apply(resource: Resource, environment: OperatorEnvironment): Promise<boolean> {
         if (resource.kind == "MetaConcept") {
             environment.writeResource(resource)
@@ -290,6 +293,124 @@ export class CodeAgentOperator extends BaseAgentOperator {
         const options: CodeAgentOptions = {
             title: resource.title
         }
-        return new clazz(options)
+        const agent = new clazz(options)
+        agent.initialize({memory: this.envBuilder.buildMemory(agent.agent_identifier), environment: this.envBuilder.buildEnvironment()})
+        return agent
+    }
+}
+
+export interface AgentTemplateDescriptor extends Resource {
+    producer_class: {
+        module: string
+        class: string
+    },
+    options: Record<string, any>
+}
+
+export class AgentTemplateOperator extends Operator {
+    operatorResourceType: ResourceType = "AgentTemplate"
+
+    readonly templateBuilders: Record<string, AgentTemplateBuilder> = {}
+
+    async makeWorker(agentDescriptor: AgentTemplateDescriptor) {
+        const module = await import(agentDescriptor.producer_class.module)
+        const clazz = module[agentDescriptor.producer_class.class]
+
+        const template = new clazz(this.envBuilder) as AgentTemplateBuilder
+        await template.build(agentDescriptor)
+        return template
+    }
+
+    async apply(resource: Resource, environment: OperatorEnvironment): Promise<boolean> {
+        if (resource.kind == this.operatorResourceType) {
+            const agentDescriptor = resource as AgentTemplateDescriptor
+            let existingBuilder = this.templateBuilders[resource.title];
+            if (existingBuilder) {
+                const changedKeys = this.changes(resource, existingBuilder)
+                if (changedKeys.length > 0) {
+                    // Special case -- we are just changing the run state of the resource
+                    if (changedKeys.length == 1 && changedKeys[0] === "status") {
+                        if (resource.status == "started") {
+                            await this.templateBuilders[resource.title].start()
+                        } else {
+                            await this.templateBuilders[resource.title].shutdown()
+                        }
+                    } else {
+                        await this.templateBuilders[resource.title].shutdown()
+                        this.templateBuilders[resource.title] = await this.makeWorker(agentDescriptor)
+                    }
+
+                    environment.writeResource(resource)
+                } else {
+                    this.logger.info(`Agent ${resource.title} unchanged`)
+                }
+            } else {
+                let agent = await this.makeWorker(agentDescriptor);
+
+                this.templateBuilders[resource.title] = agent
+                if (resource.status === "started") {
+                    await agent.start()
+                }
+                environment.writeResource(resource)
+            }
+            return true
+        }
+
+        return false;
+    }
+
+    async delete(resource: Resource, environment: OperatorEnvironment): Promise<boolean> {
+        if (resource.kind == this.operatorResourceType) {
+            if (this.templateBuilders[resource.title]) {
+                await this.templateBuilders[resource.title].shutdown()
+                delete this.templateBuilders[resource.title]
+            }
+            environment.deleteResource(resource.title)
+            deleteIdentifier(resource.title)
+            return true
+        }
+        return false
+    }
+
+    async startAll(environment: OperatorEnvironment) {
+        const changes: OperatorStateChange[] = []
+        for (const worker of Object.values(this.templateBuilders)) {
+            const change: OperatorStateChange = {
+                title: worker.title,
+                priorStatus: worker.status,
+                newStatus: worker.status
+            }
+            if (worker.status === "stopped") {
+                await worker.start()
+                environment.toggleStatus(worker.title, "started")
+                change.newStatus = "started"
+            }
+            changes.push(change)
+        }
+
+        return changes
+    }
+
+    async stopAll(environment: OperatorEnvironment) {
+        const changes: OperatorStateChange[] = []
+        for (const worker of Object.values(this.templateBuilders)) {
+            const change: OperatorStateChange = {
+                title: worker.title,
+                priorStatus: worker.status,
+                newStatus: worker.status
+            }
+            if (worker.status === "started") {
+                await worker.shutdown()
+                environment.toggleStatus(worker.title, "stopped")
+                change.newStatus = "stopped"
+            }
+            changes.push(change)
+        }
+
+        return changes
+    }
+
+    status(_environment: OperatorEnvironment): ResourceAndStatus[] {
+        return Object.values(this.templateBuilders).map(a => ({resource: a.title, status: a.status} as ResourceAndStatus))
     }
 }

@@ -33,8 +33,7 @@ input_schema:
       description: issue at hand
     available_tools:
       type: string
-      description: A list of external resources I have available and short a short
-        description of each.
+      description: A list of external resources I have available and short a short description of each.
     context:
       type: string
       description: information relevant to the question

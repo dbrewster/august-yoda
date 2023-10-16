@@ -1,7 +1,6 @@
 import {Command, Option} from "commander";
 import dotenv from "dotenv";
 import {RootQuestion} from "@/kamparas/RootQuestion";
-import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
 import JSON5 from "json5";
 import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 import {mongoCollection, shutdownMongo} from "@/util/util";
@@ -16,6 +15,7 @@ import {MongoMemory} from "@/kamparas/internal/MongoMemory"
 import {nanoid} from "nanoid"
 import {Collection} from "mongodb"
 import bare from "cli-color/bare"
+import {MongoRabbitPlatform} from "@/kamparas/internal/MongoRabbitPlatform"
 
 dotenv.config()
 
@@ -84,8 +84,9 @@ program.command("command")
     .argument("<command>", "The command to execute in the form of a json object")
     .action(async (title, command) => {
         setRootLoggerLevel(program.opts().loglevel)
+        const envBuilder = new MongoRabbitPlatform()
         const q = new RootQuestion()
-        q.initialize(new MongoMemory(q.agent_identifier), new RabbitAgentEnvironment())
+        q.initialize({memory: envBuilder.buildMemory(q.agent_identifier), environment: envBuilder.buildEnvironment()})
         await q.start()
         const response = await q.askQuestion(title, JSON5.parse(command))
         console.log(JSON.stringify(response, null, 2))
