@@ -1,47 +1,41 @@
-import {
-    AgentIdentifier,
-    BuiltinAgent,
-} from "@/kamparas/Agent";
-import {AutonomousAgent, AutonomousAgentOptions, remoteAgentCall} from "@/kamparas/AutonomousAgent";
+import {AgentToolCall, AutonomousAgent, AutonomousAgentOptions, remoteAgentCall} from "@/kamparas/AutonomousAgent";
+import {CodeAgent} from "@/kamparas/CodeAgent";
 
 export interface WorkerOptions extends AutonomousAgentOptions {
 }
+
 export interface SkilledWorkerOptions extends WorkerOptions {
-    manager: AgentIdentifier
-    qaManager: AgentIdentifier
+    manager: string
+    qaManager: string
 }
+
 export interface WorkerManagerOptions extends WorkerOptions {
-    manager?: AgentIdentifier
+    manager?: string
 }
+
 export interface QAManagerOptions extends WorkerOptions {
-    manager: AgentIdentifier
+    manager: string
 }
 
 export interface Worker {
 }
 
 export interface WorkerManager extends Worker {
-    manager?: AgentIdentifier
+    manager?: string
 
 }
 
 export interface QAManager extends Worker {
-    manager: AgentIdentifier
+    manager: string
 }
 
 export interface SkilledWorker extends Worker {
-    manager: AgentIdentifier
-    qaManager?: AgentIdentifier
+    manager: string
+    qaManager?: string
 }
 
-export class BuiltinSkilledWorker extends BuiltinAgent implements Worker {
-    getLogType(): string {
-        return "builtinWorker"
-    }
-}
-
-abstract class AutonomousWorker extends AutonomousAgent {
-    manager?: AgentIdentifier
+export abstract class AutonomousWorker extends AutonomousAgent {
+    manager?: string
 
     protected constructor(options: AutonomousAgentOptions) {
         super(options);
@@ -49,15 +43,21 @@ abstract class AutonomousWorker extends AutonomousAgent {
 
     async start(): Promise<void> {
         await super.start();
+    }
+
+
+    protected buildHelpers(): Record<string, AgentToolCall> {
+        const retObject = {...super.buildHelpers()}
         if (this.manager) {
-            this.availableHelpers[this.manager.title] = remoteAgentCall(this.manager)
+            retObject[this.manager] = remoteAgentCall(this.manager)
         }
+        return retObject;
     }
 }
 
 export class AutonomousSkilledWorker extends AutonomousWorker implements SkilledWorker {
-    manager: AgentIdentifier
-    qaManager: AgentIdentifier
+    manager: string
+    qaManager: string
 
     constructor(options: SkilledWorkerOptions) {
         super(options);
@@ -68,10 +68,16 @@ export class AutonomousSkilledWorker extends AutonomousWorker implements Skilled
     getLogType(): string {
         return "skilledWorker"
     }
+
+    protected buildHelpers(): Record<string, AgentToolCall> {
+        const retObject = {...super.buildHelpers()}
+        retObject[this.qaManager] = remoteAgentCall(this.qaManager)
+        return retObject;
+    }
 }
 
 export class AutonomousWorkerManager extends AutonomousWorker implements WorkerManager {
-    manager?: AgentIdentifier
+    manager?: string
 
     constructor(options: WorkerManagerOptions) {
         super(options);
@@ -84,7 +90,7 @@ export class AutonomousWorkerManager extends AutonomousWorker implements WorkerM
 }
 
 export class AutonomousQAManager extends AutonomousWorker implements QAManager {
-    manager: AgentIdentifier
+    manager: string
 
     constructor(options: QAManagerOptions) {
         super(options);

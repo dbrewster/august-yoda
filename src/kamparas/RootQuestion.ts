@@ -1,4 +1,4 @@
-import {AgentEnvironment, HelpResponse, NewTaskInstruction} from "@/kamparas/Environment";
+import {HelpResponse, NewTaskInstruction} from "@/kamparas/Environment";
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {z} from "zod";
 import {nanoid} from "nanoid";
@@ -8,12 +8,11 @@ import {Agent} from "@/kamparas/Agent";
 export class RootQuestion extends Agent {
     private requests: Record<string, {resolve: (result:any) => any, reject: (result: any) => any}> = {}
 
-    constructor(environment: AgentEnvironment) {
+    constructor() {
         super({
             title: "RootQuestion",
             job_description: "",
             identifier: nanoid(),
-            environment: environment,
             input_schema: getOrCreateSchemaManager().compileZod(z.object({question: z.string()})),
             answer_schema: getOrCreateSchemaManager().compileZod(z.object({answer: z.string()})),
         })

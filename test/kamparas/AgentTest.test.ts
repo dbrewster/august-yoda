@@ -1,4 +1,4 @@
-import {AgentIdentifier, AgentOptions, BuiltinAgent} from "@/kamparas/Agent";
+import {AgentIdentifier, AgentOptions} from "@/kamparas/Agent";
 import {RabbitAgentEnvironment} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {nanoid} from "nanoid";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
@@ -9,6 +9,7 @@ import {shutdownRabbit} from "@/kamparas/internal/RabbitMQ";
 import {shutdownMongo} from "@/util/util";
 import {makeLLM} from "@/kamparas/internal/LLMRegistry";
 import {AutonomousAgent, AutonomousAgentOptions} from "@/kamparas/AutonomousAgent";
+import {CodeAgent} from "@/kamparas/CodeAgent";
 
 describe("builtin agent", () => {
     beforeAll(async () => {
@@ -90,7 +91,7 @@ const makeBuiltinAgent = <T, U>(title: string, job_description: string, inputSch
         input_schema: getOrCreateSchemaManager().compileZod(inputSchema),
         answer_schema: getOrCreateSchemaManager().compileZod(outputSchema)
     } as AgentOptions
-    return new BuiltinAgent(options, fn)
+    return new CodeAgent(options, fn)
 }
 
 const makeAutonomousAgent = async (title: string, job_description: string, inputSchema: ZodSchema, outputSchema: ZodSchema,

@@ -1,5 +1,5 @@
 apiVersion: ad/v1
-kind: Deployment
+kind: AutonomousWorker
 deployment_type: SkilledWorker
 title: define_new_concept
 identifier: alpha

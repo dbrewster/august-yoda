@@ -16,6 +16,11 @@ export class MongoMemory extends AgentMemory {
         this.agentIdentifier = agentIdentifier;
     }
 
+    async findEpisodicEvent(query: Record<string, any>): Promise<EpisodicEvent | null> {
+        const collection = await mongoCollection(this.makeCollectionName("episodic"))
+        return await collection.findOne<EpisodicEvent>(query)
+    }
+
     async readEpisodicEventsForTask(conversation_id: string, limit?: number): Promise<EpisodicEvent[]> {
         const collection = await mongoCollection(this.makeCollectionName("episodic"))
         let options = {sort: {"timestamp": 1}} as FindOptions;

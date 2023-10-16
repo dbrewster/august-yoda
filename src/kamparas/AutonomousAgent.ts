@@ -1,14 +1,13 @@
-import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
-import {z} from "zod";
 import {HelperCall, LLM, LLMResult} from "@/kamparas/LLM";
 import {DateTime} from "luxon";
 import {EventContent, HelpResponse, NewTaskInstruction} from "@/kamparas/Environment";
-import {AgentMemory, EpisodicEvent} from "@/kamparas/Memory";
+import {EpisodicEvent} from "@/kamparas/Memory";
 import {rootLogger} from "@/util/RootLogger";
 import {nanoid} from "nanoid";
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {APIError} from "openai";
-import {Agent, AgentIdentifier, AgentOptions, AgentTool} from "@/kamparas/Agent";
+import {Agent, AgentOptions, AgentTool} from "@/kamparas/Agent";
+import {getIdentifier} from "@/kamparas/AgentRegistry";
 
 export const final_answer_tool = {
     title: "final_answer",
@@ -16,52 +15,52 @@ export const final_answer_tool = {
 } as AgentTool
 
 
-type AgentToolCall = {
+export type AgentToolCall = {
     tool_def: AgentTool
     call: (agent: AutonomousAgent, conversationId: string, requestId: string, help: HelperCall) => Promise<void>
 }
 
-export const remoteAgentCall = (tool_def: AgentTool): AgentToolCall => ({
-    tool_def: tool_def,
-    call: async (agent: AutonomousAgent, conversationId: string, requestId: string, help: HelperCall): Promise<void> => {
-        await agent.memory.recordEpisodicEvent({
-            actor: "worker",
-            type: "help",
-            conversation_id: conversationId,
-            timestamp: DateTime.now().toISO()!,
-            content: {
-                tool_name: help.title,
-                arguments: help.content
-            }
-        })
-        agent.logger.info(`Asking help from ${help.title}`, {conversation_id: conversationId})
-        // noinspection ES6MissingAwait
-        agent.environment.askForHelp(agent.title, agent.identifier, conversationId, help.title, requestId, help.content)
-        return Promise.resolve()
-    }
-})
-
+export const remoteAgentCall = (toolName: string): AgentToolCall => {
+    const agent = getIdentifier(toolName)
+    return ({
+        tool_def: agent,
+        call: async (agent: AutonomousAgent, conversationId: string, requestId: string, help: HelperCall): Promise<void> => {
+            await agent.memory.recordEpisodicEvent({
+                actor: "worker",
+                type: "help",
+                conversation_id: conversationId,
+                timestamp: DateTime.now().toISO()!,
+                content: {
+                    tool_name: help.title,
+                    arguments: help.content
+                }
+            })
+            agent.logger.info(`Asking help from ${help.title}`, {conversation_id: conversationId})
+            // noinspection ES6MissingAwait
+            agent.environment.askForHelp(agent.title, agent.identifier, conversationId, help.title, requestId, help.content)
+            return Promise.resolve()
+        }
+    })
+}
 export const localAgentCall = (tool_def: AgentTool, fn: (conversationId: string, requestId: string, content: EventContent) => Promise<void>): AgentToolCall => ({
     tool_def: tool_def,
-    call: (agent: AutonomousAgent, conversationId: string, requestId: string, help: HelperCall): Promise<void> => {
+    call: (_agent: AutonomousAgent, conversationId: string, requestId: string, help: HelperCall): Promise<void> => {
         return fn(conversationId, requestId, help.content)
     }
 })
 
 export interface AutonomousAgentOptions extends AgentOptions {
-    memory: AgentMemory
     llm: LLM
     maxConcurrentThoughts: number,
     initial_plan: string,
     overwrite_plan: boolean,
     initial_plan_instructions: string,
     overwrite_plan_instructions: boolean
-    availableTools: AgentIdentifier[]
+    availableTools: string[]
 }
 
 export class AutonomousAgent extends Agent {
-    availableHelpers: Record<string, AgentToolCall> = {}
-    memory: AgentMemory;
+    availableTools: string[]
     llm: LLM
     maxConcurrentThoughts: number
     initial_plan: string
@@ -71,17 +70,8 @@ export class AutonomousAgent extends Agent {
 
     constructor(options: AutonomousAgentOptions) {
         super(options);
-        options.availableTools.forEach(t => {
-            this.availableHelpers[t.title] = remoteAgentCall(t)
-        })
+        this.availableTools = options.availableTools
 
-        const doAnswerThisPtr = this
-        this.availableHelpers[final_answer_tool.title] = localAgentCall({
-            ...final_answer_tool,
-            input_schema: this.outputSchema
-        }, this.doAnswer.bind(doAnswerThisPtr))
-
-        this.memory = options.memory;
         this.llm = options.llm
         this.maxConcurrentThoughts = options.maxConcurrentThoughts
         this.memory.setLogger(rootLogger)
@@ -104,25 +94,19 @@ export class AutonomousAgent extends Agent {
         }
     }
 
-    async doAnswer(conversationId: string, requestId: string, content: EventContent) {
-        const taskStart = (await this.memory.readEpisodicEventsForTask(conversationId)).find(e => e.type == "task_start")!.content as NewTaskInstruction
-        this.logger.info(`answering question from ${taskStart.helpee_title}:${taskStart.helpee_id}`, {conversation_id: conversationId})
-        await this.memory.recordEpisodicEvent({
-            actor: "worker",
-            type: "answer",
-            conversation_id: conversationId,
-            timestamp: DateTime.now().toISO(),
-            content: content
-        } as EpisodicEvent)
-        this.environment.answer(taskStart.helpee_title, taskStart.helpee_id, {
-            conversation_id: taskStart.helpee_conversation_id,
-            request_id: taskStart.request_id,
-            helper_title: this.agent_identifier.title,
-            helper_identifier: this.agent_identifier.identifier,
-            status: 'success',
-            response: content
-        }, conversationId)
-        return Promise.resolve()
+    protected buildHelpers() {
+        const availableHelpers: Record<string, AgentToolCall> = {}
+        this.availableTools.forEach(t => {
+            availableHelpers[t] = remoteAgentCall(t)
+        })
+
+        const doAnswerThisPtr = this
+        availableHelpers[final_answer_tool.title] = localAgentCall({
+            ...final_answer_tool,
+            input_schema: this.outputSchema
+        }, this.doAnswer.bind(doAnswerThisPtr))
+
+        return availableHelpers
     }
 
     async processInstruction(instruction: NewTaskInstruction): Promise<void> {
@@ -144,11 +128,11 @@ export class AutonomousAgent extends Agent {
             content: plan
         })
 
-        const availableTools = this.llm.formatHelpers(Object.values(this.availableHelpers).map(x => x.tool_def))
+        const availableTools = this.llm.formatHelpers(this.availableTools)
         if (availableTools) {
             await this.memory.recordEpisodicEvent({
                 actor: "worker",
-                type: "plan",
+                type: "available_tools",
                 conversation_id: conversationId,
                 timestamp: DateTime.now().toISO(),
                 content: availableTools
@@ -162,15 +146,15 @@ export class AutonomousAgent extends Agent {
             timestamp: DateTime.now().toISO(),
             content: instructions
         } as EpisodicEvent)
-/*
-        await this.memory.recordEpisodicEvent({
-            actor: "worker",
-            type: "thought",
-            conversation_id: conversationId,
-            timestamp: DateTime.now().toISO(),
-            content: `I should first create a plan on my own to solve the problem and then start solving the problem step by step. I record that plan using the provided tool or return it as a message`
-        } as EpisodicEvent)
-*/
+        /*
+                await this.memory.recordEpisodicEvent({
+                    actor: "worker",
+                    type: "thought",
+                    conversation_id: conversationId,
+                    timestamp: DateTime.now().toISO(),
+                    content: `I should first create a plan on my own to solve the problem and then start solving the problem step by step. I record that plan using the provided tool or return it as a message`
+                } as EpisodicEvent)
+        */
 
         return await this.think(conversationId);
     }
@@ -218,9 +202,10 @@ export class AutonomousAgent extends Agent {
             let numConcurrentThoughts = 0
             while (numConcurrentThoughts < this.maxConcurrentThoughts) {
                 const events = await this.memory.readEpisodicEventsForTask(conversationId)
+                const availableHelpers = this.buildHelpers()
                 this.logger.info(`Thinking with ${events.length} events: (Thought #${numConcurrentThoughts})`, {conversation_id: conversationId})
-                const result = await this.llm.execute({}, conversationId, events).catch(async e => {
-                    // open ai api errors indicate a request issue the caller should know about
+                const result = await this.llm.execute({}, conversationId, events, Object.values(availableHelpers).map(h => h.tool_def)).catch(async e => {
+                    // open AI api errors indicate a request issue the caller should know about
                     if (e instanceof APIError) {
                         e.name = "OpenAi APIError"
                         throw e
@@ -266,7 +251,7 @@ export class AutonomousAgent extends Agent {
                 if (result.helperCall) {
                     let requestId = nanoid();
                     const help = result.helperCall as HelperCall
-                    if (!this.availableHelpers[result.helperCall!.title]) {
+                    if (!availableHelpers[result.helperCall!.title]) {
                         await this.memory.recordEpisodicEvent({
                             actor: "worker",
                             type: "help",
@@ -279,7 +264,7 @@ export class AutonomousAgent extends Agent {
                         })
                         await this.processHallucination("bad_tool", conversationId, requestId, help)
                     } else {
-                        await this.availableHelpers[result.helperCall!.title].call(this, conversationId, requestId, help)
+                        await availableHelpers[result.helperCall!.title].call(this, conversationId, requestId, help)
                         return
                     }
                 }
@@ -295,7 +280,7 @@ export class AutonomousAgent extends Agent {
     }
 
 
-    async processHallucination(type: HallucinationType, conversationId: string, requestId: string, contents: (HelperCall | string)) {
+    async processHallucination(type: HallucinationType, conversationId: string, _requestId: string, contents: (HelperCall | string)) {
         switch (type) {
             case "bad_tool":
                 const helpCall = contents as HelperCall

@@ -1,0 +1,15 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <option name="OTHER_INDENT_OPTIONS">
+      <value>
+        <option name="INDENT_SIZE" value="2" />
+        <option name="TAB_SIZE" value="2" />
+      </value>
+    </option>
+    <TypeScriptCodeStyleSettings version="0">
+      <option name="USE_SEMICOLON_AFTER_STATEMENT" value="false" />
+      <option name="PREFER_EXPLICIT_TYPES_FUNCTION_RETURNS" value="true" />
+      <option name="BLACKLIST_IMPORTS" value="rxjs/Rx,node_modules/**,**/node_modules/**,@angular/material,@angular/material/typings/**,axios/options,jsforce/**,zod/undefined,sequelize/types/utils/**" />
+    </TypeScriptCodeStyleSettings>
+  </code_scheme>
+</component>

@@ -10,5 +10,5 @@ mongosh -eval "db.getCollection('plans').drop();db.getCollection('episodic').dro
 
 rm -rf ${PRAXEUM_DATA_DIR}/*.yaml
 
-./praxeum apply src/praxeum/concept/basic_deployment/*.yaml src/praxeum/knowledge-packs/*.yaml
+./praxeum apply src/praxeum/concept/basic_deployment/*.yaml src/praxeum/knowledge-packs/*.yaml src/praxeum/systemWorkers/*.yaml
 ./praxeum start

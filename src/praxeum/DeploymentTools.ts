@@ -1,5 +1,5 @@
 import {AgentIdentifier} from "@/kamparas/Agent";
-import {getSingleNodeDeployment} from "@/praxeum/SingleNodeDeployment";
+import {getSingleNodeDeployment} from "@/praxeum/server/SingleNodeDeployment";
 
 export module DeploymentTools {
     export interface FindRelevantToolsIn {

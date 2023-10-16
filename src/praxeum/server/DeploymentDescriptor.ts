@@ -18,6 +18,16 @@ export interface AutonomousWorkerDescriptor extends BaseWorkerDescriptor {
     max_thoughts?: number
 }
 
+export type ResourceStatus = ("started" | "stopped")
+
+export type ResourceType = ("MetaConcept" | "AutonomousWorker" | "CodeAgent")
+
+export interface Resource {
+    kind: ResourceType
+    title: string,
+    status?: ResourceStatus,
+}
+
 export  interface SkilledWorkerDescriptor extends AutonomousWorkerDescriptor {
     deployment_type: "SkilledWorker"
     manager: string
@@ -34,24 +44,22 @@ export  interface QAManagerDescriptor extends AutonomousWorkerDescriptor {
     manager: string
 }
 
-export type ResourceType = ("MetaConcept" | "Deployment")
-
-export interface Resource {
-    kind: ResourceType
-    title: string,
-}
-
 export type DeploymentType = ("BuiltinFunction" | "SkilledWorker" | "Manager" | "QAManager")
 
-export type DescriptorStatus = ("started" | "stopped")
-
-export interface BaseWorkerDescriptor extends Resource {
+export interface AutonomousAgentDescriptor extends Resource {
     deployment_type: DeploymentType
-    status?: DescriptorStatus,
     identifier: string,
     job_description: string,
     input_schema: Record<string, any>
     output_schema: Record<string, any>
+}
+
+export interface CodeAgentDescriptor extends Resource {
+    module: string,
+    class: string
+}
+
+export interface BaseWorkerDescriptor extends AutonomousAgentDescriptor {
     num_to_start: number
     available_tools: string[]
 }

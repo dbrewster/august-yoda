@@ -2,7 +2,7 @@ import {Logger} from "winston";
 import {rootLogger} from "@/util/RootLogger";
 
 export type EpisodicActor = ("external" | "worker")
-export type EpisodicEventType = ("task_start" | "plan" | "instruction" | "answer" | "help" | "response" | "thought" | "observation" | "hallucination" | "llm_error")
+export type EpisodicEventType = ("task_start" | "plan" | "available_tools" | "instruction" | "answer" | "help" | "response" | "thought" | "observation" | "hallucination" | "llm_error")
 
 export type StructuredEpisodicEvent = Record<string, any>
 export type UnstructuredEpisodicEvent = string
@@ -15,6 +15,7 @@ export interface EpisodicEvent {
     conversation_id: string,
     content: (UnstructuredEpisodicEvent | StructuredEpisodicEvent),
     timestamp: string,
+    callData?: any
 }
 
 export type SemanticEventType = ("event" | "reflection")
@@ -58,6 +59,7 @@ export abstract class AgentMemory {
 
     abstract recordEpisodicEvent(event: Omit<EpisodicEvent, "agent_title" | "agent_id">): Promise<void>
     abstract readEpisodicEventsForTask(conversation_id: string, limit?: number): Promise<EpisodicEvent[]>
+    abstract findEpisodicEvent(query: Record<string, any>): Promise<EpisodicEvent | null>
 
     abstract recordSemanticMemory(event: Omit<SemanticMemory, "agent_title" | "agent_id">): Promise<void>
 
@@ -70,4 +72,51 @@ export abstract class AgentMemory {
     abstract readPlan(input: Record<string, any>, planId?: string): Promise<string>
     abstract planInstructionsExists(): Promise<boolean>
     abstract readPlanInstructions(input: Record<string, any>, planId?: string): Promise<string>
+}
+
+export class NoOpMemory extends AgentMemory {
+    findEpisodicEvent(query: Record<string, any>): Promise<EpisodicEvent | null> {
+        return Promise.resolve(null);
+    }
+
+    planExists(): Promise<boolean> {
+        return Promise.resolve(false);
+    }
+
+    planInstructionsExists(): Promise<boolean> {
+        return Promise.resolve(false);
+    }
+
+    readEpisodicEventsForTask(conversation_id: string, limit?: number): Promise<EpisodicEvent[]> {
+        return Promise.resolve([]);
+    }
+
+    readPlan(input: Record<string, any>, planId?: string): Promise<string> {
+        return Promise.resolve("");
+    }
+
+    readPlanInstructions(input: Record<string, any>, planId?: string): Promise<string> {
+        return Promise.resolve("");
+    }
+
+    recordEpisodicEvent(event: Omit<EpisodicEvent, "agent_title" | "agent_id">): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    recordPlan(template: string): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    recordPlanInstructions(template: string): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    recordProceduralEvent(event: Omit<ProceduralEvent, "agent_title" | "agent_id">): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    recordSemanticMemory(event: Omit<SemanticMemory, "agent_title" | "agent_id">): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
 }

@@ -1,27 +1,5 @@
 apiVersion: ad/v1
-kind: Deployment
-deployment_type: BuiltinFunction
+kind: CodeAgent
 title: MemoryBuilder
-identifier: memory_builder_1
-function_name: SemanticMemoryService.buildMemory
-available_tools: []
-input_schema:
-  type: object
-  properties:
-    agent_type:
-      type: string
-    agent_id:
-      type: string
-    conversation_id:
-      type: string
-    dry_run:
-      type: boolean
-  required:
-    - agent_type
-    - agent_id
-    - conversation_id
-  additionalProperties: false
-  $schema: http://json-schema.org/draft-07/schema#
-output_schema:
-  type: object
-num_to_start: 1
+module: "@/praxeum/systemWorkers/SemanticMemoryService"
+class: BuildMemoryAgent

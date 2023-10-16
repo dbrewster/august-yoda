@@ -21,6 +21,24 @@ export abstract class AgentEnvironment {
     }
 }
 
+export class NoOpEnvironment extends AgentEnvironment {
+    answer(helpee_title: string, helpee_identifier: string, response: HelpResponse, conversationId: string): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    registerHandler(handler: EnvironmentHandler): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    shutdown(): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+}
 export interface NewTaskInstruction {
     // The following three fields are here so that the title, id, and conversation_id of the caller can be passed back on the call back
     helpee_title: string,
