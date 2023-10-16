@@ -30,9 +30,9 @@ export abstract class LLM {
         this.logger = logger
     }
 
-    abstract formatHelpers(availableHelpers: AgentTool[]): string | undefined
+    abstract formatHelpers(availableHelpers: string[]): string | undefined
 
-    abstract execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[]): Promise<LLMResult>
+    abstract execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[], functions: AgentTool[]): Promise<LLMResult>
 }
 
 export type LLMType = ("openai.textFunctions" | "openai.function")

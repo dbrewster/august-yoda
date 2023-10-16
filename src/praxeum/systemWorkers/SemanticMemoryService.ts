@@ -1,8 +1,9 @@
 import {MongoMemory} from "@/kamparas/internal/MongoMemory";
-import {AgentIdentifier, BuiltinAgent} from "@/kamparas/Agent";
+import {AgentIdentifier} from "@/kamparas/Agent";
 import {typeRoleMap} from "@/kamparas/internal/OpenAILLM";
 import YAML from "yaml";
 import {SemanticMemoryClient} from "@/kamparas/internal/SemanticMemoryClient";
+import {CodeAgent} from "@/kamparas/CodeAgent";
 import {SemanticMemory, StructuredEpisodicEvent} from "@/kamparas/Memory";
 import {nanoid} from "nanoid";
 
@@ -17,7 +18,7 @@ interface SemanticMemoryBuilderArgs{
 }
 
 export module SemanticMemoryService {
-    export async function buildMemory(args: SemanticMemoryBuilderArgs, agent: BuiltinAgent) {
+    export async function buildMemory(args: SemanticMemoryBuilderArgs, agent: CodeAgent) {
         // Memory clients should be accessed via DI
         const sm = await new SemanticMemoryClient(args.agent_id, false, agent.logger).initialize()
         const mm = new MongoMemory({title: args.agent_type, identifier: args.agent_id} as AgentIdentifier)

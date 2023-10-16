@@ -21,8 +21,22 @@ abstract class BaseOpenAILLM extends LLM {
         this.openai = new OpenAI({})
     }
 
-    async sendRequest(events: EpisodicEvent[], conversationId: string, options: LLMExecuteOptions) {
-        let messages = this.formatMessages(events);
+    protected encodeVariable(varName: string) {
+        return `__{${varName}}__`
+    }
+
+    protected replaceEncodedVariables(text: string, varsAndValues: Record<string, string>): string {
+        let retText = text
+        for (const key of Object.keys(varsAndValues)) {
+            const re = new RegExp(`__\\{${key}\\}__`, "g")
+            retText = retText.replaceAll(re, varsAndValues[key])
+        }
+
+        return retText
+    }
+
+    protected async sendRequest(events: EpisodicEvent[], conversationId: string, options: LLMExecuteOptions, availableHelpers: AgentTool[]) {
+        let messages = this.formatMessages(events, availableHelpers);
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(`calling llm with messages ${JSON.stringify(messages, null, 2)}`, {conversation_id: conversationId})
         }
@@ -42,16 +56,16 @@ abstract class BaseOpenAILLM extends LLM {
         return response;
     }
 
-    private formatMessages(events: EpisodicEvent[]) {
+    private formatMessages(events: EpisodicEvent[], availableHelpers: AgentTool[]) {
         return events.filter(e => e.type !== "task_start").map(event => {
             if (event.actor !== "worker") {
                 throw Error("Invalid message actor type")
             }
-            return this.formatMessage(event);
+            return this.formatMessage(event, availableHelpers);
         })
     }
 
-    formatMessage(event: EpisodicEvent) {
+    formatMessage(event: EpisodicEvent, availableHelpers: AgentTool[]) {
         let response: ChatCompletionMessageParam
         switch (event.type) {
             case "plan":
@@ -111,7 +125,6 @@ abstract class BaseOpenAILLM extends LLM {
 }
 
 export class OpenAIFunctionsLLM extends BaseOpenAILLM {
-    private functions?: any
     thought_and_observation_tool = {
         title: "thought_or_observation",
         job_description: "Records a thought or observation you might have.",
@@ -121,12 +134,20 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
         }))
     } as AgentTool
 
-    async execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[]): Promise<LLMResult> {
-        const optionsWithFunctions = {...options, functions: this.functions}
+    async execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[], availableHelpers: AgentTool[]): Promise<LLMResult> {
+        let agentTools = availableHelpers.concat(this.thought_and_observation_tool);
+        const functions = agentTools.map(helper => {
+            return {
+                name: helper.title,
+                description: helper.job_description,
+                parameters: helper.input_schema.schema as Record<string, any>
+            }
+        })
+        const optionsWithFunctions = {...options, functions: functions}
         if (this.logger.isDebugEnabled()) {
-            this.logger.debug(`Calling LLM with tools ${JSON.stringify(this.functions, null, 2)}`)
+            this.logger.debug(`Calling LLM with tools ${JSON.stringify(functions, null, 2)}`)
         }
-        const response = await this.sendRequest(events, conversationId, optionsWithFunctions);
+        const response = await this.sendRequest(events, conversationId, optionsWithFunctions, availableHelpers);
         let choice = response.choices[0];
         const message = choice.message.content || ""
         const executeResponse: LLMResult = {
@@ -163,35 +184,39 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
         return Promise.resolve(executeResponse);
     }
 
-    formatHelpers(availableHelpers: AgentTool[]): string | undefined {
-        let agentTools = availableHelpers.concat(this.thought_and_observation_tool);
-        this.functions = agentTools.map(helper => {
-            return {
-                name: helper.title,
-                description: helper.job_description,
-                parameters: helper.input_schema.schema as Record<string, any>
-            }
-        })
+    formatHelpers(_: string[]): string | undefined {
         return `You have the following tools available to you:
-        [${agentTools.map(t => t.title).join(",")}]
+        [${this.encodeVariable("tool_names")}]
         
         In particular, use the tool "${this.thought_and_observation_tool.title}" to thing through each intermediate step.\`
         Return an appropriate negative response (an empty object or "I don't know") if you cannot answer the question or are not making progress`
     }
 
-    formatMessage(event: EpisodicEvent): ChatCompletionMessageParam {
-        if (event.type === "help") {
-            const helperCall = event.content as Record<string, any>
-            return {
-                role: typeRoleMap[event.type],
-                content: "",
-                function_call: {
-                    name: helperCall.tool_name,
-                    arguments: JSON.stringify(helperCall.arguments)
+    formatMessage(event: EpisodicEvent, availableHelpers: AgentTool[]): ChatCompletionMessageParam {
+        let response: ChatCompletionMessageParam
+        switch (event.type) {
+            case "available_tools":
+                response = {
+                    role: typeRoleMap[event.type],
+                    content: typeof event.content === 'string' ? this.replaceEncodedVariables(event.content,
+                        {tool_names: availableHelpers.map(t => t.title).join(",")}) : JSON.stringify(event.content)
                 }
-            }
+                break
+            case "help":
+                const helperCall = event.content as Record<string, any>
+                response = {
+                    role: typeRoleMap[event.type],
+                    content: "",
+                    function_call: {
+                        name: helperCall.tool_name,
+                        arguments: JSON.stringify(helperCall.arguments)
+                    }
+                }
+                break;
+            default:
+                response = super.formatMessage(event, availableHelpers)
         }
-        return super.formatMessage(event);
+        return response;
     }
 }
 
@@ -200,8 +225,8 @@ const FUNCTION_END = "```END```"
 
 export class OpenAITextFunctionsLLM extends BaseOpenAILLM {
 
-    async execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[]): Promise<LLMResult> {
-        const response = await this.sendRequest(events, conversationId, options);
+    async execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[], availableHelpers: AgentTool[]): Promise<LLMResult> {
+        const response = await this.sendRequest(events, conversationId, options, availableHelpers);
         const message = response.choices[0].message.content || ""
         const executeResponse: LLMResult = {
             thoughts: [],
@@ -243,16 +268,35 @@ export class OpenAITextFunctionsLLM extends BaseOpenAILLM {
         return Promise.resolve(executeResponse);
     }
 
-    formatHelpers(availableHelpers: AgentTool[]): string {
-        return `You can use the following tools:\n` +
-            availableHelpers.map(helper => {
-                return `{
+    formatMessage(event: EpisodicEvent, availableHelpers: AgentTool[]): ChatCompletionMessageParam {
+        let response: ChatCompletionMessageParam
+        switch (event.type) {
+            case "available_tools":
+                response = {
+                    role: typeRoleMap[event.type],
+                    content: typeof event.content === 'string' ? this.replaceEncodedVariables(event.content,
+                        {
+                            tool_descriptions:
+                                availableHelpers.map(helper => {
+                                    return `{
     name: ${helper.title},
     description: ${helper.job_description}, 
     schema: ${JSON.stringify(helper.input_schema.schema)
-                }\n`
-            }) + `
+                                    }\n`
+                                }).join("")
+                        }) : JSON.stringify(event.content)
+                }
+                break
+            default:
+                response = super.formatMessage(event, availableHelpers)
+        }
+        return response;
+    }
 
+    formatHelpers(_: string[]): string {
+        return `You can use the following tools:
+  ${this.encodeVariable("tool_descriptions")}
+  
 To call a tool the format of the call MUST be:
 ${FUNCTION_START}{
   tool_name: "$name", // The name of the tool to call
@@ -268,6 +312,7 @@ At each step consider if you know the final answer. You MUST use the ${final_ans
 
 export const typeRoleMap: Record<string, 'system' | 'user' | 'assistant' | 'function'> = {
     plan: "system",
+    available_tools: "system",
     instruction: "user",
     hallucination: "user",
     help: "assistant",

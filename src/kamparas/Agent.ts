@@ -1,82 +1,88 @@
 import {
-  AgentEnvironment,
-  EnvironmentHandler,
-  EventContent,
-  HelpResponse,
-  NewTaskInstruction
+    AgentEnvironment,
+    EnvironmentHandler,
+    EventContent,
+    HelpResponse,
+    NewTaskInstruction, NoOpEnvironment
 } from "@/kamparas/Environment";
 import {ValidateFunction} from "ajv";
 import {Logger} from "winston"
 import {rootLogger} from "@/util/RootLogger"
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import YAML from "yaml";
-import {Deferred, getDeferred} from "@/util/util";
-import {nanoid} from "nanoid";
+import {AgentMemory, EpisodicEvent, NoOpMemory} from "@/kamparas/Memory";
+import {DateTime} from "luxon";
 
 export interface AgentTool {
-  title: string
-  job_description: string
-  input_schema: ValidateFunction<object>
+    title: string
+    job_description: string
+    input_schema: ValidateFunction<object>
 }
 
 export interface AgentIdentifier {
-  title: string
-  job_description: string
-  identifier: string
-  input_schema: ValidateFunction<object>
-  answer_schema: ValidateFunction<object>
+    title: string
+    job_description: string
+    identifier: string
+    input_schema: ValidateFunction<object>
+    answer_schema: ValidateFunction<object>
 }
 
 export interface AgentOptions extends AgentIdentifier {
-  environment: AgentEnvironment
 }
 
 export type AgentStatus = ("stopped" | "started")
 
 export abstract class Agent implements EnvironmentHandler {
-  environment: AgentEnvironment;
-  agent_identifier: AgentIdentifier
-  logger: Logger;
-  status: AgentStatus = "stopped"
+    environment: AgentEnvironment;
+    memory: AgentMemory;
+    agent_identifier: AgentIdentifier
+    logger: Logger;
+    status: AgentStatus = "stopped"
 
-  protected constructor(options: AgentOptions) {
-    this.title = options.title
-    this.logger = rootLogger.child({type: this.getLogType(), title: options.title, identifier: options.identifier})
-    this.job_description = options.job_description
-    this.inputSchema = options.input_schema
-    this.outputSchema = options.answer_schema
-    this.identifier = options.identifier
-    this.environment = options.environment;
-    this.environment.setLogger(rootLogger)
-    this.agent_identifier = options
-  }
+    protected constructor(options: AgentOptions) {
+        this.title = options.title
+        this.logger = rootLogger.child({type: this.getLogType(), title: options.title, identifier: options.identifier})
+        this.job_description = options.job_description
+        this.inputSchema = options.input_schema
+        this.outputSchema = options.answer_schema
+        this.identifier = options.identifier
+        this.agent_identifier = options
+        this.environment = new NoOpEnvironment()
+        this.memory = new NoOpMemory()
+    }
 
-  title: string;
-  job_description: string;
-  inputSchema: ValidateFunction<object>;
-  outputSchema: ValidateFunction<object>;
-  identifier: string;
+    title: string;
+    job_description: string;
+    inputSchema: ValidateFunction<object>;
+    outputSchema: ValidateFunction<object>;
+    identifier: string;
 
-  getLogType() {
-    return "agent"
-  }
+    getLogType() {
+        return "agent"
+    }
 
-  async start() {
-    this.environment.setLogger(this.logger.child({subType: "environment"}))
-    await this.environment.registerHandler(this)
-    this.status = "started"
-    this.logger.info(`Started ${this.title}:${this.identifier}`)
-  }
+    initialize(memory: AgentMemory, environment: AgentEnvironment) {
+        this.memory = memory
+        this.environment = environment
+        this.environment.setLogger(this.logger)
+    }
 
-  async shutdown() {
-    await this.environment.shutdown()
-    this.status = "stopped"
-    this.logger.info(`Stopped ${this.title}:${this.identifier}`)
-  }
+    async start() {
+        this.environment.setLogger(this.logger.child({subType: "environment"}))
+        await this.environment.registerHandler(this)
+        this.status = "started"
+        this.logger.info(`Started ${this.title}:${this.identifier}`)
+    }
 
-  abstract processDirectMessage(response: DirectMessage): Promise<void>
+    async shutdown() {
+        await this.environment.shutdown()
+        this.status = "stopped"
+        this.logger.info(`Stopped ${this.title}:${this.identifier}`)
+    }
 
-  abstract processInstruction(instruction: NewTaskInstruction): Promise<void>
+    abstract processDirectMessage(response: DirectMessage): Promise<void>
+
+    abstract processInstruction(instruction: NewTaskInstruction): Promise<void>
 
     processInstructionError(instruction: NewTaskInstruction, error: any): void {
         if (error instanceof Error) {
@@ -105,70 +111,30 @@ export abstract class Agent implements EnvironmentHandler {
         this.logger.error(`Error processing direct message ${JSON.stringify(directMessage)}`, error)
     }
 
-  id_string() {
-    return `title:${this.title}, id:${this.identifier}`
-  }
-}
-
-export class BuiltinAgent extends Agent {
-  private helperRequests: Map<string, Deferred<any>> = new Map()
-
-  func: (args: any, agent: BuiltinAgent) => any
-
-  constructor(options: AgentOptions, func: (args: any, agent: BuiltinAgent) => any) {
-    super(options);
-    this.func = func;
-  }
-
-  async askForHelp<T>(conversationId: string, agentTitle: string, content: EventContent): Promise<T> {
-    const requestId = nanoid()
-    this.helperRequests.set(requestId, getDeferred())
-    this.logger.info(`Asking help from ${agentTitle}`, {conversation_id: conversationId})
-    await this.environment.askForHelp(this.title, this.identifier, conversationId, agentTitle, requestId, content)
-    return await this.helperRequests.get(requestId)!.promise
-  }
-
-  async processDirectMessage(message: DirectMessage): Promise<void> {
-    switch (message.type) {
-      case "help_response":
-        const response = message.contents as HelpResponse
-        let matchingRequest = this.helperRequests.get(response.request_id);
-        if (!matchingRequest) {
-          this.logger.error(`Received direct message for unknown request ${response.request_id}`)
-        } else if (response.status === 'success') {
-          this.logger.info(`Received help response from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
-          matchingRequest.resolve(response.response)
-        } else {
-          this.logger.warn(`Received ERROR response from ${response.helper_title}:${response.helper_identifier}`, {conversation_id: response.conversation_id})
-          matchingRequest.reject(response.response)
-        }
-        this.helperRequests.delete(response.request_id)
-    }
-  }
-
-  async processInstruction(instruction: NewTaskInstruction): Promise<void> {
-    this.logger.info(`Received new request from ${instruction.helpee_title}:${instruction.helpee_id}`)
-    let builtinFuncReturn: Record<string, any>
-
-    try {
-      if (this.func.constructor.name === "AsyncFunction") {
-        builtinFuncReturn = await this.func(instruction.input as any, this)
-      } else {
-        builtinFuncReturn = this.func(instruction.input as any, this)
-      }
-    } catch (e) {
-      this.logger.error("Error happened processing instruction", e)
-      throw e
+    async doAnswer(conversationId: string, _requestId: string, content: EventContent) {
+        const taskStart = (await this.memory.readEpisodicEventsForTask(conversationId)).find(e => e.type == "task_start")!.content as NewTaskInstruction
+        this.logger.info(`answering question from ${taskStart.helpee_title}:${taskStart.helpee_id}`, {conversation_id: conversationId})
+        await this.memory.recordEpisodicEvent({
+            actor: "worker",
+            type: "answer",
+            conversation_id: conversationId,
+            timestamp: DateTime.now().toISO(),
+            content: content
+        } as EpisodicEvent)
+        // We are not waiting on purpose
+        // noinspection ES6MissingAwait
+        this.environment.answer(taskStart.helpee_title, taskStart.helpee_id, {
+            conversation_id: taskStart.helpee_conversation_id,
+            request_id: taskStart.request_id,
+            helper_title: this.agent_identifier.title,
+            helper_identifier: this.agent_identifier.identifier,
+            status: 'success',
+            response: content
+        }, conversationId)
+        return Promise.resolve()
     }
 
-    this.logger.info(`Answering question from ${instruction.helpee_title}:${instruction.helpee_id}`)
-    return await this.environment.answer(instruction.helpee_title, instruction.helpee_id, {
-      conversation_id: instruction.helpee_conversation_id,
-      helper_identifier: this.identifier,
-      helper_title: this.title,
-      request_id: instruction.request_id,
-      status: 'success',
-      response: builtinFuncReturn as Record<string, any>
-    }, instruction.helpee_conversation_id)
-  }
+    id_string() {
+        return `title:${this.title}, id:${this.identifier}`
+    }
 }

@@ -1,12 +1,12 @@
 import {SampleFunctions} from "@/praxeum/sample/SampleFunctions";
 import {ConceptFunctions} from "@/praxeum/concept/ConceptFunctions";
 import {DeploymentTools} from "@/praxeum/DeploymentTools";
-import {KnowledgePackFunctions} from "@/praxeum/knowledge-packs/KnowledgePackFunctions";
-import {BuiltinAgent} from "@/kamparas/Agent";
+import {KnowledgePackFunctions} from "@/praxeum/knowledge-packs/BuildKnowledgePack";
 import {SemanticMemoryService} from "@/praxeum/systemWorkers/SemanticMemoryService";
+import {CodeAgent} from "@/kamparas/CodeAgent";
 
 // todo, builtin Functions should not need interfaces for each function, calls should instead explode the args
-export const builtinFunctions: Record<string, (v:any, agent: BuiltinAgent) => any> = {
+export const builtinFunctions: Record<string, (v:any, agent: CodeAgent) => any> = {
     "DeploymentTools.findRelevantTools": DeploymentTools.findRelevantTools,
 
 // these are for tests

@@ -9,6 +9,7 @@ import {rootLogger, setRootLoggerLevel} from "@/util/RootLogger";
 import process from "process";
 import fs from "node:fs";
 import axios from "axios";
+import {MongoMemory} from "@/kamparas/internal/MongoMemory"
 
 dotenv.config()
 
@@ -77,7 +78,8 @@ program.command("command")
     .argument("<command>", "The command to execute in the form of a json object")
     .action(async (title, command) => {
         setRootLoggerLevel(program.opts().loglevel)
-        const q = new RootQuestion(new RabbitAgentEnvironment())
+        const q = new RootQuestion()
+        q.initialize(new MongoMemory(q.agent_identifier), new RabbitAgentEnvironment())
         await q.start()
         const response = await q.askQuestion(title, JSON5.parse(command))
         console.log(JSON.stringify(response, null, 2))

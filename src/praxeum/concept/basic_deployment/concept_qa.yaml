@@ -1,5 +1,5 @@
 apiVersion: ad/v1
-kind: Deployment
+kind: AutonomousWorker
 deployment_type: QAManager
 title: concept_qa
 identifier: concept_qa_alpha

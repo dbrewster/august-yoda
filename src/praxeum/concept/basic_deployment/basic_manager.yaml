@@ -1,5 +1,5 @@
 apiVersion: ad/v1
-kind: Deployment
+kind: AutonomousWorker
 deployment_type: Manager
 title: basic_manager
 identifier: basic_manager_alpha

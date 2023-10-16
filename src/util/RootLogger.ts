@@ -20,7 +20,7 @@ const formatAgent = (type: string, title: string, identifier: string, conversati
         case "skilledWorker":
             agentChar = "\u{1D4E2}"
             break
-        case "builtinWorker":
+        case "CodeAgent":
             agentChar = "\u{1D4D1}"
             break
         case "manager":
@@ -43,7 +43,7 @@ const myFormat = printf(({stack, level, message, timestamp, type, subType, title
   switch (type) {
     case "agent":
     case "skilledWorker":
-    case "builtinWorker":
+    case "CodeAgent":
     case "manager":
     case "qaManager":
       module = formatAgent(type, title, identifier, conversation_id)

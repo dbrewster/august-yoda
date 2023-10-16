@@ -8,8 +8,7 @@ import {promiseMiddleware} from "@/yoda/api/promise-middleware";
 import {Command, Option} from "commander";
 import {rootLogger, setRootLoggerLevel} from "@/util/RootLogger";
 import process from "process";
-import fs, {MakeDirectoryOptions} from "fs";
-import {getSingleNodeDeployment, startSingleNodeServer} from "@/praxeum/SingleNodeDeployment";
+import {getSingleNodeDeployment, startSingleNodeServer} from "@/praxeum/server/SingleNodeDeployment";
 
 //For env File
 dotenv.config();
@@ -42,17 +41,13 @@ app.get("/server/status", async (req, res) => {
         return res.promise("No workers are running")
     }
     return res.promise(singleNodeServer.status().map(s => {
-        return `${s.identifier.title}:${s.identifier.identifier}: ${s.status}`
+        return `${s.resource}: ${s.status}`
     }).join("\n") + "\n")
 })
 
 app.post("/server/start", async (req, res) => {
-    const servicesToStart = req.body && req.body.length ? JSON.parse(req.body) : undefined
-    const response = await getSingleNodeDeployment().start(servicesToStart)
-    let retStr = `Started [${response.toStart.join(", ")}]\nAlready started [${response.started.join(", ")}]`
-    if (response.doesNotExist.length > 0) {
-        retStr += `\n!!!${response.doesNotExist.join(", ")} does not exist!!!`
-    }
+    const response = await getSingleNodeDeployment().start()
+    let retStr = `Started [${response.started.join(", ")}]\nAlready started [${response.alreadyStarted.join(", ")}]`
     return res.promise(retStr)
 })
 

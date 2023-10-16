@@ -1,0 +1,5 @@
+apiVersion: ad/v1
+kind: CodeAgent
+title: build_knowledge_pack
+module: "@/praxeum/knowledge-packs/BuildKnowledgePack"
+class: BuildKnowledgePack

@@ -58,7 +58,7 @@ concept_definition: |
 
 ---
 apiVersion: ad/v1
-kind: KnowledgePack
+kind: MetaConcept
 title: revops_opportunity_history
 knowledge_pack: revops
 system: CRM
