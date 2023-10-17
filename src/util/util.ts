@@ -2,7 +2,7 @@ import {Collection, Document, MongoClient} from "mongodb";
 
 let mongoClient: MongoClient | undefined
 
-export async function mongoCollection<T extends Document>(colName: string): Promise<Collection<T>> {
+export async function mongoDB() {
     if (!process.env.MONGO_CONNECTION_STR) {
         console.error("MONGO_CONNECTION_STR is not defined in the .env file")
         throw "MONGO_CONNECTION_STR is not defined in the .env file"
@@ -15,7 +15,21 @@ export async function mongoCollection<T extends Document>(colName: string): Prom
     if (!mongoClient) {
         mongoClient = await MongoClient.connect(process.env.MONGO_CONNECTION_STR!)
     }
-    return mongoClient.db(process.env.MONGO_DATABASE).collection(colName)
+    return mongoClient.db(process.env.MONGO_DATABASE)
+}
+
+let knownCollections = new Set<string>()
+
+export async function mongoCollection<T extends Document>(colName: string): Promise<Collection<T>> {
+    let db = await mongoDB()
+    if (!knownCollections.has(colName)) {
+        if ((await db.listCollections().toArray()).map(o => o.name).indexOf(colName) >= 0) {
+            knownCollections.add(colName)
+        } else {
+            await db.createCollection(colName)
+        }
+    }
+    return db.collection<T>(colName)
 }
 
 export async function shutdownMongo() {

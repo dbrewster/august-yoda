@@ -1,5 +1,7 @@
 import {Logger} from "winston";
 import {rootLogger} from "@/util/RootLogger";
+import OpenAI from "openai"
+import Embedding = OpenAI.Embedding
 
 export type EpisodicActor = ("external" | "worker")
 export type EpisodicEventType = ("task_start" | "plan" | "available_tools" | "instruction" | "answer" | "help" | "response" | "thought" | "observation" | "hallucination" | "llm_error")
@@ -27,14 +29,14 @@ export interface Reflection {
 }
 
 export interface SemanticMemory {
-    type: SemanticEventType,
-    agent_title: string,
-    agent_id: string,
-    conversation_id: string,
-    data: Record<string, any>,  // free form keys to search off
-    memory: EpisodicEvent | Reflection,
-    importance: number,
-    timestamp: string,
+    type: SemanticEventType
+    agent_title: string
+    agent_id: string
+    conversation_id: string
+    semantic_string: string  // free form keys to search off
+    memory: EpisodicEvent | Reflection
+    importance: number
+    timestamp: string
 }
 
 export type ProceduralEventType = ("instruction" | "ask_help" | "return")
