@@ -11,8 +11,6 @@ import axios from "axios";
 import {EpisodicEvent} from "@/kamparas/Memory";
 import clc from "cli-color";
 import YAML from "yaml";
-import {MongoMemory} from "@/kamparas/internal/MongoMemory"
-import {nanoid} from "nanoid"
 import {Collection} from "mongodb"
 import bare from "cli-color/bare"
 import {MongoRabbitPlatform} from "@/kamparas/internal/MongoRabbitPlatform"
@@ -95,24 +93,44 @@ program.command("command")
         await shutdownMongo()
     })
 
-// todo, follow would also be good, but we will need to use replica set for mongo for .watch
 program.command("eavesdrop")
-    .description("Print out a worker's conversation and downstream heop requests")
+    .description("Follow the event stream")
+    .option('-p, --properties <properties>', "json list of properties to return", '["timestamp", "agent_title", "type", "content"]')
+    .option('-m, --max_size <max_size>', "max event size before trimming", "500")
+    .action(async (options) => {
+        options.max_size = options.max_size === "false"? undefined : +options.max_size
+        options.properties = JSON.parse(options.properties)
+
+        let colorPicker = new ColorPicker()
+        let collection = await mongoCollection<EpisodicEvent>("episodic");
+        let changeStream = collection.watch()
+        try {
+            while (true) {
+                const found = await changeStream.next()
+                if (found.operationType === "insert") {
+                    logEvent(options, found.fullDocument, colorPicker)
+                }
+            }
+        } finally {
+            await shutdownMongo()
+        }
+    })
+
+program.command("review")
+    .description("Log events from a single request")
     .argument("<request_id>", "the id of the request to review")
-    .option('-p, --projection <projection>', "json projection to return.")
+    .option('-p, --properties <properties>', "json list of properties to return", '["agent_title", "type", "content"]')
     .option('-m, --max_size <max_size>', "max event size before trimming", "500")
     .action(async (request_id, options) => {
         options.max_size = options.max_size === "false"? undefined : +options.max_size
-        options.projection = options.projection? JSON.parse(options.projection) : {
-            agent_title: 1, timestamp: 1, type: 1, content: 1
-        }
+        options.properties = JSON.parse(options.properties)
 
         let collection = await mongoCollection<EpisodicEvent>("episodic");
-        await logRequest(request_id, new ColorPicker(), options.projection, options.max_size, collection)
+        await logRequest(request_id, new ColorPicker(), options, collection)
         await shutdownMongo()
     })
 
-async function logRequest(rid: string, colorPicker: ColorPicker, projection: any, max_size: number, collection: Collection<EpisodicEvent>) {
+async function logRequest(rid: string, colorPicker: ColorPicker, options: any, collection: Collection<EpisodicEvent>) {
     let taskStart = await collection.findOne<EpisodicEvent>({
         type: "task_start", "content.request_id": rid
     })
@@ -121,37 +139,35 @@ async function logRequest(rid: string, colorPicker: ColorPicker, projection: any
         return
     }
     const cid = taskStart?.conversation_id!
-    const found = await collection.find<EpisodicEvent>({
-        conversation_id: cid
-    }).sort({timestamp: 1}).project({...projection, type: 1, callData: 1, agent_title: 1}).toArray()
+    const found = await collection.find<EpisodicEvent>({conversation_id: cid}).sort({timestamp: 1}).toArray()
 
-    // todo, field ordering would be nice
     for (var event of found) {
-        const eventType = event.type
-        const callData = event.callData
-        const title = event.agent_title
+        logEvent(options, event, colorPicker)
 
-        const props: string[] = ["_id", "type", "callData", "agent_title"]
-        props.filter(prop=> projection[prop] != 1).forEach(prop => {
-            delete event[prop]
-        })
-        let eventStr = YAML.stringify(event);
-        if (max_size && eventStr.length > max_size) {
-            const lines = eventStr.split("\n")
-            eventStr = lines.shift()!
-            for (let i = eventStr.length + lines[0].length; i < max_size; i+= lines[0].length) {
-                eventStr += "\n" + lines.shift()
-            }
-            eventStr += "\n...\n"
-        }
-        console.log(colorPicker.pick(title)("---\n" + eventStr))
-
-        if (eventType === "help") {
+        if (event.type === "help") {
             console.group();
-            await logRequest(callData.requestId, colorPicker, projection, max_size, collection)
+            await logRequest(event.callData.requestId, colorPicker, options, collection)
             console.groupEnd()
         }
     }
+}
+
+function logEvent(options: any, event: EpisodicEvent, colorPicker: ColorPicker): void {
+    const userFacingEvent: any = {}
+    let properties: string[] = options.properties
+    properties.forEach(prop => {
+        userFacingEvent[prop] = (event as any)[prop]
+    })
+    let eventStr = YAML.stringify(userFacingEvent);
+    if (options.max_size && eventStr.length > options.max_size) {
+        const lines = eventStr.split("\n")
+        eventStr = ""
+        for (let i = lines[0].length; i < options.max_size && lines.length > 0; i += lines[0]?.length || 0) {
+            eventStr += (eventStr ? "\n" : "") + lines.shift()
+        }
+        eventStr += "\n...\n"
+    }
+    console.log(colorPicker.pick(event.agent_title)("---\n" + eventStr))
 }
 
 class ColorPicker {

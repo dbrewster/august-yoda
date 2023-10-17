@@ -115,7 +115,8 @@ export class BuildMemoryAgent extends CodeAgent {
             const resp = await this.promisedBasedHelp(args.conversation_id, 'ImportanceRater', content1);
             memories.push({type: "reflection", memory: insight, importance: resp.importance})
         }
-        const taskStartArgs = (events.find(e => e.type === "task_start")!.content as StructuredEpisodicEvent).input
+        let taskStart = events.find(e => e.type === "task_start")!
+        const taskStartArgs = (taskStart.content as StructuredEpisodicEvent).input
         const semanticMemories: Omit<SemanticMemory, "timestamp">[] = memories.map(m => {
             return {
                 ...m,
