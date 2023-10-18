@@ -1,5 +1,4 @@
 import {AgentToolCall, AutonomousAgent, AutonomousAgentOptions, remoteAgentCall} from "@/kamparas/AutonomousAgent";
-import {CodeAgent} from "@/kamparas/CodeAgent";
 
 export interface WorkerOptions extends AutonomousAgentOptions {
 }

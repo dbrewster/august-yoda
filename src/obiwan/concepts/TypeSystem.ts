@@ -1,4 +1,3 @@
-
 /*
   Holds a change list of change for concepts as one unit.
  */

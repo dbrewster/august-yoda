@@ -1,9 +1,5 @@
 import {deleteIdentifier, registerIdentifier,} from "@/kamparas/AgentRegistry";
-import {
-    AutonomousQAManager,
-    AutonomousSkilledWorker,
-    AutonomousWorkerManager
-} from "@/praxeum/Worker";
+import {AutonomousQAManager, AutonomousSkilledWorker, AutonomousWorkerManager} from "@/praxeum/Worker";
 import _ from "underscore"
 import {
     AutonomousAgentDescriptor,

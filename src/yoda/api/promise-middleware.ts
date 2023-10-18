@@ -1,6 +1,5 @@
 import {Request, Response} from "express";
 import http from "http";
-import {stat} from "fs";
 import {rootLogger} from "@/util/RootLogger";
 
 declare module "express-serve-static-core" {

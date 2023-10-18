@@ -1,3 +1,4 @@
+/*
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
 import {z, ZodType} from "zod";
 import _ from "underscore";
@@ -13,14 +14,14 @@ class BuildDescription extends BaseLLMItem {
   readonly name: string = "BuildDescription";
   readonly description: string = "Build a description for a table";
 
-  /*
+  /!*
   Given the following schema contained in triple asterisks:
 ***
 {schema}
 ***
 
 
-   */
+   *!/
   readonly humanMessages: HumanMessagePromptTemplate[] = [
     HumanMessagePromptTemplate.fromTemplate(
       `Analyze the table 
@@ -124,3 +125,4 @@ export const buildDescriptions = async () => {
 //
 dotenv.config();
 await buildDescriptions()
+*/

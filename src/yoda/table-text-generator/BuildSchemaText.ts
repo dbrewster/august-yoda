@@ -1,5 +1,4 @@
 import {mongoCollection} from "@/util/util";
-import {ObjectId} from "mongodb";
 import {OutputWriter} from "@/yoda/table-text-generator/OutputWriter";
 
 export interface SchemaColumn {

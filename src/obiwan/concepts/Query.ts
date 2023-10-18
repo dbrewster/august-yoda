@@ -1,8 +1,7 @@
 import {parseQuery} from "./overload"
 import {LinkProperty, oClass, oProperty, SQLContext} from "@/obiwan/concepts/QueryClass";
 import {SQLDatabase} from "@/util/SQLDatabase";
-import dotenv from "dotenv"
-import {getTypeSystem, ROOT_TYPE_SYSTEM, TypeSystem} from "@/obiwan/concepts/TypeSystem"
+import {getTypeSystem, TypeSystem} from "@/obiwan/concepts/TypeSystem"
 
 type BinaryOperand = ("+" | "-" | "*" | "/" | "&&" | "||" | "==" | "!=" | "<" | "<=" | ">" | ">=" | "in" | "%")
 type UnaryOperand = ("!")

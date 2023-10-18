@@ -2,7 +2,7 @@
 import jsforce, {Connection, DescribeGlobalResult, UserInfo} from "jsforce";
 import fs, {readFileSync} from "node:fs";
 import * as foo from "extract-pg-schema"
-import {Client, Configuration, SSLMode} from "ts-postgres";
+import {Client} from "ts-postgres";
 
 const {extractSchemas} = foo
 
