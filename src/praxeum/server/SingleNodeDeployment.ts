@@ -68,7 +68,7 @@ class SingleNodeDeployment implements OperatorEnvironment {
         }
 
         let message = `${resourcesToApply.length - resourcesNotMapped.length} workers applied`;
-        this.logger.info(message, {type: "server"})
+        this.logger.info(message)
 
         return message
     }

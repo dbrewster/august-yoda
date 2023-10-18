@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import http from "http";
 import {rootLogger} from "@/util/RootLogger";
+import winston from "winston"
 
 declare module "express-serve-static-core" {
   interface Response<
@@ -11,21 +12,21 @@ declare module "express-serve-static-core" {
     promise: (p: (Promise<any> | any)) => any
   }
 }
-const handleResponse = (res: Response, data: any) => {
-  rootLogger.info("http response:  200")
+const handleResponse = (logger: winston.Logger, res: Response, data: any) => {
+  logger.info("http response:  200")
   return res.status(200).send(data);
 }
-const handleError = (res: Response, err: any = {}) => {
+const handleError = (logger: winston.Logger, res: Response, err: any = {}) => {
   if (err.status && err.status < 500) {
-    rootLogger.warn(`http response: ${err.status}`)
+    logger.warn(`http response: ${err.status}`)
   } else {
-    rootLogger.error("http response: 500", err)
+    logger.error("http response: 500", err)
     console.log(err.stack)
   }
   return res.status(err.status || 500).send({error: err.message});
 }
 
-export function promiseMiddleware() {
+export function promiseMiddleware(logger: winston.Logger = rootLogger) {
   return (req: Request, res: Response, next: any) => {
     res.promise = (p) => {
       let promiseToResolve;
@@ -39,10 +40,10 @@ export function promiseMiddleware() {
 
       return promiseToResolve
         .then((data: any) => {
-          return handleResponse(res, data)
+          return handleResponse(logger, res, data)
         })
         .catch((e: any) => {
-          handleError(res, e)
+          handleError(logger, res, e)
         });
     };
     return next();

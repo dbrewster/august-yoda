@@ -8,7 +8,7 @@ import message_route from "@/yoda/api/chat/[id]/message/route"
 import {nanoid} from "nanoid";
 import {createIdPatternMatcher, WCMatch, YodaEvent} from "@/util/llm/EventHandler";
 import {ErrorRequestHandler} from "express-serve-static-core";
-import {promiseMiddleware} from "@/yoda/api/promise-middleware";
+import {promiseMiddleware} from "@/util/promise-middleware";
 
 //For env File
 dotenv.config();

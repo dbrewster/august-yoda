@@ -4,7 +4,11 @@ set -o allexport
 source .env set
 set +o allexport
 
-mongosh -eval "db.getCollection('plans').drop();db.getCollection('episodic').drop();" "${MONGO_CONNECTION_STR}/${MONGO_DATABASE}"
+cat<<EOL | mongosh "${MONGO_CONNECTION_STR}"
+use ${MONGO_DATABASE};
+db.getCollection('plans').drop();
+db.getCollection('episodic').drop();
+EOL
 
 ./praxeum stop
 

@@ -2,9 +2,8 @@ import express, {Application, Request, Response} from 'express';
 import dotenv from 'dotenv';
 
 import bodyParser from "body-parser";
-import {createServer} from "http";
 import {ErrorRequestHandler} from "express-serve-static-core";
-import {promiseMiddleware} from "@/yoda/api/promise-middleware";
+import {promiseMiddleware} from "@/util/promise-middleware";
 import {Command, Option} from "commander";
 import {rootLogger, setRootLoggerLevel} from "@/util/RootLogger";
 import process from "process";
@@ -21,9 +20,10 @@ const handler: ErrorRequestHandler = (err, req, res, next) => {
     res.send(err)
 }
 
+const logger = rootLogger.child({type: "server"})
 const app: Application = express();
 app.use(bodyParser.text())
-app.use(promiseMiddleware())
+app.use(promiseMiddleware(logger))
 const port = process.env.PRAXEUM_PORT || 8001;
 
 app.get('/', (req: Request, res: Response) => {
@@ -32,7 +32,6 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use(handler)
 
-const server = createServer(app)
 const singleNodeServer = startSingleNodeServer(dataDir)
 await singleNodeServer.initialize()
 
@@ -69,7 +68,7 @@ program.name("praxeum_server")
 program.command("start")
     .action((options) => {
         setRootLoggerLevel(program.opts().loglevel)
-        server.listen(port, () => {
+        app.listen(port, () => {
             console.log(`Server is listening at http://localhost:${port}`);
         })
     })
