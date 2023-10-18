@@ -30,7 +30,7 @@ export interface Reflection {
 
 export interface SemanticMemory {
     type: SemanticEventType
-    agent_title: string
+    agent_type: string
     agent_id: string
     conversation_id: string
     semantic_string: string  // free form keys to search off
@@ -63,7 +63,7 @@ export abstract class AgentMemory {
     abstract readEpisodicEventsForTask(conversation_id: string, limit?: number): Promise<EpisodicEvent[]>
     abstract findEpisodicEvent(query: Record<string, any>): Promise<EpisodicEvent | null>
 
-    abstract recordSemanticMemory(event: Omit<SemanticMemory, "agent_title" | "agent_id">): Promise<void>
+    abstract recordSemanticMemory(event: Omit<SemanticMemory, "agent_type" | "agent_id">): Promise<void>
 
     abstract recordProceduralEvent(event: Omit<ProceduralEvent, "agent_title" | "agent_id">): Promise<void>
 
@@ -117,7 +117,7 @@ export class NoOpMemory extends AgentMemory {
         return Promise.resolve(undefined);
     }
 
-    recordSemanticMemory(event: Omit<SemanticMemory, "agent_title" | "agent_id">): Promise<void> {
+    recordSemanticMemory(event: Omit<SemanticMemory, "agent_type" | "agent_id">): Promise<void> {
         return Promise.resolve(undefined);
     }
 

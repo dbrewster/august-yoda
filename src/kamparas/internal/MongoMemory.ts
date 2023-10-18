@@ -142,7 +142,7 @@ export class MongoMemory extends AgentMemory {
         })
     }
 
-    async recordSemanticMemory(event: Omit<SemanticMemory, "agent_title" | "agent_id">): Promise<void> {
+    async recordSemanticMemory(event: Omit<SemanticMemory, "agent_type" | "agent_id">): Promise<void> {
         const collection = await mongoCollection(this.makeCollectionName("semantic"))
         return collection.insertOne({...event, agent_title: this.agentIdentifier.title, agent_id: this.agentIdentifier.identifier}).then(res => {
         })

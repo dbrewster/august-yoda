@@ -84,7 +84,7 @@ async function retry<T>(fn: () => Promise<T>, until: (arg0: T) => boolean = (arg
 function semantic(content: string): Omit<SemanticMemory, "semantic_embedding"> {
     return {
         type: "reflection",
-        agent_title: "common_title",
+        agent_type: "common_title",
         agent_id: "agent_id",
         conversation_id: nanoid(),
         semantic_string: content,

@@ -2,7 +2,7 @@ import {MongoMemory} from "@/kamparas/internal/MongoMemory";
 import {AgentIdentifier} from "@/kamparas/Agent";
 import {typeRoleMap} from "@/kamparas/internal/OpenAILLM";
 import YAML from "yaml";
-import {SemanticMemoryClient} from "@/kamparas/internal/SemanticMemoryClient";
+import {MongoSemanticMemoryClient} from "@/kamparas/internal/SemanticMemoryClient";
 import {CodeAgent, CodeAgentOptions} from "@/kamparas/CodeAgent";
 import {SemanticMemory, StructuredEpisodicEvent} from "@/kamparas/Memory";
 import {nanoid} from "nanoid";
@@ -76,10 +76,13 @@ export class BuildMemoryAgent extends CodeAgent {
 
     async buildMemory(args: SemanticMemoryBuilderArgs, conversation_id: string) {
         // Memory clients should be accessed via DI
-        const sm = await new SemanticMemoryClient(args.agent_id, false, this.logger).initialize()
+        const sm = await new MongoSemanticMemoryClient(args.agent_id, this.logger).initialize()
         const mm = new MongoMemory({title: args.agent_type, identifier: args.agent_id} as AgentIdentifier)
         const events = (await mm.readEpisodicEventsForTask(args.conversation_id));
         const otherEvents = events.filter(e => e.type !== "task_start")
+        if (events.length === 0) {
+            throw new Error(`Did not find any events`)
+        }
 
         // todo, we should remember tool calls as well, but for now just assistant events
         const splitSize = 12000
@@ -117,19 +120,18 @@ export class BuildMemoryAgent extends CodeAgent {
         }
         let taskStart = events.find(e => e.type === "task_start")!
         const taskStartArgs = (taskStart.content as StructuredEpisodicEvent).input
-        const semanticMemories: Omit<SemanticMemory, "timestamp">[] = memories.map(m => {
+        const semanticMemories: Omit<SemanticMemory, "timestamp" | "semantic_string">[] = memories.map(m => {
             return {
                 ...m,
-                agent_title: args.agent_type,
+                agent_type: args.agent_type,
                 agent_id: args.agent_id,
-                data: {input: taskStartArgs},
                 conversation_id: args.conversation_id,
             } as Omit<SemanticMemory, "timestamp">
         })
 
         if (!args.dry_run) {
             this.logger.info("Saving semantic memories")
-            await sm.recordSemanticMemories(semanticMemories)
+            await sm.recordSemanticMemories(YAML.stringify(taskStartArgs), semanticMemories)
         } else {
             this.logger.info("Done building semantic memories, dry_run=true")
         }
