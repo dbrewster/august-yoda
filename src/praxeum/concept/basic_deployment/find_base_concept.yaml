@@ -3,58 +3,44 @@ kind: AutonomousWorker
 deployment_type: SkilledWorker
 title: find_base_concept
 identifier: alpha
-job_description: Finds the base concept for a new concept.
+job_description: Finds the correct base concept to extend from based on a description and type of a new or existing concept.
 initial_plan: You are a helpful agent answering questions about generating
   information about creating or modifying interfaces in a concept graph.
 initial_instructions: >
-  You are an agent finding information about concepts in a {system},
-  specifically for the {process} process.
+  You are an agent finding information about concepts in a {{__context__.system}},
+  specifically for the {{__context__.process}} process.
 
-  Given the brand new concept {concept_name} and it's definition:
+  Given the brand new concept {{concept_name}} and it's definition:
 
-  {concept_definition}
-
-
-  And the concept type of {concept_type}
+  {{concept_definition}}
 
 
   You are finding the correct base concept to derive this concept from. You can think of the base concept as a delegate concept for this new type. The base concept must be at the same grain, or level, as the new concept.
+  The base concept name is identified by its class name in the interface.
 
 
-  Find the list of base concepts that might be a match. Return the concept name, a reason why it was chosen, and a probability, between 0 and 1, that it is a good candidate.
+  Do your best to find a match from the list of base concepts. Return the concept name, a reason why it was chosen, and a probability, between 0 and 1, that it is a good candidate.
 
 
   Once you have the list, order the list by best probability (closest to 1), limit the check to 3-5 items, and then check the result by getting the details of the top few candidates. Use the details to make your final decision.
 
 
-  Think about how each interface is used in a {system} process and write your intermediate results
+  Think about how each interface is used in a {{system}} process and write your intermediate results
 
 
   Let's think aloud step by step
 input_schema:
   type: object
   properties:
-    system:
-      type: string
-      description: The type system we are defining concepts for
-    process:
-      type: string
-      description: The specific process in the system we are defining for
     concept_name:
       type: string
       description: The name of the concept
-    concept_type:
-      type: string
-      description: The type of the new concept
     concept_definition:
       type: string
       description: A very detailed definition of the concept we are finding the base
         concept for
   required:
-    - system
-    - process
     - concept_name
-    - concept_type
     - concept_definition
   additionalProperties: false
   $schema: http://json-schema.org/draft-07/schema#

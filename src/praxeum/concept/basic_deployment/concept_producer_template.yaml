@@ -9,11 +9,76 @@ options:
     llm: openai.function
     model: gpt-3.5-turbo-16k
     temperature: 0.2
+    deployment:
+      title: '{{concept.name}}_worker'
+      job_description: '
+        This tool is an expert for all things related to the concept {{concept.name}}. 
+        Use this tool to generate a new Query object or to modify the concept in any way'
+      initial_plan: '
+        You are a helpful agent answering questions about {{concept.name}} for in a {{__context__.system}}, specifically for the {{__context__.process}} process.
+        Use the set of given tools to completely answer the users question in detail.'
+      initial_plan_instructions: '
+        You are a helpful agent finding information about concepts in a {{__context__.system}}, specifically for the {{__context__.process}} process. You are the expert on concept {{concept.name}}
+
+        You will answer a variety of questions about this concept as you are the only expert in the system for this topic.
+
+        The first thing you should do is load the current definition of the concept.
+
+        Use the other tools available to answer the users question:
+          {{question}}
+
+        Let''s think aloud step by step'
+
+      availableTools:
+        - find_base_concept
+        - find_concept_properties
+        - find_concept_constraints_query
+        - concept_details_and_sample
   manager:
     llm: openai.function
     model: gpt-4
     temperature: 0.2
+    deployment:
+      title: '{{concept.name}}_manager'
+      job_description: 'Provides help to blocked workers'
+      initial_plan: '
+        You are a manager of workers. You are responsible for providing a plan for how
+        they should proceed. Consider the problem the problems the worker is facing
+        and the resources they have to solve the problem.
+      
+        Create a plan for the worker to solve the problem if it is possible.
+      
+        Tell the worker "STOP WORKING" if they they cannot progress or are not making progress.'
+      initial_plan_instructions: '
+        I am trying am having a problem with "{{problem}}" and am unsure how to proceed.
+        What should I do?
+      
+      
+        I have the following tools available:
+      
+        {{available_tools}}
+      
+      
+        Here is some context for the problem:
+      
+        {{context}}'
+      availableTools: []
   qa:
     llm: openai.function
     model: gpt-4
     temperature: 0.2
+    deployment:
+      title: '{{concept.name}}_qa'
+      job_description: An agent designed to check correctness
+      initial_plan: '
+        You are a helpful agent designed do qa for other agents. You are
+        responsible for assuring correctness. Come up with a test plan for provided
+        question. Use the test plan to determine the correctness probability (between
+        0 and 1) of the provided solution. Think step by step.'
+      initial_plan_instructions: '
+        Is the following solution correct?
+        ### Question ###
+        {question}
+        ### Solution ###
+        {solution}'
+      availableTools: []

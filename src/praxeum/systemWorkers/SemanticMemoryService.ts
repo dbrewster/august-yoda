@@ -19,6 +19,7 @@ interface SemanticMemoryBuilderArgs {
     dry_run: boolean | undefined
 }
 
+// noinspection JSUnusedGlobalSymbols
 export class BuildMemoryAgent extends CodeAgent {
     requestIdToDeferred: Record<string, Deferred<any>> = {}
 
@@ -49,7 +50,7 @@ export class BuildMemoryAgent extends CodeAgent {
         const requestId: string = nanoid()
         this.requestIdToDeferred[requestId] = getDeferred()
         // noinspection JSIgnoredPromiseFromCall
-        super.askForHelp(conversationId, agentTitle, content, undefined, requestId)
+        super.askForHelp(conversationId, agentTitle, this.getTaskContext(conversationId), content, undefined, requestId)
 
         return this.requestIdToDeferred[requestId].promise
     }

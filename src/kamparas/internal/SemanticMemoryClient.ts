@@ -5,7 +5,7 @@ import {SemanticMemory} from "@/kamparas/Memory";
 import {DateTime} from "luxon";
 import {mongoCollection} from "@/util/util"
 import OpenAI from "openai"
-import Embedding = OpenAI.Embedding
+import Embedding = OpenAI.Embedding;
 
 
 abstract class SemanticMemoryClient {

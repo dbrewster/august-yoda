@@ -63,6 +63,7 @@
     "esprima": "^4.0.1",
     "express": "^4.18.2",
     "extract-pg-schema": "^4.2.2",
+    "handlebars": "^4.7.8",
     "jsforce": "^1.11.1",
     "json5": "^2.2.3",
     "langchain": "^0.0.134",

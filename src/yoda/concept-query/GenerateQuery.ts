@@ -1,10 +1,10 @@
 import {BaseCallContext, BaseLLMItem, ItemValues} from "@/util/llm/BaseItem";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
 import {z, ZodType} from "zod";
-import {getClosedGraph} from "@/obiwan/code-gen/BuildConceptClasses";
-import {printConceptClasses} from "@/obiwan/code-gen/PrintConceptInterfaces";
-import {executeQuery} from "@/obiwan/query/Query";
-import {printExampleSearches, printQueryTypes} from "@/obiwan/code-gen/PrintQueryLanguageInterfaces";
+import {getClosedGraph} from "@/obiwan/concepts/BuildConceptClasses";
+import {printConceptClasses} from "@/obiwan/concepts/PrintConceptInterfaces";
+import {executeQuery} from "@/obiwan/concepts/Query";
+import {printExampleSearches, printQueryTypes} from "@/obiwan/concepts/PrintQueryLanguageInterfaces";
 
 export class GenerateQuery extends BaseLLMItem {
   readonly name: string = "generate_search_text"

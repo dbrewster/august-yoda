@@ -1,5 +1,5 @@
 import {MetaConcepts} from "@/obiwan/meta-concepts/MetaConcepts";
-import {buildBaseConcept} from "@/obiwan/concepts/BaseConceptBuilder";
+import {buildBaseConcept} from "@/obiwan/code-gen/BaseConceptBuilder";
 import dotenv from "dotenv";
 
 export const buildConceptFromConcept = async (conceptName: string, knowledgeHubFile: string) => {

@@ -3,8 +3,8 @@ import {AgentIdentifier} from "@/kamparas/Agent";
 import {mongoCollection} from "@/util/util";
 import {DateTime} from "luxon";
 import {FindOptions, ObjectId} from "mongodb";
-import {PromptTemplate} from "langchain/prompts";
 import dotenv from "dotenv";
+import {TemplateProcessor} from "@/util/TemplateProcessor"
 
 // todo collections will need index on agent_id and conversation_id
 export class MongoMemory extends AgentMemory {
@@ -99,7 +99,7 @@ export class MongoMemory extends AgentMemory {
             return Promise.reject("WTH!!! -- could not find plan --" + JSON.stringify(find))
         }
 
-        return PromptTemplate.fromTemplate(template).format(input);
+        return TemplateProcessor.process(template, input)
     }
 
     async planInstructionsExists(): Promise<boolean> {
@@ -127,24 +127,33 @@ export class MongoMemory extends AgentMemory {
             return Promise.reject("WTH!!! -- could not find plan instruction --" + JSON.stringify(find))
         }
 
-        return PromptTemplate.fromTemplate(template).format(input);
+        return TemplateProcessor.process(template, input);
     }
 
     async recordEpisodicEvent(event: Omit<EpisodicEvent, "agent_title" | "agent_id">): Promise<void> {
         const collection = await mongoCollection(this.makeCollectionName("episodic"))
-        return collection.insertOne({...event, agent_title: this.agentIdentifier.title, agent_id: this.agentIdentifier.identifier}).then(res => {
+        await collection.insertOne({
+            ...event,
+            agent_title: this.agentIdentifier.title,
+            agent_id: this.agentIdentifier.identifier
         })
     }
 
     async recordProceduralEvent(event: Omit<ProceduralEvent, "agent_title" | "agent_id">): Promise<void> {
         const collection = await mongoCollection(this.makeCollectionName("procedure"))
-        return collection.insertOne({...event, agent_title: this.agentIdentifier.title, agent_id: this.agentIdentifier.identifier}).then(res => {
+        await collection.insertOne({
+            ...event,
+            agent_title: this.agentIdentifier.title,
+            agent_id: this.agentIdentifier.identifier
         })
     }
 
     async recordSemanticMemory(event: Omit<SemanticMemory, "agent_type" | "agent_id">): Promise<void> {
         const collection = await mongoCollection(this.makeCollectionName("semantic"))
-        return collection.insertOne({...event, agent_title: this.agentIdentifier.title, agent_id: this.agentIdentifier.identifier}).then(res => {
+        await collection.insertOne({
+            ...event,
+            agent_title: this.agentIdentifier.title,
+            agent_id: this.agentIdentifier.identifier
         })
     }
 

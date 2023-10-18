@@ -2,16 +2,8 @@ import {AgentMemory, NoOpMemory} from "@/kamparas/Memory"
 import {AgentEnvironment, NoOpEnvironment} from "@/kamparas/Environment"
 import {Logger} from "winston"
 import {rootLogger} from "@/util/RootLogger"
-import {
-    AutonomousQAManager,
-    AutonomousSkilledWorker,
-    AutonomousWorker,
-    AutonomousWorkerManager,
-    QAManager,
-    SkilledWorker,
-    WorkerManager
-} from "@/praxeum/Worker"
-import {Concept, getAllConcepts} from "@/obiwan/concepts/Concept"
+import {AutonomousQAManager, AutonomousSkilledWorker, AutonomousWorker, AutonomousWorkerManager} from "@/praxeum/Worker"
+import {Concept} from "@/obiwan/concepts/Concept"
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager"
 import {z} from "zod"
 import {PlatformBuilder} from "@/kamparas/PlatformBuilder"
@@ -19,6 +11,8 @@ import {Resource, ResourceStatus} from "@/praxeum/server/DeploymentDescriptor"
 import {LLMType, ModelType} from "@/kamparas/LLM"
 import {AgentTemplateDescriptor, OperatorStateChange} from "@/praxeum/server/Operator"
 import {registerIdentifier} from "@/kamparas/AgentRegistry"
+import {getTypeSystem, ROOT_TYPE_SYSTEM} from "@/obiwan/concepts/TypeSystem"
+import {TemplateProcessor} from "@/util/TemplateProcessor"
 
 export abstract class AgentTemplateBuilder {
     logger: Logger;
@@ -50,10 +44,19 @@ export interface ConceptWorkers {
     qa: AutonomousQAManager
 }
 
+interface AgentDeploymentOptions {
+        title: string,
+        job_description: string,
+        initial_plan: string,
+        initial_plan_instructions: string,
+        availableTools: string[]
+}
+
 interface WorkerLLMOptions {
     llm: LLMType,
     model: ModelType,
     temperature: number
+    deployment: AgentDeploymentOptions
 }
 
 interface ConceptAgentBuilderDescriptor extends AgentTemplateDescriptor {
@@ -64,16 +67,31 @@ interface ConceptAgentBuilderDescriptor extends AgentTemplateDescriptor {
     }
 }
 
+// noinspection JSUnusedGlobalSymbols
 export class ConceptAgentBuilder extends AgentTemplateBuilder {
     concepts: ConceptWorkers[] = []
     title: string = ""
     status: ResourceStatus = "stopped"
 
+    private processAgentTemplate(concept: Concept, deployment: AgentDeploymentOptions): AgentDeploymentOptions {
+        const input = {concept: concept}
+        return {
+            title: TemplateProcessor.process(deployment.title, input),
+            job_description: TemplateProcessor.process(deployment.job_description, input),
+            initial_plan: TemplateProcessor.process(deployment.initial_plan, input),
+            initial_plan_instructions: TemplateProcessor.process(deployment.initial_plan_instructions, input),
+            availableTools: deployment.availableTools
+        }
+    }
+
     async build(resource: Resource): Promise<void> {
         const descriptor = resource as ConceptAgentBuilderDescriptor
         this.title = resource.title
         this.status = resource.status || "stopped"
-        const concepts = await getAllConcepts()
+        // todo -- fix this to get value from context once we add it.
+        const typeSystemId = ROOT_TYPE_SYSTEM
+        const typeSystem = await getTypeSystem(typeSystemId)
+        const concepts = typeSystem.getAllConcepts()
         this.logger.info(`Building concept agents for [${concepts.map(c => c.name).join(",")}]`)
         const wrap = <T extends AutonomousWorker>(agent: T, llmOptions: WorkerLLMOptions): T => {
             agent.initialize({
@@ -87,9 +105,9 @@ export class ConceptAgentBuilder extends AgentTemplateBuilder {
         }
         this.concepts = concepts.map(concept => {
             return {
-                worker: wrap(this.buildWorker(concept), descriptor.options.worker),
-                manager: wrap(this.buildManager(concept), descriptor.options.manager),
-                qa: wrap(this.buildQA(concept), descriptor.options.qa)
+                worker: wrap(this.buildWorker(concept, this.processAgentTemplate(concept, descriptor.options.worker.deployment)), descriptor.options.worker),
+                manager: wrap(this.buildManager(concept, this.processAgentTemplate(concept, descriptor.options.manager.deployment)), descriptor.options.manager),
+                qa: wrap(this.buildQA(concept, this.processAgentTemplate(concept, descriptor.options.qa.deployment)), descriptor.options.qa)
             }
         })
         return Promise.resolve(undefined)
@@ -137,13 +155,13 @@ export class ConceptAgentBuilder extends AgentTemplateBuilder {
         return changes
     }
 
-    private buildWorker(concept: Concept): AutonomousSkilledWorker {
+    private buildWorker(concept: Concept, deployment: AgentDeploymentOptions): AutonomousSkilledWorker {
         return new AutonomousSkilledWorker({
-            title: `${concept.name}_worker`,
+            title: deployment.title,
             identifier: "alpha",
-            job_description: `This is an export for all things related to the concept ${concept.name}. Use this tool to generate a Query object or to modify the concept in any way`,
-            initial_plan: "",
-            initial_plan_instructions: "",
+            job_description: deployment.job_description,
+            initial_plan: deployment.initial_plan,
+            initial_plan_instructions: deployment.initial_plan_instructions,
             overwrite_plan: false,
             overwrite_plan_instructions: false,
             input_schema: getOrCreateSchemaManager().compileZod(z.object({
@@ -152,37 +170,20 @@ export class ConceptAgentBuilder extends AgentTemplateBuilder {
             answer_schema: getOrCreateSchemaManager().compileZod(z.object({
                 answer: z.string().describe("A detailed answer to the users question")
             })),
-            availableTools: [`${concept.name}_manager`, `${concept.name}_qa`],
+            availableTools: [`${concept.name}_manager`, `${concept.name}_qa`].concat(deployment.availableTools),
             manager: `${concept.name}_manager`,
             qaManager: `${concept.name}_qa`,
             maxConcurrentThoughts: 10
         })
     }
 
-    private buildManager(concept: Concept): AutonomousWorkerManager {
+    private buildManager(_concept: Concept, deployment: AgentDeploymentOptions): AutonomousWorkerManager {
         return new AutonomousWorkerManager({
-            title: `${concept.name}_manager`,
+            title: deployment.title,
             identifier: "alpha",
-            job_description: `Provides help to blocked workers`,
-            initial_plan: `You are a manager of workers. You are responsible for providing a plan for how
-  they should proceed. Consider the problem the problems the worker is facing
-  and the resources they have to solve the problem.
-
-  Create a plan for the worker to solve the problem if it is possible.
-
-  Tell the worker "STOP WORKING" if they they cannot progress or are not making progress.`,
-            initial_plan_instructions: `I am trying am having a problem with "{problem}" and am unsure how to proceed.
-  What should I do?
-
-
-  I have the following tools available:
-
-  {available_tools}
-
-
-  Here is some context for the problem:
-
-  {context}`,
+            job_description: deployment.job_description,
+            initial_plan: deployment.initial_plan,
+            initial_plan_instructions: deployment.initial_plan_instructions,
             overwrite_plan: false,
             overwrite_plan_instructions: false,
             input_schema: getOrCreateSchemaManager().compileZod(z.object({
@@ -193,25 +194,18 @@ export class ConceptAgentBuilder extends AgentTemplateBuilder {
             answer_schema: getOrCreateSchemaManager().compileZod(z.object({
                 response: z.string().describe("A detailed answer to the users question")
             })),
-            availableTools: [],
+            availableTools: deployment.availableTools,
             maxConcurrentThoughts: 10
         })
     }
 
-    private buildQA(concept: Concept): AutonomousQAManager {
+    private buildQA(concept: Concept, deployment: AgentDeploymentOptions): AutonomousQAManager {
         return new AutonomousQAManager({
-            title: `${concept.name}_qa`,
+            title: deployment.title,
             identifier: "alpha",
-            job_description: `An agent designed to check correctness`,
-            initial_plan: `You are a helpful agent designed do qa for other agents. You are
-  responsible for assuring correctness. Come up with a test plan for provided
-  question. Use the test plan to determine the correctness probability (between
-  0 and 1) of the provided solution. Think step by step.`,
-            initial_plan_instructions: `Is the following solution correct?
-  ### Question ###
-  {question}
-  ### Solution ###
-  {solution}`,
+            job_description: deployment.job_description,
+            initial_plan: deployment.initial_plan,
+            initial_plan_instructions: deployment.initial_plan_instructions,
             overwrite_plan: false,
             overwrite_plan_instructions: false,
             input_schema: getOrCreateSchemaManager().compileZod(z.object({
@@ -223,7 +217,7 @@ export class ConceptAgentBuilder extends AgentTemplateBuilder {
                 correctness: z.number().describe("The probability the provided solution correctly answers the provided question")
             })),
             manager: `${concept.name}_manager`,
-            availableTools: [`${concept.name}_manager`],
+            availableTools: [`${concept.name}_manager`].concat(deployment.availableTools),
             maxConcurrentThoughts: 10
         })
     }

@@ -1,9 +1,9 @@
 import {BaseCallContext, BaseItem, BaseOptions, ItemValues, RunManger} from "@/util/llm/BaseItem";
 import {Agent, ToolItem} from "@/util/llm/Agent";
 import {z, ZodSchema, ZodType} from "zod";
-import {printConceptClasses} from "@/obiwan/code-gen/PrintConceptInterfaces";
+import {printConceptClasses} from "@/obiwan/concepts/PrintConceptInterfaces";
 import {ChatOpenAI} from "langchain/chat_models/openai";
-import {getOrBuildConceptClasses} from "@/obiwan/code-gen/BuildConceptClasses";
+import {getOrBuildConceptClasses} from "@/obiwan/concepts/BuildConceptClasses";
 
 export class GetAllConcepts extends BaseItem implements ToolItem {
     readonly name: string = "get_all_concepts"

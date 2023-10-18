@@ -1,7 +1,8 @@
 import {parseQuery} from "./overload"
-import {LinkProperty, oClass, oProperty, SQLContext} from "@/obiwan/query/QueryClass";
-import {getOrBuildConceptClasses, Namespace} from "@/obiwan/code-gen/BuildConceptClasses";
+import {LinkProperty, oClass, oProperty, SQLContext} from "@/obiwan/concepts/QueryClass";
 import {SQLDatabase} from "@/util/SQLDatabase";
+import dotenv from "dotenv"
+import {getTypeSystem, ROOT_TYPE_SYSTEM, TypeSystem} from "@/obiwan/concepts/TypeSystem"
 
 type BinaryOperand = ("+" | "-" | "*" | "/" | "&&" | "||" | "==" | "!=" | "<" | "<=" | ">" | ">=" | "in" | "%")
 type UnaryOperand = ("!")
@@ -89,28 +90,28 @@ class oQuery<T extends typeof oClass> {
   private async getTableOrSubSelect(table: oClass) {
     if (table.__tableName) return table.__tableName
     // else it is a sub select
-    // todo -- handle union sub selects
-    const baseType = table.__baseConcepts[0]
-    const allTypes = await getOrBuildConceptClasses(table.__namespace)
-    let query = `Query(${baseType})\n`
-    // todo -- handle constraints
-    query += ".return((o) => ({\n"
-    for (const accessedProperty of table.__accessedProperties) {
-      const property: oProperty = table[accessedProperty] as oProperty
-      if (property._expression && property._expression.length > 0) {
-        query += `"${property._name}":${property._expression},\n`
-      } else {
-        query += `"${property._name}":${property._name},\n`
-      }
-    }
-    query += "}))\n"
-    const sql = await getSQLForQuery(table.__namespace, query)
+    const query = table.__constraintQuery
+    // const baseType = table.__baseConcepts[0]
+    // const allTypes = await getConceptClasses()
+    // let query = `Query(${baseType})\n`
+    // // todo -- handle constraints
+    // query += ".return((o) => ({\n"
+    // for (const accessedProperty of table.__accessedProperties) {
+    //   const property: oProperty = table[accessedProperty] as oProperty
+    //   if (property._expression && property._expression.length > 0) {
+    //     query += `"${property._name}":${property._expression},\n`
+    //   } else {
+    //     query += `"${property._name}":${property._name},\n`
+    //   }
+    // }
+    // query += "}))\n"
+    console.log("q", query)
+    const sql = await getSQLForQuery(await getTypeSystem(table.__typeSystemId), query)
     return (`(${sql})`)
   }
 
   async toSQL() {
     const errors: string[] = []
-
     let fromStatement = `    FROM ${await this.getTableOrSubSelect(this.t)} ${this.t.getAlias()}`
     if (this.sqlContext.fks) {
       for (const fk of Object.values(this.sqlContext.fks)) {
@@ -230,24 +231,26 @@ export const Query = <T extends typeof oClass>(clazz: T) => {
   return new oQuery<T>(clazz)
 }
 
-export const getSQLForQuery = async (namespace: Namespace, query: string) => {
-  const conceptClasses = await getOrBuildConceptClasses(namespace)
+export const getSQLForQuery = async (typeSystem: TypeSystem, query: string) => {
+  const conceptClasses = typeSystem.getAllClasses()
   return parseQuery(query, [], conceptClasses)().toSQL() as string
 }
 
-export const executeQuery = async (namespace: Namespace, query: string) => {
-  const sql = await getSQLForQuery(namespace, query)
+export const executeQuery = async (typeSystem: TypeSystem, query: string) => {
+  const sql = await getSQLForQuery(typeSystem, query)
+  console.log(sql)
   return await new SQLDatabase().executeSQL(sql)
 }
 
-export const getSampleRows = async (namespace: Namespace, concept: string, limit: number) => {
-  return executeQuery(namespace, `Query(${concept})
+export const getSampleRows = async (typeSystem: TypeSystem, concept: string, limit: number) => {
+  return executeQuery(typeSystem, `Query(${concept})
   .return((o) => o.allProperties())
   .limit(${limit})`)
 }
 
 // dotenv.config()
-// const results = await getSampleRows("Opportunity", 5)
+// const ts = await getTypeSystem(ROOT_TYPE_SYSTEM)
+// const results = await getSampleRows(ts, "table_opportunity", 5)
 // console.log(results)
 
 // const query = `Query(Opportunity)

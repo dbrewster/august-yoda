@@ -10,8 +10,8 @@ import {ObjectOutputWriter, serializeTables} from "@/yoda/table-text-generator/O
 import {Concept, ConceptEdge, ConceptProperty, upsertConcept, upsertConceptEdges} from "@/obiwan/concepts/Concept";
 import _ from "underscore";
 import {findSchemaTable} from "@/util/SchemaDefinitions";
-import {getClosedGraph} from "@/obiwan/code-gen/BuildConceptClasses";
-import {printConceptClasses} from "@/obiwan/code-gen/PrintConceptInterfaces";
+import {getClosedGraph} from "@/obiwan/concepts/BuildConceptClasses";
+import {printConceptClasses} from "@/obiwan/concepts/PrintConceptInterfaces";
 import {ToolItem} from "@/util/llm/Agent";
 
 export class FindBaseConceptsFromTables extends BaseLLMItem {

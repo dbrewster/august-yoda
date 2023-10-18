@@ -1,5 +1,4 @@
 import {snakeToPascalCase} from "@/util/util";
-import {Namespace} from "@/obiwan/code-gen/BuildConceptClasses";
 
 export interface LinkReference {
     propertyName: string,
@@ -18,6 +17,10 @@ export class SQLContext {
     getOrCreateLinkDelegate<T extends typeof oClass>(parentClassName: string, linkPropName: string, linkType: T): InstanceType<T> {
         const key = `${parentClassName}.${linkPropName}`
         if (!this.linkDelegates[key]) {
+            if (!linkType || typeof linkType !== 'function' && 'prototype') {
+                console.trace(`Invalid object type: ${linkType} either is undefined or isn't a constructor`)
+                throw `Invalid object type: ${linkType} either is undefined or isn't a constructor`
+            }
             // @ts-ignore
             this.linkDelegates[key] = new linkType(this)
             this.linkDelegates[key].initializeProperties()
@@ -318,21 +321,21 @@ export abstract class oClass {
 
     __alias?: string;
     readonly __sqlContext: SQLContext
-    readonly __namespace: Namespace
+    readonly __typeSystemId: string
     readonly __id: string;
     readonly __tableName?: string;
-    readonly __baseConcepts: string[]
+    readonly __constraintQuery: string
     readonly __accessedProperties = new Set<string>()
     readonly __description: string
 
     __links:Record<string, LinkProperty<any>> = {}
 
-    constructor(sqlContext: SQLContext, namespace: Namespace, id: string, tableName: string | undefined, description: string, baseConcepts: string[]) {
+    constructor(sqlContext: SQLContext, typeSystemId: string, id: string, tableName: string | undefined, description: string, constraintQuery: string) {
         this.__sqlContext = sqlContext;
-        this.__namespace = namespace
+        this.__typeSystemId = typeSystemId
         this.__id = id;
         this.__tableName = tableName
-        this.__baseConcepts = baseConcepts
+        this.__constraintQuery = constraintQuery
         this.__description = description
     }
 

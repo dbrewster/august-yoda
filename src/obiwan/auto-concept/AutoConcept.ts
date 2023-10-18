@@ -3,8 +3,8 @@ import {undefined, z, ZodSchema, ZodType} from "zod";
 import {BaseCallContext, BaseItem, BaseLLMItem, ItemValues, RunManger} from "@/util/llm/BaseItem";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
 import {ChatOpenAI} from "langchain/chat_models/openai";
-import {printConceptClasses} from "@/obiwan/code-gen/PrintConceptInterfaces";
-import {getRootConcept} from "@/obiwan/code-gen/BuildConceptClasses";
+import {printConceptClasses} from "@/obiwan/concepts/PrintConceptInterfaces";
+import {getRootConcept} from "@/obiwan/concepts/BuildConceptClasses";
 import {Chain} from "@/util/llm/Chain";
 
 export class FindConceptDetails extends BaseLLMItem implements ToolItem {

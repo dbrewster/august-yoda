@@ -1,7 +1,7 @@
 import {BaseCallContext, BaseLLMItem, ItemValues} from "@/util/llm/BaseItem";
 import {HumanMessagePromptTemplate, SystemMessagePromptTemplate} from "langchain/prompts";
 import {z, ZodType} from "zod";
-import {printConceptClasses} from "@/obiwan/code-gen/PrintConceptInterfaces";
+import {printConceptClasses} from "@/obiwan/concepts/PrintConceptInterfaces";
 import {ChatOpenAI} from "langchain/chat_models/openai";
 
 export class FindRootConcept extends BaseLLMItem {

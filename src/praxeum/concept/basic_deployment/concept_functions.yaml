@@ -1,23 +1,23 @@
 apiVersion: ad/v1
 kind: CodeAgent
 title: list_concepts
-module: "@/praxeum/concept/ConceptFunctions"
+module: "@/praxeum/concept/ListAllConcepts"
 class: ListAllConcepts
 ---
 apiVersion: ad/v1
 kind: CodeAgent
 title: concept_details
-module: "@/praxeum/concept/ConceptFunctions"
+module: "@/praxeum/concept/GetConceptDetails"
 class: GetConceptDetails
 ---
 apiVersion: ad/v1
 kind: CodeAgent
 title: concept_details_and_sample
-module: "@/praxeum/concept/ConceptFunctions"
+module: "@/praxeum/concept/GetConceptDetails"
 class: GetConceptDetailsWithSampleRows
 ---
 apiVersion: ad/v1
 kind: CodeAgent
 title: concept_query_interfaces
-module: "@/praxeum/concept/ConceptFunctions"
+module: "@/praxeum/concept/GetQueryInterfaces"
 class: GetQueryInterfaces

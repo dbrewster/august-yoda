@@ -11,9 +11,9 @@ initial_plan: You are a helpful agent designed do qa for other agents. You are
 initial_instructions: |-
   Is the following solution correct?
   ### Question ###
-  {question}
+  {{question}}
   ### Solution ###
-  {solution}
+  {{solution}}
 input_schema:
   type: object
   properties:

@@ -30,7 +30,7 @@ identifier: "1"
 job_description: "Finds tools in the system that match the given input"
 available_tools: ["DeploymentTools_FindRelevantTools"]
 initial_plan: "You are a helpful agent designed find tools in the system. Break the problem down into steps and use the tool available when needed."
-initial_instructions: '{tool_description}
+initial_instructions: '{{tool_description}}
   Let''s think step by step.'
 input_schema:
   type: "object"
@@ -74,7 +74,7 @@ initial_plan: |
   You will be asked a variety of questions. Use the tools available to you to answer. 
   
   Break the problem down into steps and use the tool available when needed.
-initial_instructions: '{problem}
+initial_instructions: '{{problem}}
   Let''s think step by step.'
 input_schema:
   type: "object"

@@ -3,8 +3,8 @@
 import {parseModule} from "esprima";
 import {VariableDeclaration} from "estree";
 import escodegen from "escodegen"
-import {oClass} from "@/obiwan/query/QueryClass";
-import {Query} from "@/obiwan/query/Query";
+import {oClass} from "@/obiwan/concepts/QueryClass";
+import {Query} from "@/obiwan/concepts/Query";
 import console from "console";
 
 export const funcNames: Record<string, string> = {

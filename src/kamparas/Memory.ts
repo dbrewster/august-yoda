@@ -1,7 +1,7 @@
 import {Logger} from "winston";
 import {rootLogger} from "@/util/RootLogger";
 import OpenAI from "openai"
-import Embedding = OpenAI.Embedding
+
 
 export type EpisodicActor = ("external" | "worker")
 export type EpisodicEventType = ("task_start" | "plan" | "available_tools" | "instruction" | "answer" | "help" | "response" | "thought" | "observation" | "hallucination" | "llm_error")

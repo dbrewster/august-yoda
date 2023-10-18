@@ -10,7 +10,7 @@ export abstract class AgentEnvironment {
 
     abstract registerHandler(handler: EnvironmentHandler): Promise<void>
 
-    abstract askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void>
+    abstract askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, context: EventContent, content: EventContent): Promise<void>
 
     abstract answer(helpee_title: string, helpee_identifier: string, response: HelpResponse, conversationId: string): Promise<void>
 
@@ -26,7 +26,7 @@ export class NoOpEnvironment extends AgentEnvironment {
         return Promise.resolve(undefined);
     }
 
-    askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void> {
+    askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, context: EventContent, content: EventContent): Promise<void> {
         return Promise.resolve(undefined);
     }
 
@@ -45,6 +45,7 @@ export interface NewTaskInstruction {
     helpee_id: string,
     helpee_conversation_id: string,
     request_id: string,
+    context: EventContent,
     input: EventContent
 }
 

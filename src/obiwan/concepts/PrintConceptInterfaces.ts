@@ -1,6 +1,5 @@
-import {oClass, oProperty, SQLContext} from "@/obiwan/query/QueryClass";
-import {getOrBuildConceptClasses} from "@/obiwan/code-gen/BuildConceptClasses";
-import dotenv from "dotenv";
+import {oClass, oProperty, SQLContext} from "@/obiwan/concepts/QueryClass";
+import {TypeSystem} from "@/obiwan/concepts/TypeSystem"
 
 const typeToPropertyType: Record<string, string> = {
   "string": "String",
@@ -38,8 +37,8 @@ export const printConceptClass = async <T extends typeof oClass>(name: string, c
   return out
 }
 
-export const printConceptClasses = async (printOptions: PrintOptions, concepts?: string[], useTables: boolean = false) => {
-  const classes = await getOrBuildConceptClasses(useTables ? "table" : "concepts")
+export const printConceptClasses = async (typeSystem: TypeSystem, printOptions: PrintOptions, concepts?: string[]) => {
+  const classes = typeSystem.getAllClasses()
   const conceptsToPrint = concepts || Object.keys(classes)
   let ret = ""
   for (const name of conceptsToPrint) {

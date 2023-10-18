@@ -9,7 +9,7 @@ export const buildConceptFromTable = async (tableName: string, includeEmptyTable
     const columns = table.columns.filter(c => !fksSourceColumns.has(c.name) && (includeNullColumns || c.num_null != table.num_rows))
     return {
       name: "table_" + table.name,
-      tableName: table.name,
+      table_name: table.name,
       type: "Table",
       friendlyName: table.friendly_name,
       description: table.description,

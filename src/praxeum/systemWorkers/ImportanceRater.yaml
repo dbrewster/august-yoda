@@ -16,7 +16,7 @@ initial_instructions: >
   
   #### MEMORY START ####
   
-  {memory}
+  {{memory}}
   
   #### MEMORY END ####
 input_schema:

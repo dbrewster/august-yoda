@@ -1,12 +1,17 @@
 import {SchemaColumnType} from "@/util/SchemaDefinitions";
 import {mongoCollection} from "@/util/util";
+import {getTypeSystem} from "@/obiwan/concepts/TypeSystem"
 
 export type ConceptType = ("Table" | "Concept")
 export type ConceptPropertyType = SchemaColumnType
 
 export interface Concept {
+  typeSystemId: string,
+  system: string,
+  process: string,
   name: string,
   base_concept: string,
+  table_name?: string, // only used for auto-generated types from DB
   constraint_query: string
   type: ConceptType,
   friendlyName: string,
@@ -36,22 +41,19 @@ export interface ConceptEdge {
   targetProperties: string[]
 }
 
-export const getAllConceptEdges = async () => {
+export const getAllConceptEdges = async (typeSystemId: string) => {
   const conceptCollection = await mongoCollection("concept_edge")
   return conceptCollection.find<ConceptEdge>({}, {projection:{_id:0}}).toArray()
 }
 
-export const getAllConcepts = async () => {
+export const getAllConcepts = async (typeSystemId: string) => {
   const conceptCollection = await mongoCollection("concept")
   return conceptCollection.find<Concept>({}, {projection:{_id:0}}).toArray()
 }
 
-export const getConcept = async (name: string) => {
-  const conceptCollection = await mongoCollection("concept")
-  return conceptCollection.findOne<Concept>({name: name})
-}
-
 export const upsertConcept = async (concept: Concept) => {
+  const typeSystem = await getTypeSystem(concept.typeSystemId)
+  await typeSystem.triggerConceptChange(concept.name)
   const conceptCollection = await mongoCollection("concept")
   return conceptCollection.updateOne({name: concept.name}, {$set: concept}, {upsert: true})
 }

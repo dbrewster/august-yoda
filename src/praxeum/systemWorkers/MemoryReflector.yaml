@@ -13,11 +13,11 @@ initial_plan: You are a helpful agent which derives insights by reviewing a
 initial_instructions: >
   ### CONVERSATION START ###
 
-  {events}
+  {{events}}
 
   ### CONVERSATION END ###
 
-  What {number_of_insights} high-level insights can you infer from the above events? Which Events contribute to each insight?
+  What {{number_of_insights}} high-level insights can you infer from the above events? Which Events contribute to each insight?
 input_schema:
   type: object
   properties:

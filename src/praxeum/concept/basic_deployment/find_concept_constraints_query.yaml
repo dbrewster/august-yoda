@@ -1,0 +1,65 @@
+apiVersion: ad/v1
+kind: AutonomousWorker
+deployment_type: SkilledWorker
+title: find_concept_constraints_query
+identifier: alpha
+job_description: Finds a query that maps the new concept to the base concept
+initial_plan: You are a helpful agent answering questions about generating information about creating or modifying interfaces in a concept graph.
+initial_instructions: |
+  You are an agent finding information about concepts in a {{__context__.system}}, specifically for the {{__context__.process}} process.
+
+  Given the new concept {{concept_name}} and it's description:
+  {{concept_description}}
+
+  And a base concept of {{base_concept}}
+
+  You are creating a query that will map this new concept onto a base concept. You will do this by:
+    1. Use the provided tool to load the definition of the query interfaces
+    2. Get a detailed description of the base concept, {{base_concept}}
+    4. Generate a Query that maps the base object to this object. You will be filling in the the "where" and "return" parts of the query. The query will start with "Query({{base_concept}}).
+    6. Finally return the constrain query. Make sure to include the where and return parts of the query in your result
+    
+  Define the constraint query for the new concept
+
+  Think about how each interface is used in a {{__context__.system}} process and write your intermediate results
+
+  Let's think aloud step by step
+input_schema:
+  type: object
+  properties:
+    concept_name:
+      type: string
+      description: The name of the concept
+    concept_description:
+      type: string
+      description: A detailed description of the concept we are finding the base concept for
+    base_concept:
+      type: string
+      description: The identifier of the base concept to derive the properties from
+  required:
+    - concept_name
+    - concept_description
+    - base_concept
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    constraint_query:
+      type: string
+      description: The constraint query that maps this concept to the base concept
+  required:
+    - constraint_query
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+available_tools:
+  - concept_details_and_sample
+  - concept_query_interfaces
+  - basic_manager
+  - concept_qa
+temperature: 0.2
+num_to_start: 1
+manager: basic_manager
+qaManager: concept_qa
+model: gpt-3.5-turbo-16k
+llm: openai.function

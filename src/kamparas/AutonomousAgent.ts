@@ -18,14 +18,14 @@ export const final_answer_tool = {
 
 export type AgentToolCall = {
     tool_def: AgentTool
-    call: (agent: AutonomousAgent, conversationId: string, requestId: string, help: HelperCall) => Promise<void>
+    call: (agent: AutonomousAgent, conversationId: string, requestId: string, context: EventContent, help: HelperCall) => Promise<void>
 }
 
 export const remoteAgentCall = (toolName: string): AgentToolCall => {
     const agent = getIdentifier(toolName)
     return ({
         tool_def: agent,
-        call: async (agent: AutonomousAgent, conversationId: string, requestId: string, help: HelperCall): Promise<void> => {
+        call: async (agent: AutonomousAgent, conversationId: string, requestId: string, context: EventContent, help: HelperCall): Promise<void> => {
             await agent.memory.recordEpisodicEvent({
                 actor: "worker",
                 type: "help",
@@ -42,15 +42,15 @@ export const remoteAgentCall = (toolName: string): AgentToolCall => {
             })
             agent.logger.info(`Asking help from ${help.title} (request_id ${requestId})`, {conversation_id: conversationId})
             // noinspection ES6MissingAwait
-            agent.environment.askForHelp(agent.title, agent.identifier, conversationId, help.title, requestId, help.content)
+            agent.environment.askForHelp(agent.title, agent.identifier, conversationId, help.title, requestId, context, help.content)
             return Promise.resolve()
         }
     })
 }
-export const localAgentCall = (tool_def: AgentTool, fn: (conversationId: string, requestId: string, content: EventContent) => Promise<void>): AgentToolCall => ({
+export const localAgentCall = (tool_def: AgentTool, fn: (conversationId: string, requestId: string, context: EventContent, content: EventContent) => Promise<void>): AgentToolCall => ({
     tool_def: tool_def,
-    call: (_agent: AutonomousAgent, conversationId: string, requestId: string, help: HelperCall): Promise<void> => {
-        return fn(conversationId, requestId, help.content)
+    call: (_agent: AutonomousAgent, conversationId: string, requestId: string, context: EventContent, help: HelperCall): Promise<void> => {
+        return fn(conversationId, requestId, context, help.content)
     }
 })
 
@@ -130,7 +130,7 @@ export class AutonomousAgent extends Agent {
             timestamp: DateTime.now().toISO()!,
             content: instruction
         })
-        const plan = await this.memory.readPlan(instruction.input)
+        const plan = await this.memory.readPlan({...instruction.input, "__context__": instruction.context})
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "plan",
@@ -149,7 +149,7 @@ export class AutonomousAgent extends Agent {
                 content: availableTools
             } as EpisodicEvent)
         }
-        const instructions: string = await this.memory.readPlanInstructions(instruction.input)
+        const instructions: string = await this.memory.readPlanInstructions({...instruction.input, "__context__": instruction.context})
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "instruction",
@@ -213,6 +213,7 @@ export class AutonomousAgent extends Agent {
             let numConcurrentThoughts = 0
             while (numConcurrentThoughts < this.maxConcurrentThoughts) {
                 const events = await this.memory.readEpisodicEventsForTask(conversationId)
+                const taskStart = events.find(e => e.type == "task_start")!.content as NewTaskInstruction
                 const availableHelpers = this.buildHelpers()
                 this.logger.info(`Thinking with ${events.length} events: (Thought #${numConcurrentThoughts})`, {conversation_id: conversationId})
                 const result = await this.llm.execute({}, conversationId, events, Object.values(availableHelpers).map(h => h.tool_def)).catch(async e => {
@@ -279,7 +280,7 @@ export class AutonomousAgent extends Agent {
                         })
                         await this.processHallucination("bad_tool", conversationId, requestId, help)
                     } else {
-                        await availableHelpers[result.helperCall!.title].call(this, conversationId, requestId, help)
+                        await availableHelpers[result.helperCall!.title].call(this, conversationId, requestId, taskStart.context, help)
                         return
                     }
                 }

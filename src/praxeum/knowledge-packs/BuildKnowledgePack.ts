@@ -1,13 +1,17 @@
+// noinspection JSUnusedGlobalSymbols
+
 import process from "process";
 import fs from "fs";
 import yaml from "yaml";
 import {Resource} from "@/praxeum/server/DeploymentDescriptor";
-import {defineNewConceptTitle} from "@/praxeum/concept/ConceptFunctions";
-import {Concept, getAllConcepts, upsertConcept} from "@/obiwan/concepts/Concept";
+import {Concept, upsertConcept} from "@/obiwan/concepts/Concept";
 import {CodeAgent, CodeAgentOptions} from "@/kamparas/CodeAgent";
 import {z} from "zod";
 import {HelpResponse, NewTaskInstruction} from "@/kamparas/Environment";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
+import {getTypeSystem, ROOT_TYPE_SYSTEM, TypeSystem} from "@/obiwan/concepts/TypeSystem"
+
+export const defineNewConceptTitle = "define_new_concept"
 
 interface BuildKnowledgePackCallContext {
     requestId: string,
@@ -46,7 +50,10 @@ export class BuildKnowledgePack extends CodeAgent {
 
     async exec(instruction: NewTaskInstruction, conversationId: string): Promise<void> {
         const args = instruction.input
-        const {meta_concepts, alreadyExists} = await this.getContext(args.knowledge_pack_name)
+        // todo -- fix this to get value from context once we add it.
+        const typeSystemId = ROOT_TYPE_SYSTEM
+        const typeSystem = await getTypeSystem(typeSystemId)
+        const {meta_concepts, alreadyExists} = await this.getContext(args.knowledge_pack_name, typeSystem)
         this.logger.info(`Concepts [${alreadyExists.join(",")}] already exist.`)
         this.logger.info(`Building concepts [${meta_concepts.map(mc => mc.name).join(", ")}]`)
         const callContext = {
@@ -61,15 +68,17 @@ export class BuildKnowledgePack extends CodeAgent {
         this.buildNextOrAnswer(meta_concepts.length == 0 ? undefined : meta_concepts[0], callContext, conversationId)
     }
 
-    private buildConcept(mc: MetaConcept, callContext: BuildKnowledgePackCallContext, conversationId: string) {
+    private async buildConcept(mc: MetaConcept, callContext: BuildKnowledgePackCallContext, conversationId: string) {
+        const context = await this.getTaskContext(conversationId)
         this.logger.info(`Building concept ${mc.name}`)
         // noinspection ES6MissingAwait,JSIgnoredPromiseFromCall
         this.askForHelp(conversationId, defineNewConceptTitle, {
             system: mc.system,
             process: mc.process,
+            ...context
+        }, {
             concept_name: mc.name,
             concept_definition: mc.concept_definition,
-            concept_type: mc.type
         }, callContext)
     }
 
@@ -77,7 +86,12 @@ export class BuildKnowledgePack extends CodeAgent {
         const callContext = inCallContext as BuildKnowledgePackCallContext
         const knowledge_pack_name = callContext.knowledge_pack_name as string
         const conversationId = response.conversation_id
+        // todo -- fix this to get value from context once we add it.
+        const typeSystemId = ROOT_TYPE_SYSTEM
+        const typeSystem = await getTypeSystem(typeSystemId)
+        const {meta_concepts: inMetaConcepts} = await this.getContext(knowledge_pack_name, typeSystem)
 
+        const mc = inMetaConcepts.find(mc => mc.name == callContext.building_concept_name)!
         const retConcept = (response.response as any).concept
 
         if (!retConcept) {
@@ -87,6 +101,9 @@ export class BuildKnowledgePack extends CodeAgent {
             this.logger.info(`done building concept ${callContext.building_concept_name}`)
             const properties: any[] = retConcept.properties
             const concept: Concept = {
+                typeSystemId: typeSystemId,
+                system: mc.system,
+                process: mc.process,
                 name: retConcept.concept_identifier,
                 type: "Concept",
                 description: retConcept.concept_definition,
@@ -106,7 +123,7 @@ export class BuildKnowledgePack extends CodeAgent {
             this.logger.info(`Stored concept ${concept.name}`)
         }
 
-        const {meta_concepts} = await this.getContext(knowledge_pack_name)
+        const {meta_concepts} = await this.getContext(knowledge_pack_name, typeSystem)
         this.buildNextOrAnswer(meta_concepts.length == 0 ? undefined : meta_concepts[0], callContext, conversationId)
     }
 
@@ -127,7 +144,7 @@ export class BuildKnowledgePack extends CodeAgent {
         }
     }
 
-    async getContext(knowledge_pack_name: string) {
+    async getContext(knowledge_pack_name: string, typeSystem: TypeSystem) {
         const path = `${process.env.PRAXEUM_DATA_DIR}`
         const files = fs.readdirSync(path)
         let meta_concepts = files.filter(f => f.endsWith(".yaml")).map(f => `${path}/${f}`).map(path => {
@@ -139,7 +156,7 @@ export class BuildKnowledgePack extends CodeAgent {
             }).filter(x => x != null && x.kind === "MetaConcept").map(x => x! as MetaConcept)
         }).flat().filter(mc => mc.knowledge_pack == knowledge_pack_name)
 
-        const existingConcepts = new Set((await getAllConcepts()).map(x => x.name.toLowerCase()))
+        const existingConcepts = new Set((typeSystem.getAllConcepts()).map(x => x.name.toLowerCase()))
         const alreadyExists: string[] = []
         meta_concepts = meta_concepts.filter(mc => {
             if (existingConcepts.has(mc.name.toLowerCase())) {

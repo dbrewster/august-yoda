@@ -1,11 +1,11 @@
 import {BaseCallContext, BaseItem, BaseOptions, ItemValues, RunManger} from "@/util/llm/BaseItem";
 import {Agent, ToolItem} from "@/util/llm/Agent";
 import {undefined, z, ZodSchema, ZodType} from "zod";
-import {printConceptClasses} from "@/obiwan/code-gen/PrintConceptInterfaces";
+import {printConceptClasses} from "@/obiwan/concepts/PrintConceptInterfaces";
 import {ChatOpenAI} from "langchain/chat_models/openai";
-import {getSampleRows} from "@/obiwan/query/Query";
-import {printExampleSearches, printQueryTypes} from "@/obiwan/code-gen/PrintQueryLanguageInterfaces";
-import {getOrBuildConceptClasses} from "@/obiwan/code-gen/BuildConceptClasses";
+import {getSampleRows} from "@/obiwan/concepts/Query";
+import {printExampleSearches, printQueryTypes} from "@/obiwan/concepts/PrintQueryLanguageInterfaces";
+import {getOrBuildConceptClasses} from "@/obiwan/concepts/BuildConceptClasses";
 
 export class GetConceptDetailsWithSampleRows extends BaseItem implements ToolItem {
     readonly name: string = "get_concept_details_with_rows"

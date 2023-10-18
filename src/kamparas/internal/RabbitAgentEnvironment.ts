@@ -67,12 +67,13 @@ export class RabbitAgentEnvironment extends AgentEnvironment {
         await this.publishDirectChannel!.basicPublish(queueName, queueName, responseStr).catch(reason => this.logger.error(reason))
     }
 
-    async askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, content: EventContent): Promise<void> {
+    async askForHelp(helpeeTitle: string, helpeeIdentier: string, conversationId: string, agentTitle: string, requestId: string, context: EventContent, content: EventContent): Promise<void> {
         const message: TitleMessage = {
             helpee_title: helpeeTitle,
             helpee_id: helpeeIdentier,
             helpee_conversation_id: conversationId,
             request_id: requestId,
+            context: context,
             input: content
         }
         let messageStr = JSON.stringify(message);

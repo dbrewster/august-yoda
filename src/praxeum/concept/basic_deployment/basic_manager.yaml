@@ -13,18 +13,18 @@ initial_plan: >-
 
   Tell the worker "STOP WORKING" if they they cannot progress or are not making progress.
 initial_instructions: >
-  I am trying am having a problem with "{problem}" and am unsure how to proceed.
+  I am trying am having a problem with "{{problem}}" and am unsure how to proceed.
   What should I do?
 
 
   I have the following tools available:
 
-  {available_tools}
+  {{available_tools}}
 
 
   Here is some context for the problem:
 
-  {context}
+  {{context}}
 input_schema:
   type: object
   properties:

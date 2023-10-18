@@ -1,9 +1,8 @@
-import {AgentEnvironment, EventContent, HelpResponse, NewTaskInstruction} from "@/kamparas/Environment";
+import {EventContent, HelpResponse, NewTaskInstruction} from "@/kamparas/Environment";
 import {nanoid} from "nanoid";
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
-import {Agent, AgentIdentifier, AgentOptions} from "@/kamparas/Agent";
+import {Agent, AgentOptions} from "@/kamparas/Agent";
 import {DateTime} from "luxon";
-import {AgentMemory} from "@/kamparas/Memory";
 
 export interface CodeAgentOptions {
     title: string,
@@ -20,7 +19,7 @@ export abstract class CodeAgent extends Agent {
 
     abstract exec(instruction: NewTaskInstruction, conversationId: string): Promise<void>
 
-    async askForHelp(conversationId: string, agentTitle: string, content: EventContent, callContext: any, requestId = nanoid()): Promise<void> {
+    async askForHelp(conversationId: string, agentTitle: string, context: EventContent, content: EventContent, callContext: any, requestId = nanoid()): Promise<void> {
         // todo - record a memory event that holds the call to the child + the call context.
         await this.memory.recordEpisodicEvent({
             actor: "worker",
@@ -40,7 +39,7 @@ export abstract class CodeAgent extends Agent {
         this.logger.info(`Asking help from ${agentTitle} (request_id ${requestId})`, {conversation_id: conversationId})
         // let this run in the background
         // noinspection ES6MissingAwait
-        this.environment.askForHelp(this.title, this.identifier, conversationId, agentTitle, requestId, content)
+        this.environment.askForHelp(this.title, this.identifier, conversationId, agentTitle, requestId, context, content)
     }
 
     async processDirectMessage(message: DirectMessage): Promise<void> {
@@ -74,6 +73,11 @@ export abstract class CodeAgent extends Agent {
                     await this.processHelpResponse(response, event.callData.context)
                 }
         }
+    }
+
+    async getTaskContext(conversationId: string): Promise<EventContent> {
+        const event = (await this.memory.findEpisodicEvent({conversation_id: conversationId, type: "task_start", actor: "worker"}))!
+        return (event?.content as NewTaskInstruction).context
     }
 
     abstract processHelpResponse(response: HelpResponse, callContext: any): Promise<void>
