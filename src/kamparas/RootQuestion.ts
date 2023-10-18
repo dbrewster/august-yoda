@@ -23,7 +23,7 @@ export class RootQuestion extends Agent {
         await this.environment.registerHandler(this)
     }
 
-    async askQuestion(agentTitle: string, data: Record<string, any>) {
+    async askQuestion(agentTitle: string, data: Record<string, any>, context: Record<string, any>) {
         if (!this.environment.logger) {
             this.logger.error("WTH -- environment not initialized")
         }
@@ -36,7 +36,7 @@ export class RootQuestion extends Agent {
             this.logger.debug(`Asking question of ${agentTitle} -- ${JSON.stringify(data)}`, {conversation_id: conversationId})
         }
         this.logger.info(`Asking help from ${agentTitle} (request_id ${requestId})`, {conversation_id: conversationId})
-        await this.environment.askForHelp(this.title, this.identifier, conversationId, agentTitle, requestId, {}, data)
+        await this.environment.askForHelp(this.title, this.identifier, conversationId, agentTitle, requestId, context, data)
         return responsePromise.finally(() => {
             delete this.requests[conversationId]
         })

@@ -8,7 +8,7 @@ import {rootLogger, setRootLoggerLevel} from "@/util/RootLogger";
 import process from "process";
 import fs from "node:fs";
 import axios from "axios";
-import {EpisodicEvent} from "@/kamparas/Memory";
+import {EpisodicEvent, StructuredEpisodicEvent} from "@/kamparas/Memory";
 import clc from "cli-color";
 import YAML from "yaml";
 import {Collection} from "mongodb"
@@ -30,14 +30,17 @@ program.name("praxeum")
 program.command("apply")
     .description("updates yamls for server")
     .argument("<path...>", "the path to the descriptor file(s)")
-    .action(async (path) => {
+    .action(async (path: string[]) => {
         setRootLoggerLevel("info")
-        let data: string = ""
-        if (Array.isArray(path)) {
-            data = path.map(p => fs.readFileSync(p, "utf-8")).join("\n---\n")
-        } else {
-            data = fs.readFileSync(path, "utf-8")
-        }
+        const data = path.flatMap(p => {
+            if (fs.lstatSync(p).isDirectory()) {
+                return fs.readdirSync(p).filter(f => f.endsWith(".yaml"))
+                    .map(f => `${path}/${f}`)
+                    .map(_p => fs.readFileSync(_p, "utf-8"))
+            } else {
+                return [fs.readFileSync(p, "utf-8")]
+            }
+        }).join("\n---\n")
         axios.post(`${praxeumURL}/server/apply`, data, textOptions).then(r => {
             rootLogger.info(`Applied with status ${r.status}: ${r.data}`)
         }).catch(e => {
@@ -75,6 +78,18 @@ program.command("status")
         })
     })
 
+async function executeStandaloneRequest(title: string, data: any, context: any = {}): Promise<void> {
+    const envBuilder = new MongoRabbitPlatform()
+    const q = new RootQuestion()
+    q.initialize({memory: envBuilder.buildMemory(q.agent_identifier), environment: envBuilder.buildEnvironment()})
+    await q.start()
+    const response = await q.askQuestion(title, data, context)
+    console.log(JSON.stringify(response, null, 2))
+    await q.shutdown()
+    await shutdownRabbit()
+    await shutdownMongo()
+}
+
 program.command("command")
     .description("Executes a command against a job title")
     .option('--log-level', 'log level', 'info')
@@ -82,16 +97,28 @@ program.command("command")
     .argument("<command>", "The command to execute in the form of a json object")
     .action(async (title, command) => {
         setRootLoggerLevel(program.opts().loglevel)
-        const envBuilder = new MongoRabbitPlatform()
-        const q = new RootQuestion()
-        q.initialize({memory: envBuilder.buildMemory(q.agent_identifier), environment: envBuilder.buildEnvironment()})
-        await q.start()
-        const response = await q.askQuestion(title, JSON5.parse(command))
-        console.log(JSON.stringify(response, null, 2))
-        await q.shutdown()
-        await shutdownRabbit()
-        await shutdownMongo()
+        await executeStandaloneRequest(title, JSON5.parse(command))
     })
+
+program.command("replay")
+    .description("Re executes a request")
+    .argument("<request_id>", "The request to replay")
+    .action(async (request_id) => {
+        let collection = await mongoCollection<EpisodicEvent>("episodic");
+        let taskStart = await collection.findOne<EpisodicEvent>({
+            type: "task_start", "content.request_id": request_id
+        })
+        if (!taskStart) {
+            console.log(`Unable to find task_start event for request_id ${request_id}`)
+            return
+        }
+        await executeStandaloneRequest(
+            taskStart.agent_title,
+            (taskStart.content as StructuredEpisodicEvent).input,
+            (taskStart.content as StructuredEpisodicEvent).context,
+        )
+    })
+
 
 program.command("eavesdrop")
     .description("Follow the event stream")
