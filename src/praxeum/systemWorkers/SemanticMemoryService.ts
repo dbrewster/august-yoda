@@ -80,10 +80,12 @@ export class BuildMemoryAgent extends CodeAgent {
         const sm = await new MongoSemanticMemoryClient(args.agent_id, this.logger).initialize()
         const mm = new MongoMemory({title: args.agent_type, identifier: args.agent_id} as AgentIdentifier)
         const events = (await mm.readEpisodicEventsForTask(args.conversation_id));
-        const otherEvents = events.filter(e => e.type !== "task_start")
         if (events.length === 0) {
             throw new Error(`Did not find any events`)
         }
+        const otherEvents = events.filter(e => e.type !== "task_start")
+        let taskStart = events.find(e => e.type === "task_start")!
+        let instruction = events.find(e => e.type === "instruction")!
 
         // todo, we should remember tool calls as well, but for now just assistant events
         const splitSize = 12000
@@ -102,24 +104,23 @@ export class BuildMemoryAgent extends CodeAgent {
         }, {chunks: [[]], lastSize: 0}).chunks;
 
         let insights: any[] = []
-        for (let chunk in chunkedEvents) {
-            let content = {number_of_insights: 2, events: chunk};
+        for (let chunk of chunkedEvents) {
+            let content = {number_of_insights: 2, events: JSON.stringify(chunk)};
             const resp = await this.promisedBasedHelp(conversation_id, 'MemoryReflector', content) as any;
             insights = insights.concat(resp.insights)
         }
 
         const memories = []
         for (var event of otherEvents) {
-            let content1 = {memory: YAML.stringify(event.content)};
+            let content1 = {context: JSON.stringify(instruction.content), memory: JSON.stringify(event.content)};
             const resp = await this.promisedBasedHelp(args.conversation_id, 'ImportanceRater', content1);
             memories.push({type: "event", memory: event, importance: resp.importance})
         }
         for (var insight of insights) {
-            let content1 = {memory: YAML.stringify(insight)};
+            let content1 = {context: JSON.stringify(instruction.content), memory: insight.description};
             const resp = await this.promisedBasedHelp(args.conversation_id, 'ImportanceRater', content1);
-            memories.push({type: "reflection", memory: insight, importance: resp.importance})
+            memories.push({type: "reflection", memory: insight.description, importance: resp.importance})
         }
-        let taskStart = events.find(e => e.type === "task_start")!
         const taskStartArgs = (taskStart.content as StructuredEpisodicEvent).input
         const semanticMemories: Omit<SemanticMemory, "timestamp" | "semantic_string">[] = memories.map(m => {
             return {

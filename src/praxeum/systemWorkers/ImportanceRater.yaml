@@ -14,6 +14,12 @@ initial_instructions: >
   How important is the following memory?
   
   
+  #### Context Start ####
+  
+  {context}
+  
+  #### ContextEnd ####
+  
   #### MEMORY START ####
   
   {{memory}}
@@ -22,6 +28,8 @@ initial_instructions: >
 input_schema:
   type: object
   properties:
+    context:
+      type: string
     memory:
       type: string
   required:
