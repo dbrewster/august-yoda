@@ -3,32 +3,28 @@ kind: AutonomousWorker
 deployment_type: SkilledWorker
 title: find_base_concept
 identifier: alpha
-job_description: Finds the correct base concept to extend from based on a description and type of a new or existing concept.
-initial_plan: You are a helpful agent answering questions about generating
-  information about creating or modifying interfaces in a concept graph.
+job_description: Finds the correct base concept to extend.
+initial_plan: You are a helpful tool finding the best possible base object to extend from.
 initial_instructions: >
-  You are an agent finding information about concepts in a {{__context__.system}},
-  specifically for the {{__context__.process}} process.
-
   Given the brand new concept {{concept_name}} and it's definition:
 
   {{concept_definition}}
 
+  Find the best object to extend from. The best object will be one that matches the definition of the concept passed in. 
+  Pay close attention to the properties of the base object and how they map to the concept definition.
+  Pay close attention to the grain of each object and if it matches the grain of the concept passed in.
 
-  You are finding the correct base concept to derive this concept from. You can think of the base concept as a delegate concept for this new type. The base concept must be at the same grain, or level, as the new concept.
-  The base concept name is identified by its class name in the interface.
+  You will find the best object to extend from by executing the following plan:
+    1) Call the 'list_concepts' tool to list the base objects that exist in the system. This tool returns an interface where the interface name is the base object name. You should consider ALL interfaces including the interfaces that start with "table_"
+    2) Think, out loud, and list the object names in the list.
+    3) Think, out loud, and rate each base object and access the likelihood the object is a match to be this concepts base object. Rate from 0, being the worst, to 1, being the best Order the base objects from best to worst. The best base object MUST be of the same grain as this concept.
+    4) Think, out loud, and verify the objects you chose are in the list.
+    5) Think, out loud, and choose the best 2-5 base objects and call the tool 'concept_details' to get the details of each. You MUST pass the name of the base object to this tool.
+    6) Think, out loud, and from the definitions of these base objects, choose the best match to be this concept's base object.
+    7) Write down the NAME of the base object you chose
+    7) Return the base object name.
 
-
-  Do your best to find a match from the list of base concepts. Return the concept name, a reason why it was chosen, and a probability, between 0 and 1, that it is a good candidate.
-
-
-  Once you have the list, order the list by best probability (closest to 1), limit the check to 3-5 items, and then check the result by getting the details of the top few candidates. Use the details to make your final decision.
-
-
-  Think about how each interface is used in a {{system}} process and write your intermediate results
-
-
-  Let's think aloud step by step
+  Let's think aloud step by step. Make sure to record your thoughts
 input_schema:
   type: object
   properties:
@@ -37,8 +33,7 @@ input_schema:
       description: The name of the concept
     concept_definition:
       type: string
-      description: A very detailed definition of the concept we are finding the base
-        concept for
+      description: A very detailed definition of the concept
   required:
     - concept_name
     - concept_definition
@@ -47,9 +42,9 @@ input_schema:
 output_schema:
   type: object
   properties:
-    base_concept:
+    base_object_name:
       type: string
-      description: "The identifier of the base concept "
+      description: "The name of the base object that was chosen as the best candidate"
   required:
     - base_concept
   additionalProperties: false

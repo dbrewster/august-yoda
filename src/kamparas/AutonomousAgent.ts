@@ -47,10 +47,10 @@ export const remoteAgentCall = (toolName: string): AgentToolCall => {
         }
     })
 }
-export const localAgentCall = (tool_def: AgentTool, fn: (conversationId: string, requestId: string, context: EventContent, content: EventContent) => Promise<void>): AgentToolCall => ({
+export const localAgentCall = (tool_def: AgentTool, fn: (conversationId: string, requestId: string, content: EventContent) => Promise<void>): AgentToolCall => ({
     tool_def: tool_def,
-    call: (_agent: AutonomousAgent, conversationId: string, requestId: string, context: EventContent, help: HelperCall): Promise<void> => {
-        return fn(conversationId, requestId, context, help.content)
+    call: (_agent: AutonomousAgent, conversationId: string, requestId: string, _context: EventContent, help: HelperCall): Promise<void> => {
+        return fn(conversationId, requestId, help.content)
     }
 })
 
