@@ -10,12 +10,12 @@ import {MongoSemanticMemoryClient, SemanticWrapper} from "@/kamparas/internal/Se
 // todo collections will need index on agent_id and conversation_id
 export class MongoMemory extends AgentMemory {
     private agentIdentifier: AgentIdentifier;
-    private semanticMemory: MongoSemanticMemoryClient
+    private semanticMemory?: MongoSemanticMemoryClient
     constructor(agentIdentifier: AgentIdentifier) {
         super();
         dotenv.config()
         this.agentIdentifier = agentIdentifier;
-        this.semanticMemory = new MongoSemanticMemoryClient(agentIdentifier.identifier)
+        this.semanticMemory = process.env.ENABLE_SEMANTIC_MEMORIES === "true" ? new MongoSemanticMemoryClient(agentIdentifier.identifier) : undefined
     }
 
     async findEpisodicEvent(query: Record<string, any>): Promise<EpisodicEvent | null> {
@@ -151,11 +151,11 @@ export class MongoMemory extends AgentMemory {
     }
 
     searchSemanticMemory(query: string, size: number): Promise<SemanticWrapper[]> {
-        return this.semanticMemory.searchSemanticMemory(query, size)
+        return this.semanticMemory!.searchSemanticMemory(query, size)
     }
 
     async recordSemanticMemory(event: Omit<SemanticMemory, "agent_title" | "agent_id">): Promise<void> {
-        this.semanticMemory.recordSemanticMemory({
+        return await this.semanticMemory!.recordSemanticMemory({
             ...event,
             agent_title: this.agentIdentifier.title,
             agent_id: this.agentIdentifier.identifier
