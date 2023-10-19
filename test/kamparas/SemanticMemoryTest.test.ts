@@ -3,6 +3,7 @@ import {SemanticMemory} from "@/kamparas/Memory";
 import {nanoid} from "nanoid";
 import {MongoSemanticMemoryClient} from "@/kamparas/internal/SemanticMemoryClient";
 import {shutdownMongo} from "@/util/util"
+import {delay} from "underscore"
 
 dotenv.config()
 let em: MongoSemanticMemoryClient
@@ -34,7 +35,7 @@ describe("MongoMemory", () => {
             const found = await retry(() => em.searchSemanticMemory('luke'), found => found.length === 3)
 
             const nnn = found.sort((a, b) => a.relevance < b.relevance ? 1: -1)[0]
-            expect(nnn.semantic_string).toEqual("luke luke luke")
+            expect(nnn.memory.semantic_string).toEqual("luke luke luke")
         })
 
         test('behaves well with no hits', async () => {
@@ -66,7 +67,7 @@ describe("MongoMemory", () => {
 
 })
 
-async function retry<T>(fn: () => Promise<T>, until: (arg0: T) => boolean = (arg0) => true, max_retries = 10, retry_delay=200) {
+async function retry<T>(fn: () => Promise<T>, until: (arg0: T) => boolean = (arg0) => true, max_retries = 10, retry_delay=100) {
     let rtn
     for (let i = 0; i <= max_retries; i++) {
         let error: any
@@ -77,6 +78,7 @@ async function retry<T>(fn: () => Promise<T>, until: (arg0: T) => boolean = (arg
         if (!error && until(rtn)) {
             return rtn as T
         }
+        await new Promise( resolve => setTimeout(resolve, retry_delay) )
     }
     throw new Error(`retry fn never returned with a valid response. Last: ${JSON.stringify(rtn)}`)
 }
@@ -84,7 +86,7 @@ async function retry<T>(fn: () => Promise<T>, until: (arg0: T) => boolean = (arg
 function semantic(content: string): Omit<SemanticMemory, "semantic_embedding"> {
     return {
         type: "reflection",
-        agent_type: "common_title",
+        agent_title: "common_title",
         agent_id: "agent_id",
         conversation_id: nanoid(),
         semantic_string: content,

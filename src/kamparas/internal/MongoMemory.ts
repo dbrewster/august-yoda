@@ -5,15 +5,17 @@ import {DateTime} from "luxon";
 import {FindOptions, ObjectId} from "mongodb";
 import dotenv from "dotenv";
 import {TemplateProcessor} from "@/util/TemplateProcessor"
+import {MongoSemanticMemoryClient, SemanticWrapper} from "@/kamparas/internal/SemanticMemoryClient"
 
 // todo collections will need index on agent_id and conversation_id
 export class MongoMemory extends AgentMemory {
     private agentIdentifier: AgentIdentifier;
-
+    private semanticMemory: MongoSemanticMemoryClient
     constructor(agentIdentifier: AgentIdentifier) {
         super();
         dotenv.config()
         this.agentIdentifier = agentIdentifier;
+        this.semanticMemory = new MongoSemanticMemoryClient(agentIdentifier.identifier)
     }
 
     async findEpisodicEvent(query: Record<string, any>): Promise<EpisodicEvent | null> {
@@ -148,9 +150,12 @@ export class MongoMemory extends AgentMemory {
         })
     }
 
-    async recordSemanticMemory(event: Omit<SemanticMemory, "agent_type" | "agent_id">): Promise<void> {
-        const collection = await mongoCollection(this.makeCollectionName("semantic"))
-        await collection.insertOne({
+    searchSemanticMemory(query: string, size: number): Promise<SemanticWrapper[]> {
+        return this.semanticMemory.searchSemanticMemory(query, size)
+    }
+
+    async recordSemanticMemory(event: Omit<SemanticMemory, "agent_title" | "agent_id">): Promise<void> {
+        this.semanticMemory.recordSemanticMemory({
             ...event,
             agent_title: this.agentIdentifier.title,
             agent_id: this.agentIdentifier.identifier

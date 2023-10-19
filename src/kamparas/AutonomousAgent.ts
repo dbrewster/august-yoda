@@ -157,6 +157,8 @@ export class AutonomousAgent extends Agent {
             timestamp: DateTime.now().toISO(),
             content: instructions
         } as EpisodicEvent)
+
+
         /*
                 await this.memory.recordEpisodicEvent({
                     actor: "worker",

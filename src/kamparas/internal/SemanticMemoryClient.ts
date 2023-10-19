@@ -5,7 +5,12 @@ import {SemanticMemory} from "@/kamparas/Memory";
 import {DateTime} from "luxon";
 import {mongoCollection} from "@/util/util"
 import OpenAI from "openai"
-import Embedding = OpenAI.Embedding;
+
+
+export interface SemanticWrapper {
+    relevance: number
+    memory: SemanticMemory
+}
 
 
 abstract class SemanticMemoryClient {
@@ -20,12 +25,12 @@ abstract class SemanticMemoryClient {
 
     abstract recordSemanticMemories(semantic_string: string, memories: Omit<SemanticMemory, "timestamp" | "semantic_embedding" | "semantic_string">[]): Promise<void>
 
-    abstract searchSemanticMemory(query: string, min_score: number, size: number): Promise<any>
+    abstract searchSemanticMemory(query: string, size: number): Promise<SemanticWrapper[]>
 
     async getEmbeddings(semantic_string: string): Promise<number[]> {
         const response = await this.openai.embeddings.create({
             input: semantic_string, // @ts-ignore
-            model: process.env.EMBEDDING_ALGORITHM
+            model: process.env.EMBEDDING_ALGORITHM || "text-embedding-ada-002"
         })
         return response.data[0].embedding
     }
@@ -50,7 +55,7 @@ export class MongoSemanticMemoryClient extends SemanticMemoryClient {
                         "dynamic": true,
                         "fields": {
                             "semantic_embedding": {
-                                "dimensions": 1536,  // this seems arbitrary
+                                "dimensions": process.env.EMBEDDING_DIMENSIONS || 1536,
                                 "similarity": "cosine",  //what alg?
                                 "type": "knnVector"
                             }
@@ -84,8 +89,8 @@ export class MongoSemanticMemoryClient extends SemanticMemoryClient {
     }
 
 
-    async searchSemanticMemory(query: string | Embedding[], min_score = .01, size = 1000) {
-        const embeddings = typeof query === "string" ? await this.getEmbeddings(query) : query
+    async searchSemanticMemory(query: string, size: number = 1000): Promise<SemanticWrapper[]> {
+        const embeddings = await this.getEmbeddings(query)
         const collection = await mongoCollection<SemanticMemory>(this.collection_name)
         let documentAggregationCursor = collection.aggregate([{
             "$vectorSearch": {
@@ -102,6 +107,9 @@ export class MongoSemanticMemoryClient extends SemanticMemoryClient {
         }, {
             "$unset": ["semantic_embedding"]
         }])
-        return await documentAggregationCursor.toArray()
+        let aggregationCursor = documentAggregationCursor.map(doc => {
+            return {relevance: doc.relevence, memory: doc} as SemanticWrapper
+        })
+        return await aggregationCursor.toArray()
     }
 }

@@ -125,7 +125,7 @@ export class BuildMemoryAgent extends CodeAgent {
         const semanticMemories: Omit<SemanticMemory, "timestamp" | "semantic_string">[] = memories.map(m => {
             return {
                 ...m,
-                agent_type: args.agent_type,
+                agent_title: args.agent_type,
                 agent_id: args.agent_id,
                 conversation_id: args.conversation_id,
             } as Omit<SemanticMemory, "timestamp">
