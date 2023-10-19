@@ -16,7 +16,7 @@ initial_instructions: >
   
   #### Context Start ####
   
-  {context}
+  {{context}}
   
   #### ContextEnd ####
   

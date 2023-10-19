@@ -27,7 +27,7 @@ abstract class GetConceptDetailsBase extends CodeAgent {
         const allClasses = typeSystem.getAllClasses()
         const bdIds = concept_identifiers.map(id => {
             if (!allClasses[id]) {
-                this.logger.warn(`Invalid identifier "${id}`)
+                this.logger.warn(`Invalid identifier "${id}"`)
                 return id
             }
             return null
