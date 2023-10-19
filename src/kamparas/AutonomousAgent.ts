@@ -157,8 +157,19 @@ export class AutonomousAgent extends Agent {
             timestamp: DateTime.now().toISO(),
             content: instructions
         } as EpisodicEvent)
-
-
+        if (process.env.ENABLE_SEMANTIC_MEMORIES === "true") {
+            let memories = await this.memory.searchSemanticMemory(instructions, 1000)
+            memories.sort((a, b) => a.relevance*a.memory.importance < b.relevance*b.memory.importance? 1 : -1)
+            for (let memory of memories.slice(0, Math.min(memories.length, 3))) {
+                await this.memory.recordEpisodicEvent({
+                    actor: "worker",
+                    type: "memory",
+                    conversation_id: conversationId,
+                    timestamp: DateTime.now().toISO(),
+                    content: memory.memory.memory,  // we may want more here so we can prompt the agent with context.
+                } as EpisodicEvent)
+            }
+        }
         /*
                 await this.memory.recordEpisodicEvent({
                     actor: "worker",

@@ -113,6 +113,13 @@ abstract class BaseOpenAILLM extends LLM {
                     content: typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
                 }
                 break
+            case "memory":
+                let contentStr = typeof event.content === 'string' ? event.content : JSON.stringify(event.content)
+                response = {
+                    role: typeRoleMap[event.type],
+                    content: `I remember having an important thought when answering a slightly different question: ${contentStr}`
+                }
+                break
             default:
                 const msg = event.content as any as HelpResponse
                 response = {
@@ -321,6 +328,7 @@ export const typeRoleMap: Record<string, 'system' | 'user' | 'assistant' | 'func
     llm_error: "user",
     thought: "assistant",
     observation: "assistant",
+    memory: "assistant",
     DEFAULT: "function",
 }
 

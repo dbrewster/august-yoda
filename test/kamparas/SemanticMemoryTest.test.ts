@@ -3,7 +3,6 @@ import {SemanticMemory} from "@/kamparas/Memory";
 import {nanoid} from "nanoid";
 import {MongoSemanticMemoryClient} from "@/kamparas/internal/SemanticMemoryClient";
 import {shutdownMongo} from "@/util/util"
-import {delay} from "underscore"
 
 dotenv.config()
 let em: MongoSemanticMemoryClient
@@ -90,7 +89,8 @@ function semantic(content: string): Omit<SemanticMemory, "semantic_embedding"> {
         agent_id: "agent_id",
         conversation_id: nanoid(),
         semantic_string: content,
-        memory: {summary: "here is a summary", events: []},
+        memory: "here is a summary",
+        events: [],
         importance: .4,
         timestamp: "july4",
     };

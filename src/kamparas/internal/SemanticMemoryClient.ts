@@ -55,7 +55,7 @@ export class MongoSemanticMemoryClient extends SemanticMemoryClient {
                         "dynamic": true,
                         "fields": {
                             "semantic_embedding": {
-                                "dimensions": process.env.EMBEDDING_DIMENSIONS || 1536,
+                                "dimensions": process.env.EMBEDDING_DIMENSIONS ? +process.env.EMBEDDING_DIMENSIONS : 1536,
                                 "similarity": "cosine",  //what alg?
                                 "type": "knnVector"
                             }
@@ -69,10 +69,10 @@ export class MongoSemanticMemoryClient extends SemanticMemoryClient {
 
     async recordSemanticMemory(memory: Omit<SemanticMemory, "timestamp">) {
         const collection = await mongoCollection(this.collection_name)
-        // collection.createSearchIndex()  //todo handle embeddings index
+        let embeddings = await this.getEmbeddings(memory.semantic_string)
         await collection.insertOne({
             ...memory,
-            semantic_embedding: await this.getEmbeddings(memory.semantic_string),
+            semantic_embedding: embeddings,
             timestamp: DateTime.now().toISO()!,
         })
     }
@@ -108,7 +108,7 @@ export class MongoSemanticMemoryClient extends SemanticMemoryClient {
             "$unset": ["semantic_embedding"]
         }])
         let aggregationCursor = documentAggregationCursor.map(doc => {
-            return {relevance: doc.relevence, memory: doc} as SemanticWrapper
+            return {relevance: doc.relevance, memory: doc} as SemanticWrapper
         })
         return await aggregationCursor.toArray()
     }

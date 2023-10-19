@@ -90,7 +90,7 @@ export class BuildMemoryAgent extends CodeAgent {
         // todo, we should remember tool calls as well, but for now just assistant events
         const splitSize = 12000
         let reducedFieldsEvent = otherEvents.map((event, index) => {
-            return {event_id: index, role: typeRoleMap[event.type], content: event.content}
+            return {event_id: (event as any)._id, role: typeRoleMap[event.type], content: event.content}
         });
         let chunkedEvents = reducedFieldsEvent.reduce((acc: { chunks: Array<any[]>, lastSize: number }, event) => {
             if (acc.lastSize > splitSize) {
@@ -112,14 +112,16 @@ export class BuildMemoryAgent extends CodeAgent {
 
         const memories = []
         for (var event of otherEvents) {
-            let content1 = {context: JSON.stringify(instruction.content), memory: JSON.stringify(event.content)};
+            let memory = typeof event.content === "string" ? event.content : JSON.stringify(event.content)
+            let content1 = {context: JSON.stringify(instruction.content), memory: memory};
             const resp = await this.promisedBasedHelp(args.conversation_id, 'ImportanceRater', content1);
-            memories.push({type: "event", memory: event, importance: resp.importance})
+            memories.push({type: "event", memory: memory, events: (event as any)._id, importance: resp.importance})
         }
         for (var insight of insights) {
             let content1 = {context: JSON.stringify(instruction.content), memory: insight.description};
             const resp = await this.promisedBasedHelp(args.conversation_id, 'ImportanceRater', content1);
-            memories.push({type: "reflection", memory: insight.description, importance: resp.importance})
+            // todo, we should verify the ids of the events since this is coming back from the llm
+            memories.push({type: "reflection", memory: insight.description, events: insight.events, importance: resp.importance})
         }
         const taskStartArgs = (taskStart.content as StructuredEpisodicEvent).input
         const semanticMemories: Omit<SemanticMemory, "timestamp" | "semantic_string">[] = memories.map(m => {
