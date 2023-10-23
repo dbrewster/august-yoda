@@ -324,17 +324,20 @@ export abstract class oClass {
     readonly __typeSystemId: string
     readonly __id: string;
     readonly __tableName?: string;
+    readonly __baseConcept?: string
     readonly __constraintQuery: string
     readonly __accessedProperties = new Set<string>()
     readonly __description: string
 
     __links:Record<string, LinkProperty<any>> = {}
 
-    constructor(sqlContext: SQLContext, typeSystemId: string, id: string, tableName: string | undefined, description: string, constraintQuery: string) {
+
+    constructor(sqlContext: SQLContext, typeSystemId: string, id: string, tableName: string | undefined, baseConcept: string | undefined, description: string, constraintQuery: string) {
         this.__sqlContext = sqlContext;
         this.__typeSystemId = typeSystemId
         this.__id = id;
         this.__tableName = tableName
+        this.__baseConcept = baseConcept
         this.__constraintQuery = constraintQuery
         this.__description = description
     }

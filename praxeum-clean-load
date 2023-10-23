@@ -14,5 +14,5 @@ EOL
 
 rm -rf ${PRAXEUM_DATA_DIR}/*.yaml
 
-./praxeum apply src/praxeum/concept/basic_deployment/*.yaml src/praxeum/knowledge-packs/*.yaml src/praxeum/systemWorkers/*.yaml
+./praxeum apply src/praxeum/concept/basic_deployment/*.yaml src/praxeum/knowledge-packs/*.yaml src/praxeum/systemWorkers/*.yaml src/praxeum/learner/*.yaml src/praxeum/tools/*.yaml
 ./praxeum start

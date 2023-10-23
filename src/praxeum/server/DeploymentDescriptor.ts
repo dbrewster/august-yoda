@@ -1,12 +1,5 @@
 import {LLMType, ModelType} from "@/kamparas/LLM";
 
-
-// todo, builtin worker does not use concepts of other tools or num to start. Should probably be own interface
-export interface BuiltinWorkerDescriptor extends BaseWorkerDescriptor {
-    deployment_type: 'BuiltinFunction'
-    function_name: string
-}
-
 export interface AutonomousWorkerDescriptor extends BaseWorkerDescriptor {
     overwrite_plan?: boolean,
     overwrite_plan_instructions?: boolean
@@ -15,6 +8,7 @@ export interface AutonomousWorkerDescriptor extends BaseWorkerDescriptor {
     llm: LLMType
     model: ModelType
     temperature?: number
+    upgrade_llm_thought_threshold?: number
     max_thoughts?: number
 }
 
@@ -52,6 +46,7 @@ export interface AutonomousAgentDescriptor extends Resource {
     job_description: string,
     input_schema: Record<string, any>
     output_schema: Record<string, any>
+    is_root: boolean
 }
 
 export interface CodeAgentDescriptor extends Resource {

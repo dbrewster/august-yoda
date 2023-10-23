@@ -1,0 +1,5 @@
+apiVersion: ad/v1
+kind: CodeAgent
+title: search_google
+module: "@/praxeum/tools/GoogleSearchCodeAgent"
+class: GoogleSearchCodeAgent

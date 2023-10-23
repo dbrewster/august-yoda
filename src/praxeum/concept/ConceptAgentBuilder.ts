@@ -10,9 +10,9 @@ import {PlatformBuilder} from "@/kamparas/PlatformBuilder"
 import {Resource, ResourceStatus} from "@/praxeum/server/DeploymentDescriptor"
 import {LLMType, ModelType} from "@/kamparas/LLM"
 import {AgentTemplateDescriptor, OperatorStateChange} from "@/praxeum/server/Operator"
-import {registerIdentifier} from "@/kamparas/AgentRegistry"
 import {getTypeSystem, ROOT_TYPE_SYSTEM} from "@/obiwan/concepts/TypeSystem"
 import {TemplateProcessor} from "@/util/TemplateProcessor"
+import {AgentRegistry} from "@/kamparas/AgentRegistry"
 
 export abstract class AgentTemplateBuilder {
     logger: Logger;
@@ -91,7 +91,7 @@ export class ConceptAgentBuilder extends AgentTemplateBuilder {
         // todo -- fix this to get value from context once we add it.
         const typeSystemId = ROOT_TYPE_SYSTEM
         const typeSystem = await getTypeSystem(typeSystemId)
-        const concepts = typeSystem.getAllConcepts()
+        const concepts = typeSystem.getAllConcepts().filter(c => c.type !== "Table")
         this.logger.info(`Building concept agents for [${concepts.map(c => c.name).join(",")}]`)
         const wrap = <T extends AutonomousWorker>(agent: T, llmOptions: WorkerLLMOptions): T => {
             agent.initialize({
@@ -100,7 +100,7 @@ export class ConceptAgentBuilder extends AgentTemplateBuilder {
                 llm: this.envBuilder.buildLLM(llmOptions.llm, llmOptions.model, llmOptions.temperature || 0.2)
             })
 
-            registerIdentifier(agent.agent_identifier)
+            AgentRegistry.registerIdentifier(agent.agent_identifier)
             return agent
         }
         this.concepts = concepts.map(concept => {
@@ -173,7 +173,8 @@ export class ConceptAgentBuilder extends AgentTemplateBuilder {
             availableTools: [`${concept.name}_manager`, `${concept.name}_qa`].concat(deployment.availableTools),
             manager: `${concept.name}_manager`,
             qaManager: `${concept.name}_qa`,
-            maxConcurrentThoughts: 10
+            maxConcurrentThoughts: 10,
+            upgradeThoughtsThreshold: 5
         })
     }
 
@@ -195,7 +196,8 @@ export class ConceptAgentBuilder extends AgentTemplateBuilder {
                 response: z.string().describe("A detailed answer to the users question")
             })),
             availableTools: deployment.availableTools,
-            maxConcurrentThoughts: 10
+            maxConcurrentThoughts: 10,
+            upgradeThoughtsThreshold: 10
         })
     }
 
@@ -218,7 +220,8 @@ export class ConceptAgentBuilder extends AgentTemplateBuilder {
             })),
             manager: `${concept.name}_manager`,
             availableTools: [`${concept.name}_manager`].concat(deployment.availableTools),
-            maxConcurrentThoughts: 10
+            maxConcurrentThoughts: 10,
+            upgradeThoughtsThreshold: 10
         })
     }
 }

@@ -1,0 +1,49 @@
+apiVersion: ad/v1
+kind: AutonomousWorker
+deployment_type: SkilledWorker
+title: root_learner
+is_root: true
+identifier: alpha
+job_description: An agent designed to answer questions from the user
+initial_plan: You are a helpful agent designed answer questions the user poses
+initial_instructions: |
+  Your job is to answer questions from the user. 
+  
+  Your first task is to create a plan. To do this you will need to:
+    * Start with a very high level plan, record that plan
+    * Break down each part of that plan into sub plans
+    * Continue breaking down the problem until you reach questions that are very easy to answer
+    * Finally answer the user question.
+
+  Answer the following user question:
+    {{question}}
+
+  Think step by step and record your thoughts along the way. If you find yourself repeating thoughts, try to group your thoughts together before calling the thinking tool
+input_schema:
+  type: object
+  properties:
+    question:
+      type: string
+      description: The user question
+  required:
+    - question
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    answer:
+      type: string
+      description: The answer
+  required:
+    - answer
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+available_tools:
+  - basic_manager
+  - search_google
+num_to_start: 1
+qaManager: learner_qa
+manager: learner_manager
+model: gpt-4
+llm: openai.function

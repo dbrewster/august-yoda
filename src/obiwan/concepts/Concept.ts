@@ -7,8 +7,6 @@ export type ConceptPropertyType = SchemaColumnType
 
 export interface Concept {
   typeSystemId: string,
-  system: string,
-  process: string,
   name: string,
   base_concept: string,
   table_name?: string, // only used for auto-generated types from DB

@@ -1,63 +1,15 @@
-import express, {Application, Request, Response} from 'express';
-import dotenv from 'dotenv';
-
-import bodyParser from "body-parser";
-import {ErrorRequestHandler} from "express-serve-static-core";
-import {promiseMiddleware} from "@/util/promise-middleware";
 import {Command, Option} from "commander";
-import {rootLogger, setRootLoggerLevel} from "@/util/RootLogger";
+import {setRootLoggerLevel} from "@/util/RootLogger";
 import process from "process";
-import {getSingleNodeDeployment, startSingleNodeServer} from "@/praxeum/server/SingleNodeDeployment";
+import {PraxeumServer} from "@/praxeum/PraxeumServer"
+import {YodaServer} from "@/yoda/YodaServer"
+import dotenv from "dotenv"
 
-//For env File
-dotenv.config();
+dotenv.config()
 
-const dataDir = `${process.env.PRAXEUM_DATA_DIR}`
 
-const handler: ErrorRequestHandler = (err, req, res, next) => {
-    rootLogger.error("Error in handling request", err)
-    res.status(500)
-    res.send(err)
-}
-
-const logger = rootLogger.child({type: "server"})
-const app: Application = express();
-app.use(bodyParser.text())
-app.use(promiseMiddleware(logger))
-const port = process.env.PRAXEUM_PORT || 8001;
-
-app.get('/', (req: Request, res: Response) => {
-    res.send('Welcome to praxeum');
-});
-
-app.use(handler)
-
-const singleNodeServer = startSingleNodeServer(dataDir)
-await singleNodeServer.initialize()
-
-app.get("/server/status", async (req, res) => {
-    if (singleNodeServer.status().length == 0) {
-        return res.promise("No workers are running")
-    }
-    return res.promise(singleNodeServer.status().map(s => {
-        return `${s.resource}: ${s.status}`
-    }).join("\n") + "\n")
-})
-
-app.post("/server/start", async (req, res) => {
-    const response = await getSingleNodeDeployment().start()
-    let retStr = `Started [${response.started.join(", ")}]\nAlready started [${response.alreadyStarted.join(", ")}]`
-    return res.promise(retStr)
-})
-
-app.post("/server/stop", async (req, res) => {
-    return res.promise(getSingleNodeDeployment().stop())
-})
-
-app.post("/server/apply", async (req, res) => {
-    return res.promise(getSingleNodeDeployment().apply(req.body))
-
-})
+const praxeumServer = new PraxeumServer()
+const yodaServer = new YodaServer()
 
 const program = new Command()
 program.name("praxeum_server")
@@ -66,12 +18,11 @@ program.name("praxeum_server")
     .version("0.0.1")
 
 program.command("start")
-    .action((options) => {
+    .action(async (options) => {
         setRootLoggerLevel(program.opts().loglevel)
-        app.listen(port, () => {
-            console.log(`Server is listening at http://localhost:${port}`);
-        })
+        await praxeumServer.initialize()
+        await yodaServer.initialize()
+        praxeumServer.start()
+        yodaServer.start()
     })
-
 program.parse(process.argv)
-

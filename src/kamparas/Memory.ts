@@ -1,6 +1,7 @@
 import {Logger} from "winston";
 import {rootLogger} from "@/util/RootLogger";
 import {SemanticWrapper} from "@/kamparas/internal/SemanticMemoryClient"
+import {HelperCall} from "@/kamparas/LLM"
 
 export type EpisodicActor = ("external" | "worker")
 export type EpisodicEventType = ("task_start" | "plan" | "available_tools" | "instruction" | "answer" | "help" | "response" | "thought" | "observation" | "hallucination" | "memory" | "llm_error")
@@ -14,9 +15,39 @@ export interface EpisodicEvent {
     agent_title: string,
     agent_id: string,
     conversation_id: string,
+    // NewTaskInstruction |
     content: (UnstructuredEpisodicEvent | StructuredEpisodicEvent),
     timestamp: string,
     callData?: any
+}
+
+export const eventToString = (event: EpisodicEvent) => {
+    switch (event.type) {
+        case "available_tools":
+            return `Can use tools ${event.content}`
+        case "task_start":
+            return `Starting new task for agent ${event.agent_title}`
+        case "answer":
+            return `Returning answer from agent ${event.agent_title}`
+        case "help":
+            return `Asking for help from agent ${(event.content as Record<string, any>).tool_name}`
+        case "response":
+            return `Returning help response from agent ${event.agent_title}`
+        case "llm_error":
+            return `Got error from LLM ${JSON.stringify(event.content, null, 2)}`
+        case "observation":
+            return `LLM observation: ${event.content}`
+        case "thought":
+            return `LLM thought: ${event.content}`
+        case "hallucination":
+            return `LLM hallucinating: ${event.content}`
+        case "plan":
+            return event.content
+        case "instruction":
+            return event.content
+        case "memory":
+            return event.content
+    }
 }
 
 export type SemanticEventType = ("event" | "reflection")

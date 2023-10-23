@@ -95,11 +95,24 @@ interface DateTime : Property<datetime> {{
   millisecond(): Number  
 }}`
 
-const InstanceType =
-`/*
-  InstanceType is the base class for all queryable interfaces.
+const DerivedFrom =
+`
+/*
+  Indicates that this interface derives from the the specified parameter type.
+  Derived types have a mapping to the specified type through a query represented by the __constraint_query member of the interface.
+  
+  params:
+    T: The type this type derives from
 */
-interface InstanceType {{
+interface DerivedFrom<T extends Queryable> {{
+}}
+`
+
+const Queryable =
+`/*
+  Queryable is the base class for all queryable interfaces.
+*/
+interface Queryable {{
 }}`
 
 const QueryString =
@@ -121,22 +134,22 @@ class Query {{
     
     fn: A lambda expression where the input to the expression is an object of the driving table query type. The return type is the result of an expression
   */
-  where(fn: (o: InstanceType) => (BinaryOperator | UnaryOperator)): Query
+  where(fn: (o: Queryable) => (BinaryOperator | UnaryOperator)): Query
 
   /*
     Specifies the return values for the search. The return values are used to display the results to the user.
   */
-  return(fn: (o: InstanceType) => Property[]): Query 
+  return(fn: (o: Queryable) => Property[]): Query 
 
   /*
     Orders the results by the given expression
   */
-  orderBy(fn: (o: InstanceType) => OrderByProperty[]): Query 
+  orderBy(fn: (o: Queryable) => OrderByProperty[]): Query 
 
   /*
     Groups the results by the specified properties. ALL properties in the return or the orderBy clause MUST either be in the groupBy or be an aggregate function.
   */
-  groupBy(fn: (o: InstanceType) => Property[]): Query
+  groupBy(fn: (o: Queryable) => Property[]): Query
   
   /*
     Limits the results by the specified number of rows
@@ -155,7 +168,8 @@ ${DateType}
 ${TimeType}
 ${DateTimeType}
 
-${InstanceType}
+${Queryable}
+${DerivedFrom}
 ${QueryString}
 `
 }
