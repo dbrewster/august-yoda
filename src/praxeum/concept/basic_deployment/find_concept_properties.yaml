@@ -3,42 +3,39 @@ kind: AutonomousWorker
 deployment_type: SkilledWorker
 title: find_concept_properties
 identifier: alpha
-job_description: Finds the optimal set of properties for the the concept given information about the new concept
-initial_plan: You are a helpful agent answering questions about generating information about creating or modifying interfaces in a concept graph.
+job_description: Finds the optimal set of properties for a concept and maps that concept to a base class.
+initial_plan: You are a functional agent who's job is to create an object mapping for a concept.
 initial_instructions: |
-  You are an agent finding information about concepts in a {{__context__.system}}, specifically for the {{__context__.process}} process.
+  Your job is to alter the properties of this concept by mapping the base object to this concept. 
 
-  Given the brand new concept {{concept_name}} and it's description:
-  {{concept_description}}
+  The current concept is {{concept_name}}.
+  It extends from {{base_object_name}}.
 
-  And a base concept of {{base_concept}}
-
-  You are finding the optimal set of properties that should exist on this new concept. You will do this by:
-    1. Use the provided tool to load the definition of the query interfaces
-    2. Get a detailed description of the base concept, {{base_concept}}
-    3. Analyze the properties to determine which properties you can drop off of the new concept. You can drop properties that will only appear in a where clause to create this concept, or properties that are no longer relevant to the new concept. You can also combine properties into higher order properties, if that is necessary. When thinking about this step, list out your thoughts IN ONE step.
-    5. Filter the properties to the necessary list. Explain why you filtered a property
-    6. Finally return the new properties
-    
-  Define the properties for the new concept
-
-  Let's think aloud step by step
+  Your plan is to:
+    1) Load definition of the base object.
+    2) Load the definition of the current object.
+    3) Load the query interfaces.
+    4) Perform the steps given in the following request:
+    {{request}}
+  
+  
+  Let's think aloud step by step. Make sure you record your thoughts at every step.
 input_schema:
   type: object
   properties:
     concept_name:
       type: string
-      description: The name of the concept
-    concept_description:
+      description: The name of the concept. This is usually represented as the interface name of the object
+    base_object_name:
       type: string
-      description: A detailed description of the concept we are finding the base concept for
-    base_concept:
+      description: The name of the base concept object.
+    request:
       type: string
-      description: The identifier of the base concept to derive the properties from
+      description: The plan this tool should use to execute the request
   required:
     - concept_name
-    - concept_description
-    - base_concept
+    - base_object_name
+    - request
   additionalProperties: false
   $schema: http://json-schema.org/draft-07/schema#
 output_schema:
@@ -77,12 +74,17 @@ output_schema:
           - reason
           - should_drop
         additionalProperties: false
+    constraint_query:
+      type: string
+      description: The constraint query that maps this concept to the base concept
   required:
+    - constraint_query
     - properties
   additionalProperties: false
   $schema: http://json-schema.org/draft-07/schema#
 available_tools:
-  - concept_details_and_sample
+  - concept_query_interfaces
+  - concept_details
   - basic_manager
   - concept_qa
 temperature: 0.2
@@ -91,3 +93,5 @@ manager: basic_manager
 qaManager: concept_qa
 model: gpt-3.5-turbo-16k
 llm: openai.function
+upgrade_llm_thought_threshold: 5
+max_thoughts: 10

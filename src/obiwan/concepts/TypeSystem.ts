@@ -22,7 +22,7 @@ export class TypeSystem {
     }
 
     getConcept(name: string) {
-        return this.concept_classes[name]
+        return this.concepts[name]
     }
 
     getConceptEdges() {

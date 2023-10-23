@@ -169,6 +169,7 @@ export function getDeferred<T>(): Deferred<T> {
     };
 }
 
+export const delay = (numMS: number) => new Promise(resolve => setTimeout(resolve, numMS))
 
 /*
 export async function closeDownMongo() {

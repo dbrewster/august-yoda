@@ -1,18 +1,19 @@
 import {LLM, LLMExecuteOptions, LLMResult, ModelType} from "@/kamparas/LLM";
 import {EpisodicEvent, StructuredEpisodicEvent} from "@/kamparas/Memory";
 import {AgentTool} from "@/kamparas/Agent";
-import OpenAI from "openai";
+import OpenAI, {RateLimitError} from "openai";
 import {ChatCompletionMessageParam} from "openai/resources/chat";
 import JSON5 from "json5";
 import {HelpResponse} from "@/kamparas/Environment";
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager";
 import {z} from "zod";
 import {final_answer_tool} from "@/kamparas/AutonomousAgent";
+import {delay} from "@/util/util"
 
 abstract class BaseOpenAILLM extends LLM {
     protected openai: OpenAI;
-    private readonly model: ModelType;
-    private readonly temperature: number;
+    protected readonly model: ModelType;
+    protected readonly temperature: number;
 
     constructor(model: ModelType, temperature: number) {
         super();
@@ -46,14 +47,36 @@ abstract class BaseOpenAILLM extends LLM {
             model: this.model,
             temperature: this.temperature
         }
-        const response = await this.openai.chat.completions.create(inOptions)
+        let delayTime = 10
+        let numRetries = 0
+        const maxRetries = 3
+        while (numRetries < maxRetries) {
+            try {
+                const response = await this.openai.chat.completions.create(inOptions)
 
-        if (this.logger.isDebugEnabled()) {
-            this.logger.debug(`Got response from llm ${JSON.stringify(response, null, 2)}`, {conversation_id: conversationId})
-        } else {
-            this.logger.info(`Got response from llm. Used ${JSON.stringify(response.usage)} tokens.`, {conversation_id: conversationId})
+                if (this.logger.isDebugEnabled()) {
+                    this.logger.debug(`Got response from llm ${JSON.stringify(response, null, 2)}`, {conversation_id: conversationId})
+                } else {
+                    this.logger.info(`Got response from llm. Used ${JSON.stringify(response.usage)} tokens.`, {conversation_id: conversationId})
+                }
+                return response;
+            } catch (e) {
+                if (e instanceof RateLimitError) {
+                    ++numRetries
+                    if (numRetries >= maxRetries) {
+                        throw e
+                    }
+                    this.logger.warn(`Got rate limit for llm call: ${e.toString()}, delaying...${delayTime}`)
+                    await delay(delayTime * 1000)
+                    this.logger.warn(`Got rate limit for llm call: ${e.toString()}, delaying...${delayTime}...now re-executing`)
+                    delayTime *= 2
+                } else {
+                    throw e
+                }
+            }
         }
-        return response;
+
+        throw "Error executing LLM call"
     }
 
     private formatMessages(events: EpisodicEvent[], availableHelpers: AgentTool[]) {
@@ -65,7 +88,7 @@ abstract class BaseOpenAILLM extends LLM {
         })
     }
 
-    formatMessage(event: EpisodicEvent, availableHelpers: AgentTool[]) {
+    formatMessage(event: EpisodicEvent, _availableHelpers: AgentTool[]) {
         let response: ChatCompletionMessageParam
         switch (event.type) {
             case "plan":
@@ -134,12 +157,32 @@ abstract class BaseOpenAILLM extends LLM {
 }
 
 export class OpenAIFunctionsLLM extends BaseOpenAILLM {
+    upgradeModel(): LLM {
+        let newModel = this.model
+        switch (this.model) {
+            case "gpt-3.5-turbo":
+                newModel = "gpt-4"
+                break
+            case "gpt-3.5-turbo-16k":
+                newModel = "gpt-4"
+        }
+        if (newModel === this.model) {
+            return this
+        } else {
+            this.logger.warn(`Upgrading model from ${this.model} to ${newModel}`)
+            return new OpenAIFunctionsLLM(newModel, this.temperature)
+        }
+    }
+
+
     thought_and_observation_tool = {
         title: "thought_or_observation",
         job_description: "Records a thought or observation you might have.",
         input_schema: getOrCreateSchemaManager().compileZod(z.object({
-            observation: z.string().describe("A very detailed observation. This should include detailed observations on the action or thought that just occured"),
+            observation: z.string().describe("A very detailed observation. This should include detailed observations on the action or thought that just occurred"),
             thought: z.string().describe("A very detailed thought. This should include your detailed thoughts on what you should do next."),
+            thought_type: z.enum(["action", "observation"]).describe("The type of thought. This can be either 'action' which means the thought is directly related to a helper tool call, or 'observation' which means this thought is an internal thought"),
+            thought_symbol: z.string().describe("A 4-5 word symbolic name for this thought.")
         }))
     } as AgentTool
 
@@ -178,8 +221,8 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
                 return Promise.reject("Invalid function call in response:" + choice.message.function_call.arguments)
             }
             if (choice.message.function_call.name === this.thought_and_observation_tool.title) {
-                executeResponse.observations.push(args.observation)
-                executeResponse.thoughts.push(args.thought)
+                // executeResponse.observations.push(args.observation)
+                executeResponse.thoughts.push(args)
             } else {
                 executeResponse.helperCall = {
                     title: choice.message.function_call.name,
@@ -193,7 +236,7 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
         return Promise.resolve(executeResponse);
     }
 
-    formatHelpers(_: string[]): string | undefined {
+    formatHelpers(_: string[]): string {
         return `You have the following tools available to you:
         [${this.encodeVariable("tool_names")}]
         
@@ -205,10 +248,11 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
         let response: ChatCompletionMessageParam
         switch (event.type) {
             case "available_tools":
+                const availableTools = this.formatHelpers(event.content as string[])
                 response = {
                     role: typeRoleMap[event.type],
-                    content: typeof event.content === 'string' ? this.replaceEncodedVariables(event.content,
-                        {tool_names: availableHelpers.map(t => t.title).join(",")}) : JSON.stringify(event.content)
+                    content: typeof event.content === 'string' ? this.replaceEncodedVariables(availableTools,
+                        {tool_names: availableHelpers.map(t => t.title).join(",")}) : JSON.stringify(availableTools)
                 }
                 break
             case "help":
@@ -233,6 +277,22 @@ const FUNCTION_START = "```START```"
 const FUNCTION_END = "```END```"
 
 export class OpenAITextFunctionsLLM extends BaseOpenAILLM {
+    upgradeModel(): LLM {
+        let newModel = this.model
+        switch (this.model) {
+            case "gpt-3.5-turbo":
+                newModel = "gpt-4"
+                break
+            case "gpt-3.5-turbo-16k":
+                newModel = "gpt-4"
+        }
+        if (newModel === this.model) {
+            return this
+        } else {
+            this.logger.warn(`Upgrading model from ${this.model} to ${newModel}`)
+            return new OpenAITextFunctionsLLM(newModel, this.temperature)
+        }
+    }
 
     async execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[], availableHelpers: AgentTool[]): Promise<LLMResult> {
         const response = await this.sendRequest(events, conversationId, options, availableHelpers);
@@ -281,9 +341,10 @@ export class OpenAITextFunctionsLLM extends BaseOpenAILLM {
         let response: ChatCompletionMessageParam
         switch (event.type) {
             case "available_tools":
+                const availableTools = this.formatHelpers(event.content as string[])
                 response = {
                     role: typeRoleMap[event.type],
-                    content: typeof event.content === 'string' ? this.replaceEncodedVariables(event.content,
+                    content: typeof event.content === 'string' ? this.replaceEncodedVariables(availableTools,
                         {
                             tool_descriptions:
                                 availableHelpers.map(helper => {
@@ -293,7 +354,7 @@ export class OpenAITextFunctionsLLM extends BaseOpenAILLM {
     schema: ${JSON.stringify(helper.input_schema.schema)
                                     }\n`
                                 }).join("")
-                        }) : JSON.stringify(event.content)
+                        }) : JSON.stringify(availableTools)
                 }
                 break
             default:

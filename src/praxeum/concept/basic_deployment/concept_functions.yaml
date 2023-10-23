@@ -21,3 +21,9 @@ kind: CodeAgent
 title: concept_query_interfaces
 module: "@/praxeum/concept/GetQueryInterfaces"
 class: GetQueryInterfaces
+---
+apiVersion: ad/v1
+kind: CodeAgent
+title: get_missing_properties
+module: "@/praxeum/concept/GetMissingProperties"
+class: GetMissingProperties

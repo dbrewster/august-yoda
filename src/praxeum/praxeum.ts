@@ -84,7 +84,7 @@ async function executeStandaloneRequest(title: string, data: any, context: any =
     q.initialize({memory: envBuilder.buildMemory(q.agent_identifier), environment: envBuilder.buildEnvironment()})
     await q.start()
     const response = await q.askQuestion(title, data, context)
-    console.log(JSON.stringify(response, null, 2))
+    console.log(JSON.stringify(response, null, 2).replaceAll("\\n", "\n:"))
     await q.shutdown()
     await shutdownRabbit()
     await shutdownMongo()

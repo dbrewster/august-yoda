@@ -3,6 +3,7 @@ import {EpisodicEvent} from "@/kamparas/Memory";
 import {EventContent} from "@/kamparas/Environment";
 import {Logger} from "winston";
 import {rootLogger} from "@/util/RootLogger";
+import {undefined} from "zod"
 
 export type LLMResultType  = ("thought" | "call_helper")
 
@@ -30,9 +31,11 @@ export abstract class LLM {
         this.logger = logger
     }
 
-    abstract formatHelpers(availableHelpers: string[]): string | undefined
+    abstract formatHelpers(availableHelpers: string[]): string
 
     abstract execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[], functions: AgentTool[]): Promise<LLMResult>
+
+    abstract upgradeModel(): LLM
 }
 
 export type LLMType = ("openai.textFunctions" | "openai.function")
@@ -42,7 +45,11 @@ export class NoOpLLM extends LLM {
         throw "not implemented"
     }
 
-    formatHelpers(availableHelpers: string[]): string | undefined {
+    formatHelpers(availableHelpers: string[]): string {
         throw "not implemented"
+    }
+
+    upgradeModel(): LLM {
+        return this
     }
 }

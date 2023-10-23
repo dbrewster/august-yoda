@@ -15,6 +15,7 @@ export class RootQuestion extends Agent {
             identifier: nanoid(),
             input_schema: getOrCreateSchemaManager().compileZod(z.object({question: z.string()})),
             answer_schema: getOrCreateSchemaManager().compileZod(z.object({answer: z.string()})),
+            is_root: true
         })
     }
 

@@ -1,4 +1,4 @@
-import {deleteIdentifier, registerIdentifier,} from "@/kamparas/AgentRegistry";
+import {AgentRegistry} from "@/kamparas/AgentRegistry";
 import {AutonomousQAManager, AutonomousSkilledWorker, AutonomousWorkerManager} from "@/praxeum/Worker";
 import _ from "underscore"
 import {
@@ -87,6 +87,7 @@ abstract class BaseAgentOperator extends Operator {
             job_description: workerDescriptor.job_description,
             input_schema: getOrCreateSchemaManager().compile(JSON.stringify(workerDescriptor.input_schema)),
             answer_schema: getOrCreateSchemaManager().compile(JSON.stringify(workerDescriptor.output_schema)),
+            is_root: workerDescriptor.is_root || false,
         } as AgentIdentifier
     }
 
@@ -121,7 +122,7 @@ abstract class BaseAgentOperator extends Operator {
                 }
                 environment.writeResource(resource)
             }
-            registerIdentifier(this.existingAgents[resource.title].agent_identifier)
+            AgentRegistry.registerIdentifier(this.existingAgents[resource.title].agent_identifier)
             return true
         }
         return false
@@ -134,7 +135,7 @@ abstract class BaseAgentOperator extends Operator {
                 delete this.existingAgents[resource.title]
             }
             environment.deleteResource(resource.title)
-            deleteIdentifier(resource.title)
+            AgentRegistry.deleteIdentifier(resource.title)
             return true
         }
         return false
@@ -203,7 +204,8 @@ export class AutonomousAgentOperator extends BaseAgentOperator {
                     overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                     initial_plan_instructions: descriptor.initial_instructions,
                     overwrite_plan_instructions: descriptor.overwrite_plan_instructions || process.env.OVERWRITE_PLAN_INSTRUCTIONS === "true",
-                    maxConcurrentThoughts: descriptor.max_thoughts || 5,
+                    upgradeThoughtsThreshold: descriptor.upgrade_llm_thought_threshold || 5,
+                    maxConcurrentThoughts: descriptor.max_thoughts || 10,
                     availableTools: descriptor.available_tools,
                     manager: descriptor.manager,
                     qaManager: descriptor.qaManager,
@@ -219,6 +221,7 @@ export class AutonomousAgentOperator extends BaseAgentOperator {
                     overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                     initial_plan_instructions: descriptor.initial_instructions,
                     overwrite_plan_instructions: descriptor.overwrite_plan_instructions || process.env.OVERWRITE_PLAN_INSTRUCTIONS === "true",
+                    upgradeThoughtsThreshold: 10,
                     maxConcurrentThoughts: descriptor.max_thoughts || 5,
                     availableTools: descriptor.available_tools,
                     manager: descriptor.manager
@@ -235,6 +238,7 @@ export class AutonomousAgentOperator extends BaseAgentOperator {
                     overwrite_plan: descriptor.overwrite_plan || process.env.OVERWRITE_PLAN === "true",
                     initial_plan_instructions: descriptor.initial_instructions,
                     overwrite_plan_instructions: descriptor.overwrite_plan_instructions || process.env.OVERWRITE_PLAN_INSTRUCTIONS === "true",
+                    upgradeThoughtsThreshold: 10,
                     maxConcurrentThoughts: descriptor.max_thoughts || 5,
                     availableTools: descriptor.available_tools,
                     manager: descriptor.manager,
@@ -246,10 +250,7 @@ export class AutonomousAgentOperator extends BaseAgentOperator {
             default:
                 throw `Invalid agent type ${agentDescriptor.deployment_type} for ${JSON.stringify(agentDescriptor)}`
         }
-
     }
-
-
 }
 
 export class MetaConceptOperator extends Operator {
@@ -268,7 +269,7 @@ export class MetaConceptOperator extends Operator {
     async delete(resource: Resource, environment: OperatorEnvironment): Promise<boolean> {
         if (resource.kind == "MetaConcept") {
             environment.deleteResource(resource.title)
-            deleteIdentifier(resource.title)
+            AgentRegistry.deleteIdentifier(resource.title)
             return true
         }
         return false
@@ -362,7 +363,7 @@ export class AgentTemplateOperator extends Operator {
                 delete this.templateBuilders[resource.title]
             }
             environment.deleteResource(resource.title)
-            deleteIdentifier(resource.title)
+            AgentRegistry.deleteIdentifier(resource.title)
             return true
         }
         return false

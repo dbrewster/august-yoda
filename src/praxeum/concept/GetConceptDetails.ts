@@ -40,7 +40,7 @@ abstract class GetConceptDetailsBase extends CodeAgent {
             IncludeConceptDescriptions: true,
             IncludeProperties: true,
             IncludePropertyDescriptions: false,
-            IncludeReferences: true
+            IncludeReferences: false
         }, concept_identifiers)
 
         return {concept: existing_concepts}

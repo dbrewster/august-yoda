@@ -49,6 +49,11 @@ export interface NewTaskInstruction {
     input: EventContent
 }
 
+export interface AnswerContent {
+    request_id: string
+    response: Record<string, any>,
+}
+
 export interface HelpResponse {
     conversation_id: string
     request_id: string

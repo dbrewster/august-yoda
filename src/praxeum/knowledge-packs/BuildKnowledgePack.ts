@@ -102,8 +102,6 @@ export class BuildKnowledgePack extends CodeAgent {
             const properties: any[] = retConcept.properties
             const concept: Concept = {
                 typeSystemId: typeSystemId,
-                system: mc.system,
-                process: mc.process,
                 name: retConcept.concept_identifier,
                 type: "Concept",
                 description: retConcept.concept_definition,

@@ -1,5 +1,6 @@
 import {
     AgentEnvironment,
+    AnswerContent,
     EnvironmentHandler,
     EventContent,
     HelpResponse,
@@ -11,7 +12,7 @@ import {Logger} from "winston"
 import {rootLogger} from "@/util/RootLogger"
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import YAML from "yaml";
-import {AgentMemory, EpisodicEvent, NoOpMemory, StructuredEpisodicEvent} from "@/kamparas/Memory";
+import {AgentMemory, NoOpMemory} from "@/kamparas/Memory";
 import {DateTime} from "luxon";
 
 export interface AgentTool {
@@ -26,6 +27,7 @@ export interface AgentIdentifier {
     identifier: string
     input_schema: ValidateFunction<object>
     answer_schema: ValidateFunction<object>
+    is_root: boolean
 }
 
 export interface AgentOptions extends AgentIdentifier {
@@ -125,12 +127,12 @@ export abstract class Agent implements EnvironmentHandler {
             actor: "worker",
             type: "answer",
             conversation_id: conversationId,
-            timestamp: DateTime.now().toISO(),
+            timestamp: DateTime.now().toISO()!,
             content: {
                 request_id: taskStart.request_id,
                 response: content,
-            } as StructuredEpisodicEvent
-        } as EpisodicEvent)
+            } as AnswerContent
+        })
         // We are not waiting on purpose
         // noinspection ES6MissingAwait
         this.environment.answer(taskStart.helpee_title, taskStart.helpee_id, {
@@ -139,7 +141,7 @@ export abstract class Agent implements EnvironmentHandler {
             helper_title: this.agent_identifier.title,
             helper_identifier: this.agent_identifier.identifier,
             status: 'success',
-            response: content
+            response: content as AnswerContent
         }, conversationId)
         return Promise.resolve()
     }

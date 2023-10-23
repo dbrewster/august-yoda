@@ -1,0 +1,58 @@
+apiVersion: ad/v1
+kind: AutonomousWorker
+deployment_type: Manager
+title: learner_manager
+identifier: alpha
+job_description: Provides help to blocked workers
+initial_plan: >-
+  You are a manager of workers. You are responsible for providing a plan for how
+  they should proceed. Consider the problem the problems the worker is facing
+  and the resources they have to solve the problem.
+
+  Create a plan for the worker to solve the problem if it is possible.
+
+  Tell the worker "STOP WORKING" if they they cannot progress or are not making progress.
+initial_instructions: >
+  I am trying am having a problem with "{{problem}}" and am unsure how to proceed.
+  What should I do?
+
+
+  I have the following tools available:
+
+  {{available_tools}}
+
+
+  Here is some context for the problem:
+
+  {{context}}
+input_schema:
+  type: object
+  properties:
+    problem:
+      type: string
+      description: issue at hand
+    available_tools:
+      type: string
+      description: A list of external resources I have available and short a short description of each.
+    context:
+      type: string
+      description: information relevant to the question
+  required:
+    - problem
+    - available_tools
+    - context
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    response:
+      type: string
+  required:
+    - response
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+available_tools: []
+num_to_start: 1
+model: gpt-4
+llm: openai.function

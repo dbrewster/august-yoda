@@ -13,21 +13,6 @@ import {
 import _ from "underscore";
 import {TypeSystem} from "@/obiwan/concepts/TypeSystem"
 
-/*
-class Opportunity extends oClass {
-  constructor(sqlContext: SQLContext) {
-    super(sqlContext, "id");
-  }
-
-  readonly amount = new NumberProperty(this, "amount")
-  readonly probability= new NumberProperty(this, "probability")
-  readonly stageName = new StringProperty(this, "stage_name")
-  readonly account = new LinkProperty(this, Account, "account_id").link()
-}
-
- */
-export type Namespace = ("table" | "concepts")
-
 const makePropertyFromConcept = (parent: oClass, property: ConceptProperty) => {
     switch (property.type.toLowerCase()) {
         case "boolean":
@@ -52,7 +37,7 @@ const makePropertyFromConcept = (parent: oClass, property: ConceptProperty) => {
 const buildConceptClass = (info: ClassBuilderInfo) => {
     return class extends oClass {
         constructor(sqlContext: SQLContext) {
-            super(sqlContext, info.typeSystem.typeSystemId, info.concept.name, info.concept.table_name, info.concept.description, info.concept.constraint_query);
+            super(sqlContext, info.typeSystem.typeSystemId, info.concept.name, info.concept.table_name, info.concept.base_concept, info.concept.description, info.concept.constraint_query);
         }
 
         initializeProperties() {

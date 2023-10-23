@@ -15,7 +15,11 @@ export const printConceptClass = async <T extends typeof oClass>(name: string, c
   // @ts-ignore
   const instance = new clazz(sqlContext)
   instance.initializeProperties()
-  let out = `interface ${name} extends InstanceType {\n`
+  let baseConceptStr = ""
+  if (instance.__baseConcept) {
+    baseConceptStr = `, DerivedFrom<${instance.__baseConcept}>`
+  }
+  let out = `interface ${name} extends Queryable${baseConceptStr} {\n`
   if (instance.__description && printOptions.IncludeConceptDescriptions) {
     out = `/*\n${instance.__description}\n*/\n` + out
   }

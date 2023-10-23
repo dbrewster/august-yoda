@@ -7,8 +7,10 @@ import {nanoid} from "nanoid";
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {APIError} from "openai";
 import {Agent, AgentInitOptions, AgentOptions, AgentTool} from "@/kamparas/Agent";
-import {getIdentifier} from "@/kamparas/AgentRegistry";
+import {AgentRegistry} from "@/kamparas/AgentRegistry";
 import {Error} from "sequelize"
+import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager"
+import {z} from "zod"
 
 export const final_answer_tool = {
     title: "final_answer",
@@ -22,7 +24,7 @@ export type AgentToolCall = {
 }
 
 export const remoteAgentCall = (toolName: string): AgentToolCall => {
-    const agent = getIdentifier(toolName)
+    const agent = AgentRegistry.getIdentifier(toolName)
     return ({
         tool_def: agent,
         call: async (agent: AutonomousAgent, conversationId: string, requestId: string, context: EventContent, help: HelperCall): Promise<void> => {
@@ -55,6 +57,7 @@ export const localAgentCall = (tool_def: AgentTool, fn: (conversationId: string,
 })
 
 export interface AutonomousAgentOptions extends AgentOptions {
+    upgradeThoughtsThreshold: number,
     maxConcurrentThoughts: number,
     initial_plan: string,
     overwrite_plan: boolean,
@@ -71,6 +74,7 @@ export class AutonomousAgent extends Agent {
     availableTools: string[]
     llm: LLM = new NoOpLLM()
     maxConcurrentThoughts: number
+    upgradeThoughtsThreshold: number
     initial_plan: string
     overwrite_plan: boolean
     initial_plan_instructions: string
@@ -81,6 +85,7 @@ export class AutonomousAgent extends Agent {
         this.availableTools = options.availableTools
 
         this.maxConcurrentThoughts = options.maxConcurrentThoughts
+        this.upgradeThoughtsThreshold = options.upgradeThoughtsThreshold
         this.initial_plan = options.initial_plan
         this.overwrite_plan = options.overwrite_plan
         this.initial_plan_instructions = options.initial_plan_instructions
@@ -139,16 +144,13 @@ export class AutonomousAgent extends Agent {
             content: plan
         })
 
-        const availableTools = this.llm.formatHelpers(this.availableTools)
-        if (availableTools) {
-            await this.memory.recordEpisodicEvent({
-                actor: "worker",
-                type: "available_tools",
-                conversation_id: conversationId,
-                timestamp: DateTime.now().toISO(),
-                content: availableTools
-            } as EpisodicEvent)
-        }
+        await this.memory.recordEpisodicEvent({
+            actor: "worker",
+            type: "available_tools",
+            conversation_id: conversationId,
+            timestamp: DateTime.now().toISO()!,
+            content: this.availableTools
+        })
         const instructions: string = await this.memory.readPlanInstructions({...instruction.input, "__context__": instruction.context})
         await this.memory.recordEpisodicEvent({
             actor: "worker",
@@ -226,10 +228,14 @@ export class AutonomousAgent extends Agent {
             let numConcurrentThoughts = 0
             while (numConcurrentThoughts < this.maxConcurrentThoughts) {
                 const events = await this.memory.readEpisodicEventsForTask(conversationId)
+                let llm = this.llm
+                if (numConcurrentThoughts >= this.upgradeThoughtsThreshold) {
+                    llm = llm.upgradeModel()
+                }
                 const taskStart = events.find(e => e.type == "task_start")!.content as NewTaskInstruction
                 const availableHelpers = this.buildHelpers()
                 this.logger.info(`Thinking with ${events.length} events: (Thought #${numConcurrentThoughts})`, {conversation_id: conversationId})
-                const result = await this.llm.execute({}, conversationId, events, Object.values(availableHelpers).map(h => h.tool_def)).catch(async e => {
+                const result = await llm.execute({}, conversationId, events, Object.values(availableHelpers).map(h => h.tool_def)).catch(async e => {
                     // open AI api errors indicate a request issue the caller should know about
                     if (e instanceof APIError) {
                         e.name = "OpenAi APIError"
@@ -339,3 +345,13 @@ export class AutonomousAgent extends Agent {
 }
 
 export type HallucinationType = ("bad_tool" | "too_many_thoughts")
+
+export class RootQuestionAutonomousAgent extends AutonomousAgent {
+
+    constructor(options: Omit<AutonomousAgentOptions, "input_schema" | "answer_schema">) {
+        super({...options,
+            input_schema: getOrCreateSchemaManager().compileZod(z.object({question: z.string()})),
+            answer_schema: getOrCreateSchemaManager().compileZod(z.object({answer: z.string()})),
+        })
+    }
+}

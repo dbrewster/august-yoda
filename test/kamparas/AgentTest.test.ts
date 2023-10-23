@@ -116,6 +116,7 @@ const makeAutonomousAgent = async (title: string, job_description: string, input
         overwrite_plan: true,
         initial_plan_instructions: planInstructions,
         overwrite_plan_instructions: true,
+            upgradeThoughtsThreshold: 10,
         maxConcurrentThoughts: 5,
     } as AutonomousAgentOptions
     return new AutonomousAgent(options)
