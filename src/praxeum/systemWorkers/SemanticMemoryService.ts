@@ -24,8 +24,7 @@ export class BuildMemoryAgent extends CodeAgent {
     requestIdToDeferred: Record<string, Deferred<any>> = {}
 
     constructor(options: CodeAgentOptions) {
-        super({
-            ...options,
+        super(options, {
             identifier: "alpha",
             job_description: "",
             input_schema: getOrCreateSchemaManager().compileZod(z.object({

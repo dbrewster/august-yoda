@@ -5,17 +5,20 @@ import {DateTime} from "luxon";
 import {FindOptions, ObjectId} from "mongodb";
 import dotenv from "dotenv";
 import {TemplateProcessor} from "@/util/TemplateProcessor"
-import {MongoSemanticMemoryClient, SemanticWrapper} from "@/kamparas/internal/SemanticMemoryClient"
+import {SemanticMemoryClient, SemanticWrapper} from "@/kamparas/internal/SemanticMemoryClient"
+import {ChromaSemanticMemoryClient} from "@/kamparas/internal/ChromaSemanticMemoryClient";
+import {Observation} from "@/praxeum/systemWorkers/CreateObservation";
 
 // todo collections will need index on agent_id and conversation_id
 export class MongoMemory extends AgentMemory {
     private agentIdentifier: AgentIdentifier;
-    private semanticMemory?: MongoSemanticMemoryClient
+    private semanticMemory?: SemanticMemoryClient
+
     constructor(agentIdentifier: AgentIdentifier) {
         super();
         dotenv.config()
         this.agentIdentifier = agentIdentifier;
-        this.semanticMemory = process.env.ENABLE_SEMANTIC_MEMORIES === "true" ? new MongoSemanticMemoryClient(agentIdentifier.identifier) : undefined
+        this.semanticMemory = process.env.ENABLE_SEMANTIC_MEMORIES === "true" ? new ChromaSemanticMemoryClient(agentIdentifier) : undefined
     }
 
     async findEpisodicEvent(query: Record<string, any>): Promise<EpisodicEvent | null> {
@@ -90,7 +93,8 @@ export class MongoMemory extends AgentMemory {
         const find: Record<string, any> = {
             type: "plan",
             agent_title: this.agentIdentifier.title,
-            agent_id: this.agentIdentifier.identifier
+            agent_id: this.agentIdentifier.identifier,
+            archive_time: { "$exists": false}
         }
         if (planId) {
             find['_id'] = ObjectId.createFromBase64(planId)
@@ -108,7 +112,8 @@ export class MongoMemory extends AgentMemory {
         const find: Record<string, any> = {
             type: "instructions",
             agent_title: this.agentIdentifier.title,
-            agent_id: this.agentIdentifier.identifier
+            agent_id: this.agentIdentifier.identifier,
+            archive_time: { "$exists": false}
         }
         const collection = await mongoCollection("plans")
         return collection.findOne(find).then(d => d?.template).then(d => d)
@@ -160,6 +165,53 @@ export class MongoMemory extends AgentMemory {
             agent_title: this.agentIdentifier.title,
             agent_id: this.agentIdentifier.identifier
         })
+    }
+
+    async recordCreateObservation(agent_title: string, agent_id: string, conversation_id: string, root_observation_id: string, observationId: string, observation: string): Promise<void> {
+        const collection = await mongoCollection("observation")
+        await collection.insertOne({
+            type: "observation",
+            agent_title: agent_title,
+            agent_id: agent_id,
+            conversation_id: conversation_id,
+            root_observation_id: root_observation_id,
+            observation_or_thought: observation,
+            observation_id: observationId
+        } as Observation)
+    }
+
+    async recordObservationAnswer(agent_title: string, agent_id: string, conversation_id: string, observation_id: string, thought: string): Promise<void> {
+        const collection = await mongoCollection("observation")
+        const observation = await collection.findOne<Observation>({type: "observation", observation_id: observation_id})
+        if (!observation) {
+            this.logger.warn(`Could not find observation ${observation_id}. Did you provide the correct value?`)
+        }
+        await collection.insertOne({
+            type: "answer",
+            agent_title: agent_title,
+            agent_id: agent_id,
+            conversation_id: conversation_id,
+            root_observation_id: observation?.root_observation_id || "root",
+            observation_id: observation_id,
+            observation_or_thought: thought
+        } as Observation)
+    }
+
+    async recordThought(agent_title: string, agent_id: string, conversation_id: string, observation_id: string, thought: string): Promise<void> {
+        const collection = await mongoCollection("observation")
+        const observation = await collection.findOne<Observation>({type: "observation", observation_id: observation_id})
+        if (!observation) {
+            throw `Could not find observation ${observation_id}. Did you provide the correct value?`
+        }
+        await collection.insertOne({
+            type: "thought",
+            agent_title: agent_title,
+            agent_id: agent_id,
+            conversation_id: conversation_id,
+            root_observation_id: observation.root_observation_id,
+            observation_id: observation_id,
+            observation_or_thought: thought
+        } as Observation)
     }
 
     private makeCollectionName(memoryType: ("episodic" | "semantic" | "procedure")) {

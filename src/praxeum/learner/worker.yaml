@@ -1,0 +1,53 @@
+apiVersion: ad/v1
+kind: AutonomousWorker
+deployment_type: SkilledWorker
+title: root_worker
+is_root: false
+identifier: alpha
+job_description: A worker designed to answer questions from the user given a plan
+initial_plan: |
+  Use numbers and basic arithmetic operations (+ - * /) to obtain 24. When considering the next steps, do not choose operations that will result in a 
+  negative or fractional number. In order to help with the calculations, the
+  numbers in the parenthesis represent the numbers that are left after the operations and they are in descending order.
+  
+  Another thing we do is when there are only two numbers left in the parenthesis, we check whether we can arrive at 24 only by using basic arithmetic operations (+ - * /). Some examples regarding this idea:
+  (21 2) no since 21 + 2 = 23, 21 - 2 = 19, 21 * 2 = 42, 21 / 2 = 10.5, none of which is equal to 24.
+  (30 6) 30 - 6 = 24 yes
+  (8 3) 8 * 3 = 24 yes
+  (12 8) no
+  (48 2) 48 / 2 = 24 yes
+  Most importantly, do not give up, all the numbers that will be given has indeed a solution.
+  
+  Think step by step and record your thoughts along the way. If you find yourself repeating thoughts, try a different approach
+initial_instructions: |
+  ##### Objective ####
+  Solve the following puzzle:
+  {{numbers}}
+  ########
+input_schema:
+  type: object
+  properties:
+    numbers:
+      type: string
+      description: The numbers to plan 24 with
+  required:
+    - numbers
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+output_schema:
+  type: object
+  properties:
+    answer:
+      type: string
+      description: The answer
+  required:
+    - answer
+  additionalProperties: false
+  $schema: http://json-schema.org/draft-07/schema#
+available_tools:
+num_to_start: 1
+qaManager: learner_qa
+manager: learner_manager
+#model: gpt-3.5-turbo-16k
+model: gpt-4
+llm: openai.function

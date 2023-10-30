@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+node --enable-source-maps  --loader ./loader.js src/praxeum/game24.ts game24 "$@"

@@ -3,7 +3,7 @@ kind: AutonomousWorker
 deployment_type: QAManager
 title: learner_qa
 identifier: alpha
-job_description: An agent designed to check correctness
+job_description: An agent designed to create test plans to check if answers are correct. Only use me if you get stuck.
 initial_plan: You are a helpful agent designed do qa for other agents. You are
   responsible for assuring correctness. Come up with a test plan for provided
   question. Use the test plan to determine the correctness probability (between

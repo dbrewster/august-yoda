@@ -117,6 +117,14 @@ abstract class BaseOpenAILLM extends LLM {
                     content: FUNCTION_START + JSON.stringify(relevantContent) + FUNCTION_END,
                 }
                 break
+            case "response":
+                const helpResponse = event.content as any as HelpResponse
+                response = {
+                    role: typeRoleMap[event.type],
+                    name: helpResponse.helper_title,
+                    content: JSON.stringify(helpResponse.response)
+                }
+                break
             case "llm_error":
                 response = {
                     role: typeRoleMap[event.type],
@@ -180,14 +188,12 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
         job_description: "Records a thought or observation you might have.",
         input_schema: getOrCreateSchemaManager().compileZod(z.object({
             observation: z.string().describe("A very detailed observation. This should include detailed observations on the action or thought that just occurred"),
-            thought: z.string().describe("A very detailed thought. This should include your detailed thoughts on what you should do next."),
-            thought_type: z.enum(["action", "observation"]).describe("The type of thought. This can be either 'action' which means the thought is directly related to a helper tool call, or 'observation' which means this thought is an internal thought"),
-            thought_symbol: z.string().describe("A 4-5 word symbolic name for this thought.")
+            thoughts: z.array(z.string().describe("A very detailed thought. This should include your detailed thoughts on what you should do next.")),
         }))
     } as AgentTool
 
     async execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[], availableHelpers: AgentTool[]): Promise<LLMResult> {
-        let agentTools = availableHelpers.concat(this.thought_and_observation_tool);
+        let agentTools = availableHelpers //.concat(this.thought_and_observation_tool);
         const functions = agentTools.map(helper => {
             return {
                 name: helper.title,
@@ -207,6 +213,7 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
             observations: []
         }
         if (message && message.length) {
+            this.logger.info(JSON.stringify(response, null, 2))
             executeResponse.thoughts.push(message)
         }
         if (choice.message.function_call) {
@@ -221,8 +228,8 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
                 return Promise.reject("Invalid function call in response:" + choice.message.function_call.arguments)
             }
             if (choice.message.function_call.name === this.thought_and_observation_tool.title) {
-                // executeResponse.observations.push(args.observation)
-                executeResponse.thoughts.push(args)
+                executeResponse.observations.push(args.observation)
+                executeResponse.thoughts.push(...args.thoughts)
             } else {
                 executeResponse.helperCall = {
                     title: choice.message.function_call.name,
@@ -237,11 +244,12 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
     }
 
     formatHelpers(_: string[]): string {
-        return `You have the following tools available to you:
-        [${this.encodeVariable("tool_names")}]
-        
-        In particular, use the tool "${this.thought_and_observation_tool.title}" to thing through each intermediate step.\`
-        Return an appropriate negative response (an empty object or "I don't know") if you cannot answer the question or are not making progress`
+        return ""
+        // return `You have the following tools available to you:
+        // [${this.encodeVariable("tool_names")}]
+        //
+        // In particular, use the tool "${this.thought_and_observation_tool.title}" to think through each intermediate step.\`
+        // Return an appropriate negative response (an empty object or "I don't know") if you cannot answer the question or are not making progress`
     }
 
     formatMessage(event: EpisodicEvent, availableHelpers: AgentTool[]): ChatCompletionMessageParam {
@@ -266,6 +274,14 @@ export class OpenAIFunctionsLLM extends BaseOpenAILLM {
                     }
                 }
                 break;
+            case "response":
+                const helpResponse = event.content as any as HelpResponse
+                response = {
+                    role: typeRoleMap[event.type],
+                    name: helpResponse.helper_title,
+                    content: JSON.stringify(helpResponse.response)
+                }
+                break
             default:
                 response = super.formatMessage(event, availableHelpers)
         }
@@ -386,6 +402,7 @@ export const typeRoleMap: Record<string, 'system' | 'user' | 'assistant' | 'func
     instruction: "user",
     hallucination: "user",
     help: "assistant",
+    response: "assistant",
     llm_error: "user",
     thought: "assistant",
     observation: "assistant",

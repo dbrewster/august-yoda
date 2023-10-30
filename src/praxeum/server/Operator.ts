@@ -288,7 +288,8 @@ export class CodeAgentOperator extends BaseAgentOperator {
         const clazz = module[agentDescriptor.class]
 
         const options: CodeAgentOptions = {
-            title: resource.title
+            title: resource.title,
+            llm: this.envBuilder.buildLLM("openai.function", "gpt-3.5-turbo-16k", 0)
         }
         const agent = new clazz(options)
         agent.initialize({memory: this.envBuilder.buildMemory(agent.agent_identifier), environment: this.envBuilder.buildEnvironment()})

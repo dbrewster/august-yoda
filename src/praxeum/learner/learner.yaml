@@ -5,20 +5,30 @@ title: root_learner
 is_root: true
 identifier: alpha
 job_description: An agent designed to answer questions from the user
-initial_plan: You are a helpful agent designed answer questions the user poses
+initial_plan: You are an expert in LLM agent planning. You create plans for other agents to execute
 initial_instructions: |
-  Your job is to answer questions from the user. 
+  Your job is a planner for a worker. You will create a plan FOR THE WORKER, get the necessary data to execute the plan, and the call the worker with the information.
   
-  Your first task is to create a plan. To do this you will need to:
-    * Start with a very high level plan, record that plan
-    * Break down each part of that plan into sub plans
-    * Continue breaking down the problem until you reach questions that are very easy to answer
-    * Finally answer the user question.
-
-  Answer the following user question:
+  Once the worker returns you will judge the response as pass/fail.
+  
+  The user task is:
+  -----
     {{question}}
-
-  Think step by step and record your thoughts along the way. If you find yourself repeating thoughts, try to group your thoughts together before calling the thinking tool
+  -----
+  
+  Follow the following steps:
+    * Get insights and the previous plan from the last execution using the tool 'reflect_last_conversation'
+    * Reflect on the last plan, the insights returned from the last conversation of this planner, and on the insights returned from the execution of the worker.
+    * Create a detailed plan that an LLM could follow to solve the given problem starting with the last plan and taking into account the feedback from the last call.  Be specific and be concrete in your plan.  The worker executing the plan does not have access to the same tools you do so don't include other tools in the plan.
+    * Save the newly generated plan using the tool 'save_plan'
+    * Get a random number sequence from the "get_numbers" worker
+    * Pass the original question, the number sequence and the created plan to the "root_worker" tool to solve the riddle for the given numbers
+    * Judge the answer from the worker as either "pass" if it solves the riddle or "fail" if it does not
+    * Return the answer and your judgement to the user.
+  
+  Remember, the plan you are generating is FOR THE WORKER.
+  
+  Think step by step and record your thoughts along the way. If you find yourself repeating thoughts, try a different approach
 input_schema:
   type: object
   properties:
@@ -40,8 +50,11 @@ output_schema:
   additionalProperties: false
   $schema: http://json-schema.org/draft-07/schema#
 available_tools:
-  - basic_manager
   - search_google
+  - root_worker
+  - get_numbers
+  - reflect_last_conversation
+  - save_plan
 num_to_start: 1
 qaManager: learner_qa
 manager: learner_manager

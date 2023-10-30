@@ -48,7 +48,7 @@ export abstract class AutonomousWorker extends AutonomousAgent {
     protected buildHelpers(): Record<string, AgentToolCall> {
         const retObject = {...super.buildHelpers()}
         if (this.manager) {
-            retObject[this.manager] = remoteAgentCall(this.manager)
+            retObject[this.manager] = remoteAgentCall(this.manager, true)
         }
         return retObject;
     }
@@ -70,7 +70,7 @@ export class AutonomousSkilledWorker extends AutonomousWorker implements Skilled
 
     protected buildHelpers(): Record<string, AgentToolCall> {
         const retObject = {...super.buildHelpers()}
-        retObject[this.qaManager] = remoteAgentCall(this.qaManager)
+        // retObject[this.qaManager] = remoteAgentCall(this.qaManager, true)
         return retObject;
     }
 }

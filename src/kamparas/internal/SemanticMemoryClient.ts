@@ -5,6 +5,7 @@ import {SemanticMemory} from "@/kamparas/Memory";
 import {DateTime} from "luxon";
 import {mongoCollection} from "@/util/util"
 import OpenAI from "openai"
+import {size} from "underscore"
 
 
 export interface SemanticWrapper {
@@ -13,7 +14,7 @@ export interface SemanticWrapper {
 }
 
 
-abstract class SemanticMemoryClient {
+export abstract class SemanticMemoryClient {
     private openai: OpenAI = new OpenAI({});
     protected logger: Logger
 
@@ -80,12 +81,12 @@ export class MongoSemanticMemoryClient extends SemanticMemoryClient {
     async recordSemanticMemories(semantic_string: string, memories: Omit<SemanticMemory, "timestamp" | "semantic_string">[]) {
         let semanticEmbedding = await this.getEmbeddings(semantic_string)
         const collection = await mongoCollection(this.collection_name)
-        await collection.insertMany(memories.map(memory => { return {
+        await collection.insertMany(memories.map(memory => ({
             ...memory,
             semantic_string: semantic_string,
             semantic_embedding: semanticEmbedding,
             timestamp: DateTime.now().toISO()!,
-        }}))
+        })))
     }
 
 
