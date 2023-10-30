@@ -34,8 +34,7 @@ export interface MetaConcept extends Resource {
 
 export class BuildKnowledgePack extends CodeAgent {
     constructor(options: CodeAgentOptions) {
-        super({
-            ...options,
+        super(options, {
             identifier: "alpha",
             job_description: "Builds all of the concepts for a knowledge pack",
             input_schema: getOrCreateSchemaManager().compileZod(z.object({

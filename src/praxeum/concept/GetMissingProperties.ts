@@ -13,8 +13,7 @@ interface CopyMissingPropertiesArgs {
 export class GetMissingProperties extends CodeAgent {
 
     constructor(options: CodeAgentOptions) {
-        super({
-            ...options,
+        super(options, {
             identifier: "alpha",
             job_description: "Returns all concepts used in the system. This returns the interface and a description of the interface.",
             input_schema: getOrCreateSchemaManager().compileZod(z.object({

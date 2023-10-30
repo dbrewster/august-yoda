@@ -78,8 +78,7 @@ program.command("status")
         })
     })
 
-async function executeStandaloneRequest(title: string, data: any, context: any = {}): Promise<void> {
-    const envBuilder = new MongoRabbitPlatform()
+async function executeStandaloneRequest(title: string, data: any, context: any = {}, envBuilder: MongoRabbitPlatform = new MongoRabbitPlatform()): Promise<void> {
     const q = new RootQuestion()
     q.initialize({memory: envBuilder.buildMemory(q.agent_identifier), environment: envBuilder.buildEnvironment()})
     await q.start()
@@ -116,6 +115,34 @@ program.command("replay")
             taskStart.agent_title,
             (taskStart.content as StructuredEpisodicEvent).input,
             (taskStart.content as StructuredEpisodicEvent).context,
+        )
+    })
+
+
+program.command("summarize_conversation")
+    .description("Summarizes a conversation")
+    .argument("<conversation_id>", "The conversation to summarize")
+    .argument("<number_insights>", "The number of insights to derive")
+    .action(async (conversation_id, number_insights) => {
+        const envBuilder: MongoRabbitPlatform = new MongoRabbitPlatform()
+        const llm = envBuilder.buildLLM("openai.function", "gpt-3.5-turbo-16k", 0)
+        let collection = await mongoCollection<EpisodicEvent>("episodic");
+        const tasks = (await collection.find<EpisodicEvent>({conversation_id: conversation_id}).toArray()).filter(event => {
+            switch (event.type) {
+                case "task_start":
+                case "available_tools":
+                    return false
+                default:
+                    return true
+            }
+        }).map(event => JSON.stringify(llm.formatMessage(event, []))).join("\n")
+
+        await executeStandaloneRequest(
+            "MemoryReflector",
+            {
+                events: tasks,
+                number_of_insights: +number_insights
+            }
         )
     })
 

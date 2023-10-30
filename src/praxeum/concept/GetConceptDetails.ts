@@ -11,6 +11,7 @@ abstract class GetConceptDetailsBase extends CodeAgent {
     constructor(title: string, description: string, input_schema: ZodSchema) {
         super({
             title: title,
+        }, {
             identifier: "alpha",
             job_description: description,
             input_schema: getOrCreateSchemaManager().compileZod(input_schema),

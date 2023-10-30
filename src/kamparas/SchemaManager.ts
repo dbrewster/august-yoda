@@ -7,6 +7,10 @@ class SchemaManager {
 
     })
 
+    compileObj<T>(schema: Record<string, any>): ValidateFunction<T> {
+        return this.ajv.compile<T>(schema)
+    }
+
     compile<T>(schema: string): ValidateFunction<T> {
         return this.ajv.compile<T>(JSON.parse(schema))
     }

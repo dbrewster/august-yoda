@@ -3,14 +3,19 @@ import {nanoid} from "nanoid";
 import {DirectMessage} from "@/kamparas/internal/RabbitAgentEnvironment";
 import {Agent, AgentOptions} from "@/kamparas/Agent";
 import {DateTime} from "luxon";
+import {LLM} from "@/kamparas/LLM";
 
 export interface CodeAgentOptions {
     title: string,
+    llm: LLM
 }
 
 export abstract class CodeAgent extends Agent {
-    constructor(options: AgentOptions) {
-        super(options);
+    protected llm: LLM;
+
+    constructor(options: CodeAgentOptions, agentOptions: Omit<AgentOptions, "title" | "is_root">) {
+        super({is_root: false, ...options, ...agentOptions});
+        this.llm = options.llm
     }
 
     getLogType(): string {

@@ -11,7 +11,7 @@ initial_plan: >-
 
   Create a plan for the worker to solve the problem if it is possible.
 
-  Tell the worker "STOP WORKING" if they they cannot progress or are not making progress.
+  Give the plan to the worker or tell the worker "STOP WORKING" if they they cannot progress or are not making progress.
 initial_instructions: >
   I am trying am having a problem with "{{problem}}" and am unsure how to proceed.
   What should I do?

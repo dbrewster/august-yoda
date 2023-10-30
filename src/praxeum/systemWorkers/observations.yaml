@@ -1,0 +1,18 @@
+apiVersion: ad/v1
+kind: CodeAgent
+title: create_observation
+module: "@/praxeum/systemWorkers/CreateObservation"
+class: CreateObservation
+---
+apiVersion: ad/v1
+kind: CodeAgent
+title: create_observation_thought
+module: "@/praxeum/systemWorkers/CreateObservationThought"
+class: CreateObservationThought
+---
+apiVersion: ad/v1
+kind: CodeAgent
+title: create_observation_answer
+module: "@/praxeum/systemWorkers/CreateObservationAnswer"
+class: CreateObservationAnswer
+---

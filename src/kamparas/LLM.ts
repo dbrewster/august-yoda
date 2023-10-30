@@ -3,7 +3,6 @@ import {EpisodicEvent} from "@/kamparas/Memory";
 import {EventContent} from "@/kamparas/Environment";
 import {Logger} from "winston";
 import {rootLogger} from "@/util/RootLogger";
-import {undefined} from "zod"
 
 export type LLMResultType  = ("thought" | "call_helper")
 
@@ -31,6 +30,8 @@ export abstract class LLM {
         this.logger = logger
     }
 
+    abstract formatMessage(event: EpisodicEvent, availableHelpers: AgentTool[]): Record<string, any>
+
     abstract formatHelpers(availableHelpers: string[]): string
 
     abstract execute(options: LLMExecuteOptions, conversationId: string, events: EpisodicEvent[], functions: AgentTool[]): Promise<LLMResult>
@@ -50,6 +51,10 @@ export class NoOpLLM extends LLM {
     }
 
     upgradeModel(): LLM {
-        return this
+        throw "not implemented"
+    }
+
+    formatMessage(event: EpisodicEvent, availableHelpers: AgentTool[]): Record<string, any> {
+        throw "not implemented"
     }
 }

@@ -7,8 +7,7 @@ import {HelpResponse, NewTaskInstruction} from "@/kamparas/Environment";
 
 export class GetQueryInterfaces extends CodeAgent {
     constructor(options: CodeAgentOptions) {
-        super({
-            ...options,
+        super(options, {
             identifier: "alpha",
             job_description: "Returns the query interfaces needed to define a new query",
             input_schema: getOrCreateSchemaManager().compileZod(z.object({})),

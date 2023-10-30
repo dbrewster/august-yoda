@@ -13,10 +13,8 @@ export class GoogleSearchCodeAgent extends CodeAgent {
     customSearch = google.customsearch("v1")
 
     constructor(options: CodeAgentOptions) {
-        super({
-            ...options,
+        super(options, {
             job_description: "Searches google and returns the results",
-            is_root: false,
             identifier: "alpha",
             input_schema: getOrCreateSchemaManager().compileZod(z.object({question: z.string()})),
             answer_schema: getOrCreateSchemaManager().compileZod(z.object({

@@ -10,24 +10,61 @@ import {Agent, AgentInitOptions, AgentOptions, AgentTool} from "@/kamparas/Agent
 import {AgentRegistry} from "@/kamparas/AgentRegistry";
 import {Error} from "sequelize"
 import {getOrCreateSchemaManager} from "@/kamparas/SchemaManager"
-import {z} from "zod"
+import {ValidateFunction} from "ajv";
 
 export const final_answer_tool = {
     title: "final_answer",
     job_description: "return the final answer to the user.",
 } as AgentTool
 
-
 export type AgentToolCall = {
     tool_def: AgentTool
     call: (agent: AutonomousAgent, conversationId: string, requestId: string, context: EventContent, help: HelperCall) => Promise<void>
 }
 
-export const remoteAgentCall = (toolName: string): AgentToolCall => {
+const addThoughtToToolSchema = (inSchema: ValidateFunction): ValidateFunction<any> => {
+    const schema = {...inSchema.schema as Record<string, any>}
+    if (schema.properties.__thought) {
+        console.trace("WTF!!!")
+        return inSchema
+    } else {
+        schema.properties.__thought = {
+            type: "string",
+            description: "A very detailed description of the thought you have made"
+        }
+
+        const required = schema.required as string[]
+        required.push("__thought")
+        return getOrCreateSchemaManager().compileObj(schema)
+    }
+}
+
+async function addThoughtToMemory(content: EventContent, agent: AutonomousAgent, conversationId: string) {
+    const thought = content.__thought as string
+    if (thought) {
+        await agent.memory.recordEpisodicEvent({
+            actor: "worker",
+            type: "thought",
+            conversation_id: conversationId,
+            timestamp: DateTime.now().toISO(),
+            content: thought
+        } as EpisodicEvent)
+        delete content.__thought
+    }
+}
+
+export const remoteAgentCall = (toolName: string, addThought: boolean): AgentToolCall => {
     const agent = AgentRegistry.getIdentifier(toolName)
+    if (!agent) {
+        throw `Invalid agent name ${toolName}`
+    }
     return ({
         tool_def: agent,
         call: async (agent: AutonomousAgent, conversationId: string, requestId: string, context: EventContent, help: HelperCall): Promise<void> => {
+            let content = help.content;
+            if (addThought) {
+                await addThoughtToMemory(content, agent, conversationId);
+            }
             await agent.memory.recordEpisodicEvent({
                 actor: "worker",
                 type: "help",
@@ -39,12 +76,12 @@ export const remoteAgentCall = (toolName: string): AgentToolCall => {
                 },
                 content: {
                     tool_name: help.title,
-                    arguments: help.content
+                    arguments: content
                 }
             })
             agent.logger.info(`Asking help from ${help.title} (request_id ${requestId})`, {conversation_id: conversationId})
             // noinspection ES6MissingAwait
-            agent.environment.askForHelp(agent.title, agent.identifier, conversationId, help.title, requestId, context, help.content)
+            agent.environment.askForHelp(agent.title, agent.identifier, conversationId, help.title, requestId, context, content)
             return Promise.resolve()
         }
     })
@@ -80,6 +117,8 @@ export class AutonomousAgent extends Agent {
     initial_plan_instructions: string
     overwrite_plan_instructions: boolean
 
+    private compiledTools?: Record<string, AgentToolCall>
+
     constructor(options: AutonomousAgentOptions) {
         super(options);
         this.availableTools = options.availableTools
@@ -112,17 +151,28 @@ export class AutonomousAgent extends Agent {
 
     protected buildHelpers() {
         const availableHelpers: Record<string, AgentToolCall> = {}
-        this.availableTools.forEach(t => {
-            availableHelpers[t] = remoteAgentCall(t)
-        })
+        if (this.availableTools) {
+            this.availableTools.forEach(t => {
+                availableHelpers[t] = remoteAgentCall(t, true)
+            })
+        }
+
+        // availableHelpers["create_observation"] = remoteAgentCall("create_observation", false)
+        // availableHelpers["create_observation_thought"] = remoteAgentCall("create_observation_thought", false)
+        // availableHelpers["create_observation_answer"] = remoteAgentCall("create_observation_answer", false)
 
         const doAnswerThisPtr = this
         availableHelpers[final_answer_tool.title] = localAgentCall({
             ...final_answer_tool,
-            input_schema: this.outputSchema
-        }, this.doAnswer.bind(doAnswerThisPtr))
+            input_schema: addThoughtToToolSchema(this.outputSchema)
+        }, this.recordThoughtAndAnswer.bind(doAnswerThisPtr))
 
         return availableHelpers
+    }
+
+    async recordThoughtAndAnswer(conversationId: string, _requestId: string, content: EventContent) {
+        await addThoughtToMemory(content, this, conversationId)
+        return this.doAnswer(conversationId, _requestId, content)
     }
 
     async processInstruction(instruction: NewTaskInstruction): Promise<void> {
@@ -151,7 +201,27 @@ export class AutonomousAgent extends Agent {
             timestamp: DateTime.now().toISO()!,
             content: this.availableTools
         })
-        const instructions: string = await this.memory.readPlanInstructions({...instruction.input, "__context__": instruction.context})
+        let instructions: string = await this.memory.readPlanInstructions({...instruction.input, "__context__": instruction.context})
+        /*
+                instructions = `Everything you do will be recorded with the provided tools that record observations, thoughts, and answers to the observations.
+          Observations are arranged in a tree format. Each node in the tree must conform to the following sequence of calls describe in EBNF form:
+            root_observation_chain ::= record_chain final_answer
+            record_chain ::= create_observation think_and_execute
+            think_and_execute ::= <create_observation_thought>+ <execute_other_tools> <think_and_execute>? |
+                                  <create_observation_thought>+ <record_chain> <think_and_execute>? |
+                                  <create_observation_thought>+
+          where
+            create_observation = call to the create_observation tool
+            create_observation_thought = call to the create_observation_thought tool
+            execute_other_tools = call to any other tool available
+            final_answer = call to the final_answer tool
+
+          The root observation_id is "root".
+
+          The root of your observation chain is root_observation_chain. Make sure you call create_observation_answer for all new observation chains including the root observation chain for id "root"
+        ` + instructions
+        */
+
         await this.memory.recordEpisodicEvent({
             actor: "worker",
             type: "instruction",
@@ -161,7 +231,7 @@ export class AutonomousAgent extends Agent {
         } as EpisodicEvent)
         if (process.env.ENABLE_SEMANTIC_MEMORIES === "true") {
             let memories = await this.memory.searchSemanticMemory(instructions, 1000)
-            memories.sort((a, b) => a.relevance*a.memory.importance < b.relevance*b.memory.importance? 1 : -1)
+            memories.sort((a, b) => a.relevance * a.memory.importance < b.relevance * b.memory.importance ? 1 : -1)
             for (let memory of memories.slice(0, Math.min(memories.length, 3))) {
                 await this.memory.recordEpisodicEvent({
                     actor: "worker",
@@ -223,17 +293,20 @@ export class AutonomousAgent extends Agent {
     }
 
     private async think(conversationId: string): Promise<void> {
-
         try {
+            if (!this.compiledTools) {
+                this.compiledTools = this.buildHelpers()
+            }
             let numConcurrentThoughts = 0
-            while (numConcurrentThoughts < this.maxConcurrentThoughts) {
+            const cutoffPoint = this.maxConcurrentThoughts * 2
+            while (numConcurrentThoughts < cutoffPoint) {
                 const events = await this.memory.readEpisodicEventsForTask(conversationId)
                 let llm = this.llm
                 if (numConcurrentThoughts >= this.upgradeThoughtsThreshold) {
                     llm = llm.upgradeModel()
                 }
                 const taskStart = events.find(e => e.type == "task_start")!.content as NewTaskInstruction
-                const availableHelpers = this.buildHelpers()
+                const availableHelpers = this.compiledTools
                 this.logger.info(`Thinking with ${events.length} events: (Thought #${numConcurrentThoughts})`, {conversation_id: conversationId})
                 const result = await llm.execute({}, conversationId, events, Object.values(availableHelpers).map(h => h.tool_def)).catch(async e => {
                     // open AI api errors indicate a request issue the caller should know about
@@ -304,6 +377,9 @@ export class AutonomousAgent extends Agent {
                     }
                 }
                 ++numConcurrentThoughts
+                if (numConcurrentThoughts == this.maxConcurrentThoughts) {
+                    await this.processHallucination("too_many_thoughts", conversationId, "", "")
+                }
             }
             await this.processHallucination("too_many_thoughts", conversationId, "", "")
             await this.handleError(conversationId, `Too many consecutive thoughts for worker ${this.id_string()}, conversation_id:${conversationId}`)
@@ -336,7 +412,7 @@ export class AutonomousAgent extends Agent {
                     agent_id: this.agent_identifier.identifier,
                     conversation_id: conversationId,
                     timestamp: DateTime.now().toISO(),
-                    content: `You are thinking too much. Did you forgot to call a tool correctly? Perhaps the ${final_answer_tool.title} tool?`
+                    content: `You are thinking too much. Are you caught in an infinite thought loop? Did you forgot to call a tool correctly? Perhaps the ${final_answer_tool.title} tool?`
                 } as EpisodicEvent)
                 this.logger.warn(`LLM is thinking too much`, {conversation_id: conversationId})
                 break
@@ -345,13 +421,3 @@ export class AutonomousAgent extends Agent {
 }
 
 export type HallucinationType = ("bad_tool" | "too_many_thoughts")
-
-export class RootQuestionAutonomousAgent extends AutonomousAgent {
-
-    constructor(options: Omit<AutonomousAgentOptions, "input_schema" | "answer_schema">) {
-        super({...options,
-            input_schema: getOrCreateSchemaManager().compileZod(z.object({question: z.string()})),
-            answer_schema: getOrCreateSchemaManager().compileZod(z.object({answer: z.string()})),
-        })
-    }
-}
